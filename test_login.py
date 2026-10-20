@@ -7,8 +7,8 @@ from pathlib import Path
 from retrieval import db_users, auth
 
 DB_FILE = Path(__file__).parent / "test.db"
-USERNAME = "NL-2048"
-PASSWORD = "password1234"
+USERNAME = "BLFD-01"
+PASSWORD = "blfd2024"
 
 print(f"Using database: {DB_FILE.resolve()}")
 db_users.init_db(DB_FILE)
