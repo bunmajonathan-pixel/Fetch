@@ -28,6 +28,7 @@ from retrieval import (
     AuthError, login, logout, validate_token,
 )
 from retrieval.sources import PDFSource
+from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
 from retrieval import db_users
 
@@ -36,6 +37,7 @@ from retrieval import db_users
 # ---------------------------------------------------------------------------
 BASE_DIR    = Path(__file__).parent
 # Root that contains ALL category folders (individual, behavior, Financial_and_Commercial, …)
+# NOTE: looks like a leftover shell brace-expansion name; verify it points at your real data folder.
 DATA_ROOT   = BASE_DIR / "{retrieval\\sources,tests,examples}"
 UI_PATH     = BASE_DIR / "Data Pull UI.html"
 
@@ -211,9 +213,7 @@ def api_signin():
 
     # Derive display name
     user_rec = db_users.get_user(username)
-    display_name = username
-    if user_rec and hasattr(user_rec, "display_name"):
-        display_name = user_rec.display_name
+    display_name = getattr(user_rec, "display_name", None) or username
 
     resp = jsonify(name=display_name, id=uid, company=company, token=token)
     resp.set_cookie("session_token", token, httponly=True, samesite="Strict")
@@ -273,16 +273,15 @@ def api_retrieve():
         return jsonify(rows=[]), 200
 
     scoped_retriever = Retriever(scoped_sources, cache=TTLCache(ttl=300))
-    from retrieval.types import Query
     docs = scoped_retriever.retrieve(Query(query, limit=50))
 
     if not docs:
         return jsonify(rows=[]), 200
 
-    terms = query.lower().split()
+    terms: list[str] = query.lower().split()
 
     # Dedupe: keep the best-scoring page per report stem
-    best: dict[str, object] = {}
+    best: dict[str, Document] = {}
     for d in docs:
         stem = d.metadata.get("stem") or d.id
         if stem not in best or d.score > best[stem].score:
