@@ -29,6 +29,7 @@ from retrieval import (
 )
 from retrieval.sources import PDFSource
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
+from retrieval import db_users
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -73,6 +74,9 @@ COLUMNS = [
 # Audit log
 # ---------------------------------------------------------------------------
 _audit_configure(BASE_DIR / "audit.log")
+
+# SQLite user store: must run once at startup, before any login
+db_users.init_db(BASE_DIR / "users.db")
 
 # Admin token — set env var AUDIT_TOKEN to enable the /api/audit endpoint.
 # Defaults to a disabled sentinel so the endpoint is off unless configured.
@@ -182,6 +186,9 @@ def api_signin():
     uid      = (body.get("id")      or "").strip()
     password = (body.get("password") or "").strip()
 
+    print(f"[signin] company={company!r} id={uid!r} password_len={len(password)} "
+          f"user_found={db_users.get_user(uid) is not None}", flush=True)
+
     if not uid or not password:
         return jsonify(error="Missing credentials.", code="BAD_CREDENTIALS"), 400
 
@@ -203,8 +210,7 @@ def api_signin():
     _audit("signin", username, ip=request.remote_addr, detail={"company": company})
 
     # Derive display name
-    from retrieval.users import get_user
-    user_rec = get_user(username)
+    user_rec = db_users.get_user(username)
     display_name = username
     if user_rec and hasattr(user_rec, "display_name"):
         display_name = user_rec.display_name
@@ -256,8 +262,7 @@ def api_retrieve():
     _audit("retrieve", username, ip=request.remote_addr, detail={"query": query})
 
     # Determine which tickers this user has access to
-    from retrieval.users import get_user
-    user_rec = get_user(username)
+    user_rec = db_users.get_user(username)
     if user_rec is None:
         return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
 

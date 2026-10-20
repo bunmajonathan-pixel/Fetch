@@ -13,7 +13,7 @@ import secrets
 import time
 from typing import Optional
 
-from .users import get_user
+from .db_users import get_user
 
 
 class AuthError(Exception):

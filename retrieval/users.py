@@ -37,8 +37,6 @@ _USER_DB: dict[str, UserRecord] = {
     # Unit-test users (document IDs)
     "alice":   UserRecord("alice",   _hash("alice123"),     ["1", "3"]),
     "bob":     UserRecord("bob",     _hash("bob456"),       ["2"]),
-    # Demo user: access to all three company tickers
-    "NL-2048": UserRecord("NL-2048", _hash("password1234"), ["BLFD", "HDYN", "MCLD"]),
     # Single-company analyst accounts
     "BLFD-01": UserRecord("BLFD-01", _hash("blfd2024"),     ["BLFD"]),
     "HDYN-01": UserRecord("HDYN-01", _hash("hdyn2024"),     ["HDYN"]),

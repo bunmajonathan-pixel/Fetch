@@ -650,3 +650,13 @@
 {"ts": "2026-10-20T04:15:50.882424+00:00", "event": "signin_fail", "username": "NL-2048", "ip": "127.0.0.1", "detail": {"company": ""}}
 {"ts": "2026-10-20T04:15:51.352136+00:00", "event": "signin_fail", "username": "NL-2048", "ip": "127.0.0.1", "detail": {"company": ""}}
 {"ts": "2026-10-20T04:15:51.359821+00:00", "event": "signin_rate_limited", "username": "NL-2048", "ip": "127.0.0.1", "detail": {"company": ""}}
+{"ts": "2026-10-20T05:27:58.870340+00:00", "event": "signin", "username": "NL-2048", "ip": "127.0.0.1", "detail": {"company": ""}}
+{"ts": "2026-10-20T05:28:38.943110+00:00", "event": "retrieve", "username": "NL-2048", "ip": "127.0.0.1", "detail": {"query": "Ad-hoc troubleshooting"}}
+{"ts": "2026-10-20T05:29:51.979518+00:00", "event": "signout", "username": "", "ip": "127.0.0.1", "detail": {}}
+{"ts": "2026-10-20T05:31:10.905536+00:00", "event": "signin", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {"company": ""}}
+{"ts": "2026-10-20T05:31:13.542157+00:00", "event": "retrieve", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {"query": "Q1 2025 revenue"}}
+{"ts": "2026-10-20T05:31:26.794254+00:00", "event": "signout", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {}}
+{"ts": "2026-10-20T05:31:30.889583+00:00", "event": "signin", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {"company": ""}}
+{"ts": "2026-10-20T05:31:34.936318+00:00", "event": "retrieve", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {"query": "Ad-hoc troubleshooting"}}
+{"ts": "2026-10-20T05:31:49.470655+00:00", "event": "signout", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {}}
+{"ts": "2026-10-20T05:38:28.062299+00:00", "event": "signin", "username": "BLFD-01", "ip": "127.0.0.1", "detail": {"company": ""}}
