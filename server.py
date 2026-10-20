@@ -278,7 +278,7 @@ def api_retrieve():
     if not docs:
         return jsonify(rows=[]), 200
 
-    terms: list[str] = query.lower().split()
+    terms: list[str] = [t for t in query.lower().split()]
 
     # Dedupe: keep the best-scoring page per report stem
     best: dict[str, Document] = {}
@@ -362,4 +362,4 @@ def _issue_token(username: str) -> str:
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, use_reloader=False, port=5000)
