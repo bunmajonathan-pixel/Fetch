@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fetch</title>
+<style>
+:root{--bg:#f5f7fb;--s:#fff;--t:#0f172a;--m:#64748b;--l:#e2e8f0;--b:#2356d6;--bs:#eaf0ff;--d:#c53030;--ds:#fdecec;--ok:#15803d;--oks:#e6f6ec;--ov:rgba(15,23,42,.45);--warn:#b45309;--warns:#fef3c7;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--s:#121a2b;--t:#e6ebf5;--m:#8b98b0;--l:#25314a;--b:#5b8cff;--bs:#16244a;--d:#ff7b7b;--ds:#3a1a1f;--ok:#4ade80;--oks:#12301f;--ov:rgba(0,0,0,.6);--warn:#fbbf24;--warns:#292100;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--s:#121a2b;--t:#e6ebf5;--m:#8b98b0;--l:#25314a;--b:#5b8cff;--bs:#16244a;--d:#ff7b7b;--ds:#3a1a1f;--ok:#4ade80;--oks:#12301f;--ov:rgba(0,0,0,.6);--warn:#fbbf24;--warns:#292100;color-scheme:dark}
+:root[data-theme="light"]{--bg:#f5f7fb;--s:#fff;--t:#0f172a;--m:#64748b;--l:#e2e8f0;--b:#2356d6;--bs:#eaf0ff;--d:#c53030;--ds:#fdecec;--ok:#15803d;--oks:#e6f6ec;--ov:rgba(15,23,42,.45);--warn:#b45309;--warns:#fef3c7;color-scheme:light}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--t);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--s);border-bottom:1px solid var(--l);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:32px;height:32px;border-radius:8px;background:var(--b);color:#fff;display:grid;place-items:center;font-weight:700}
+.brand{font-size:17px;font-weight:600}.sub{color:var(--m);font-size:12px;border-left:1px solid var(--l);padding-left:12px}
+.sp{flex:1}.pill{background:var(--bs);color:var(--m);font-size:11px;padding:3px 10px;border-radius:99px}
+.user{display:flex;gap:8px;align-items:center;font-size:12px}.av{width:26px;height:26px;border-radius:50%;background:var(--bs);color:var(--b);display:grid;place-items:center;font-size:10px;font-weight:600}
+.theme-btn{background:none;border:1px solid var(--l);border-radius:6px;color:var(--m);cursor:pointer;font-size:14px;padding:4px 8px;line-height:1}
+.crumb{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;font-size:11px;color:var(--m);gap:12px;flex-wrap:wrap}
+.steps{display:flex;gap:14px}.steps b{color:var(--b);font-weight:600}.steps span:not(:last-child)::after{content:"›";margin-left:14px}
+main{flex:1;padding:8px 24px 32px;display:flex;justify-content:center;align-items:flex-start}
+.wrap{width:100%;max-width:960px}.narrow{max-width:640px}
+footer{display:flex;justify-content:space-between;padding:14px 24px;font-size:11px;color:var(--m);flex-wrap:wrap;gap:6px}
+h1{font-size:32px;line-height:1.15;margin:8px 0 12px;font-weight:500}h2{font-size:24px;margin:0 0 6px;font-weight:500}
+p{margin:0;color:var(--m)}.eyebrow{display:inline-block;background:var(--bs);color:var(--b);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;font-weight:600}
+.card{background:var(--s);border:1px solid var(--l);border-radius:12px;padding:24px}
+.hero{display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:center;padding-top:20px}
+.feat{display:flex;gap:12px;margin-top:16px}.feat i{width:28px;height:28px;border-radius:6px;background:var(--bs);color:var(--b);display:grid;place-items:center;font-style:normal;flex:none}.feat b{display:block;font-size:13px}.feat span{font-size:12px;color:var(--m)}
+label{display:block;font-weight:600;font-size:12px;margin:14px 0 6px}
+input{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px solid var(--l);border-radius:6px;padding:10px 12px}
+input:focus{outline:2px solid var(--b);outline-offset:-1px}input.err{border-color:var(--d)}input:disabled{background:var(--bg);color:var(--m)}
+.pw{position:relative}.pw button{position:absolute;right:6px;top:4px;background:none;border:0;color:var(--m);cursor:pointer;padding:6px}
+.hint{font-size:11px;color:var(--m);margin-top:6px}
+.btn{font:inherit;font-weight:600;border-radius:6px;padding:9px 16px;cursor:pointer;border:1px solid transparent;display:inline-flex;gap:8px;align-items:center;justify-content:center}
+.btn.primary{background:var(--b);color:#fff}.btn.sec{background:var(--s);border-color:var(--l);color:var(--t)}.btn.ghost{background:none;color:var(--t)}.btn.danger{background:var(--d);color:#fff}
+.btn.block{width:100%;margin-top:18px}.btn:disabled{opacity:.6;cursor:default}
+.alert{border-radius:8px;padding:10px 12px;margin-top:14px;font-size:12px;background:var(--ds);color:var(--d)}.alert b{display:block}.alert span{color:var(--t);opacity:.8}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 40px}.chip{font:inherit;font-size:12px;background:var(--s);border:1px solid var(--l);color:var(--t);border-radius:99px;padding:5px 12px;cursor:pointer}
+.bar{display:flex;gap:8px;align-items:center;background:var(--s);border:1px solid var(--l);border-radius:10px;padding:6px}.bar input{border:0;background:none}.bar input:focus{outline:0}
+.bar button{width:34px;height:34px;border-radius:8px;border:0;background:var(--b);color:#fff;cursor:pointer;font-size:16px}.bar.dis{background:var(--bg)}.bar.dis button{background:var(--l);color:var(--m)}
+.bubble{border-radius:10px;padding:12px 16px;margin-bottom:12px}.bubble small{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--m);margin-bottom:2px}.bubble.u{background:var(--bs)}.bubble.sys{background:var(--s);border:1px solid var(--l)}
+.prog{height:3px;background:var(--l);border-radius:3px;margin:12px 0;overflow:hidden}.prog i{display:block;height:100%;width:35%;background:var(--b);animation:slide 1.4s ease-in-out infinite}
+@keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+.sk{height:10px;border-radius:4px;background:var(--l);margin:8px 0}
+.spin{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:r .8s linear infinite;display:inline-block}@keyframes r{to{transform:rotate(360deg)}}
+.banner{display:flex;justify-content:space-between;background:var(--bs);color:var(--b);border-radius:8px;padding:8px 14px;font-size:12px;margin-bottom:8px;align-items:center;gap:8px;flex-wrap:wrap}
+.warn-banner{background:var(--warns);color:var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.tw{overflow-x:auto;border:1px solid var(--l);border-radius:10px;background:var(--s)}
+table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:760px}th{font-size:11px;color:var(--m);text-align:left;font-weight:600;padding:10px 14px;border-bottom:1px solid var(--l)}
+td{padding:11px 14px;border-bottom:1px solid var(--l);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}tr:last-child td{border:0}
+.st{background:var(--oks);color:var(--ok);font-size:11px;padding:2px 8px;border-radius:99px}
+.hl{background:var(--warns);color:var(--warn);border-radius:2px;padding:0 2px;font-weight:600}
+.note{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:14px;font-size:12px}.note .card{padding:16px}.note b{font-size:13px}
+.tag{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--m)}
+.pager{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:10px;font-size:12px;color:var(--m)}
+.pager button{font:inherit;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--l);background:var(--s);color:var(--t);cursor:pointer}.pager button:disabled{opacity:.4;cursor:default}
+.ov{position:fixed;inset:0;background:var(--ov);display:grid;place-items:center;padding:16px;z-index:20}
+.dlg{background:var(--s);border-radius:12px;padding:24px;max-width:400px;width:100%}.row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.center{text-align:center}.ico{width:44px;height:44px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:20px}
+.pdf-ov{position:fixed;inset:0;background:var(--ov);display:flex;flex-direction:column;z-index:30;padding:16px;gap:10px}
+.pdf-bar{display:flex;align-items:center;gap:10px;background:var(--s);border-radius:8px;padding:8px 12px;border:1px solid var(--l)}
+.pdf-bar span{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-frame{flex:1;border:0;border-radius:8px;background:#fff;width:100%;min-height:0}
+@media(max-width:800px){.hero{grid-template-columns:1fr;gap:24px}.note{grid-template-columns:1fr}h1{font-size:26px}}
+</style></head>
+<body>
+<div id="hdr"></div><div id="app"></div>
+<footer><span>Illustrative workspace · Sample data only</span><span>Read-only · Session-based access</span></footer>
+<script>
+/* ===== Live DataService — calls the Flask backend at /api/* ===== */
+const DataService={
+  _token:null,
+  _refreshTimer:null,
+  async signIn({company,id,password}){
+    const r=await fetch("/api/signin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company,id,password})});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Sign-in failed");e.code=d.code||"BAD_CREDENTIALS";throw e}
+    this._token=d.token;this._scheduleRefresh();return{name:d.name,id:d.id,company:d.company}
+  },
+  async retrieve(text){
+    const r=await fetch("/api/retrieve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:text,token:this._token})});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Retrieve failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async refresh(){
+    try{
+      const r=await fetch("/api/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:this._token})});
+      const d=await r.json();
+      if(r.ok&&d.token){this._token=d.token;this._scheduleRefresh()}
+    }catch(e){}
+  },
+  _scheduleRefresh(){
+    clearTimeout(this._refreshTimer);
+    this._refreshTimer=setTimeout(()=>this.refresh(),55*60*1000);
+  },
+  async signOut(){
+    clearTimeout(this._refreshTimer);
+    await fetch("/api/signout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:this._token})});
+    this._token=null
+  }
+};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* Render **bold** markers from server as <mark> highlights */
+const hlSnippet=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<mark class="hl">$1</mark>');
+const $=(s,r=document)=>r.querySelector(s);
+const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false};
+const PAGE_SIZE=10;
+const STEP={login:0,request:1,retrieving:2,notfound:2,results:3};
+const SESSION_MIN=15;
+
+/* ===== Dark / light mode ===== */
+function getTheme(){return localStorage.getItem("theme")||"auto"}
+function applyTheme(t){
+  if(t==="auto")document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme",t);
+  localStorage.setItem("theme",t);
+}
+applyTheme(getTheme());
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute("data-theme");
+  applyTheme(cur==="dark"?"light":cur==="light"?"auto":"dark");
+  header();
+}
+function themeIcon(){const t=document.documentElement.getAttribute("data-theme");return t==="dark"?"☀️":t==="light"?"🌙":"🌓"}
+
+function header(){
+  const st=STEP[S.screen];
+  $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Data Pull</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
+  <div class="crumb"><span>${S.user?esc(S.user.company?S.user.company.toUpperCase():S.user.id):"WORKSPACE"} / DATA WORKSPACE</span><div class="steps">${["Sign in","Request","Retrieve","Review"].map((n,i)=>i===st?`<span><b>${n}</b></span>`:`<span>${n}</span>`).join("")}</div></div>`;
+}
+function go(screen){S.screen=screen;if(screen==="results")S.page=0;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]()}
+
+const VIEWS={
+login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focused session.</span><h1>The data you need.<br>Nothing left behind.</h1><p>Ask for a specific dataset, review it in a temporary view, and close your session when you're done.</p>
+ ${[["💬","Ask in plain language","Describe the records you want to review."],["▦","Review a temporary view","Read-only results, scoped to this session."],["⇥","Close and sign out","Closing clears the data and ends your session."]].map(f=>`<div class="feat"><i>${f[0]}</i><div><b>${f[1]}</b><span>${f[2]}</span></div></div>`).join("")}</div>
+ <form class="card" id="lf" novalidate><h2>Sign in to your workspace</h2><p>Enter your ID and password to start a new session.</p>
+ <label for="id">ID</label><input id="id" value="NL-2048" autocomplete="username">
+ <label for="pw">Password</label><div class="pw"><input id="pw" type="password" value="password1234" autocomplete="current-password"><button type="button" id="eye" aria-label="Show or hide password">👁</button></div>
+ <div class="hint">Use the eye icon to show or hide your password. Demo: password "wrong" triggers errors.</div>
+ <div id="fb">${S.err?S.err:'<div class="hint">ⓘ Sign-in feedback will appear here.</div>'}</div>
+ <button class="btn primary block" id="go">→ Sign in</button><p class="hint" style="margin-top:16px;border-top:1px solid var(--l);padding-top:12px">Trouble signing in? Contact your company's workspace administrator.</p></form></div>`,
+request:()=>`<div class="wrap narrow" style="padding-top:40px"><span class="pill" style="background:var(--oks);color:var(--ok)">Signed in · ${esc(S.user.id)}</span><h1 style="font-size:30px">What data would you like pulled?</h1><p>Hi ${esc(S.user.name.split(" ")[0])}. Describe the records you need. Results open in a temporary, read-only view for this session.</p>
+ <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}</div>`,
+retrieving:()=>`<div class="wrap narrow" style="padding-top:24px"><h2>Your request</h2><div class="bubble u" style="margin-top:12px"><small>You · ${esc(S.user.name)}</small>${esc(S.query)}</div>
+ <div class="bubble sys"><small>Data pull</small><b><span class="spin" style="color:var(--b)"></span> Pulling your data…</b><div class="hint">Finding records that match your request.</div><div class="prog"><i></i></div><div class="sk" style="width:60%"></div><div class="sk" style="width:85%"></div><div class="hint">Preparing a temporary view · This may take a few moments</div></div><div style="margin-top:40px">${bar(true)}</div></div>`,
+notfound:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Data not found</h2><p>We couldn't find records matching your request. Try a broader date range or a different category.</p>
+ <div class="bubble" style="background:var(--bg);margin:16px 0"><small>Your request</small>${esc(S.query)}</div><div style="display:flex;gap:8px"><button class="btn primary" id="again">← Try another request</button><button class="btn sec" id="close">Close</button></div><div class="hint" style="margin-top:14px">Your session is still active. Closing will sign you out.</div></div></div>`,
+results:()=>{
+  const R=S.result;
+  const total=R.rows.length;
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+  const pageRows=R.rows.slice(S.page*PAGE_SIZE,(S.page+1)*PAGE_SIZE);
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ <div class="top"><div><h2>${esc(R.title)}</h2><p>${esc(R.subtitle)}</p><p class="hint">${total} records · Sample dataset</p></div>
+ <div class="top-actions"><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="tw"><table><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
+   if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
+   if(c.type==="pdf_link")return`<td><button class="btn sec" style="padding:4px 10px;font-size:11px" onclick="openPdf('${esc(r[c.key])}','${esc(r.report)}')">↗ View</button></td>`;
+   if(c.key==="snippet")return`<td title="${esc(r[c.key])}">${hlSnippet(r[c.key]||"")}</td>`;
+   return`<td title="${esc(r[c.key])}">${esc(r[c.key])}</td>`;
+ }).join("")}</tr>`).join("")}</tbody></table></div>
+ ${totalPages>1?`<div class="pager"><button id="pg-prev" ${S.page===0?"disabled":""}>← Prev</button><span>Page ${S.page+1} of ${totalPages}</span><button id="pg-next" ${S.page>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
+ ${R.note?`<div class="note"><div class="card"><span class="tag">${esc(R.note.tag)}</span><br><b>${esc(R.note.title)}</b><p style="margin-top:6px">${hlSnippet(R.note.body||"")}</p></div><div><b>Available for this session only</b><p style="margin-top:4px">Matched terms are highlighted in the Matched text column. Hover a cell to see its full value.</p></div></div>`:""}
+ </div>`},
+loggedout:()=>`<div class="wrap" style="max-width:440px;padding-top:50px"><div class="card center"><div class="ico" style="background:var(--oks);color:var(--ok)">✓</div><span class="pill" style="background:var(--oks);color:var(--ok)">Session ended</span><h2 style="margin-top:12px">You've been logged out</h2><p>Your session has ended and your temporary data has been cleared.</p><button class="btn primary block" id="back">→ Return to login</button></div></div>`
+};
+function bar(dis){return`<div class="bar ${dis?"dis":""}"><input id="q" placeholder="${dis?"Retrieving data. Please wait…":"Describe the data you need…"}" ${dis?"disabled":""} aria-label="Data request"><button id="send" ${dis?"disabled":""} aria-label="Send">↑</button></div><div class="hint">Include a date range or a status to help narrow your request.</div>`}
+
+const BIND={
+login(){
+  $("#eye").onclick=()=>{const p=$("#pw");p.type=p.type==="password"?"text":"password"};
+  $("#lf").onsubmit=async e=>{e.preventDefault();const b=$("#go");b.disabled=true;b.innerHTML='<span class="spin"></span> Signing in…';
+    const v={company:"",id:$("#id").value.trim(),password:$("#pw").value};
+    if(!v.id||!v.password){b.disabled=false;b.textContent="→ Sign in";["id","pw"].forEach(k=>$("#"+k).classList.toggle("err",!$("#"+k).value.trim()));$("#fb").innerHTML='<div class="alert"><b>Missing details</b><span>Enter your ID and password.</span></div>';return}
+    try{S.user=await DataService.signIn(v);S.err=null;go("request")}
+    catch(x){S.err=x.code==="LOCKED"?'<div class="alert"><b>🔒 Account locked</b><span>Too many unsuccessful attempts. Contact your workspace administrator to unlock your account.</span></div>':'<div class="alert"><b>Unable to sign in</b><span>Your ID or password is incorrect. Check your details and try again.</span></div>';go("login")}};
+},
+request(){
+  const send=t=>{t=(t||$("#q").value).trim();if(t)run(t)};
+  $("#send").onclick=()=>send();$("#q").onkeydown=e=>{if(e.key==="Enter")send()};$("#q").focus();
+  document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
+},
+retrieving(){},
+notfound(){$("#again").onclick=()=>go("request");$("#close").onclick=confirmClose},
+results(){
+  S.warnShown=false;
+  $("#close").onclick=confirmClose;
+  $("#export").onclick=exportCsv;
+  const pn=$("#pg-next"),pp=$("#pg-prev");
+  if(pn)pn.onclick=()=>{S.page++;go("results")};
+  if(pp)pp.onclick=()=>{S.page--;go("results")};
+  tick();S.timer=setInterval(tick,1000);
+},
+loggedout(){$("#back").onclick=()=>{S.err=null;go("login")}}
+};
+
+/* ===== CSV Export ===== */
+function exportCsv(){
+  const R=S.result;
+  const cols=R.columns.filter(c=>c.type!=="pdf_link");
+  const header=cols.map(c=>JSON.stringify(c.label)).join(",");
+  const rows=R.rows.map(r=>cols.map(c=>JSON.stringify(String(r[c.key]||"").replace(/\*\*/g,""))).join(","));
+  const csv=[header,...rows].join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`data-pull-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function run(text){
+  S.query=text;go("retrieving");
+  try{const r=await DataService.retrieve(text);if(S.screen!=="retrieving")return;
+    if(!r.rows||!r.rows.length){go("notfound");return}
+    S.result=r;S.end=Date.now()+SESSION_MIN*60000;go("results")}
+  catch(e){go("notfound")}
+}
+
+/* ===== Session countdown + expiry warning ===== */
+function tick(){
+  const el=$("#tm");if(!el)return;
+  const s=Math.max(0,Math.round((S.end-Date.now())/1000));
+  el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+  // Show warning at 2 minutes remaining
+  if(s<=120&&!S.warnShown){
+    S.warnShown=true;
+    const slot=$("#warn-slot");
+    if(slot)slot.innerHTML=`<div class="warn-banner">⚠ Your session expires in ${Math.ceil(s/60)} minute${s>60?"s":""}. <button class="btn sec" style="padding:3px 10px;font-size:11px" onclick="extendSession()">Extend session</button></div>`;
+  }
+  if(s===0)endSession();
+}
+async function extendSession(){
+  await DataService.refresh();
+  S.end=Date.now()+SESSION_MIN*60000;
+  S.warnShown=false;
+  const slot=$("#warn-slot");
+  if(slot)slot.innerHTML="";
+}
+
+function confirmClose(){
+  const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><div class="ico" style="background:var(--ds);color:var(--d);margin:0 0 12px">⇥</div><h2 style="font-size:20px">Close this session?</h2><p style="color:var(--t)">Closing will end your session and clear this data. Continue?</p><p class="hint">You'll need to sign in again to make another request.</p><div class="row"><button class="btn sec" id="no">Cancel</button><button class="btn danger" id="yes">Close and log out</button></div></div>`;
+  document.body.appendChild(o);$("#no",o).focus();
+  $("#no",o).onclick=()=>o.remove();o.onclick=e=>{if(e.target===o)o.remove()};
+  $("#yes",o).onclick=()=>{o.remove();endSession()};
+}
+async function endSession(){
+  clearInterval(S.timer);S.result=null;S.query="";S.err=null;S.warnShown=false;
+  try{await DataService.signOut()}catch(e){}
+  S.user=null;go("loggedout");
+}
+function openPdf(url,title){
+  const o=document.createElement("div");o.className="pdf-ov";
+  o.innerHTML=`<div class="pdf-bar"><span>📄 ${esc(title)}</span><a href="${esc(url)}" target="_blank" rel="noopener" class="btn sec" style="padding:4px 10px;font-size:11px;flex:none">↗ Open in tab</a><button class="btn sec" style="padding:4px 10px;font-size:11px;flex:none" id="pdf-close">✕ Close</button></div><iframe class="pdf-frame" src="${esc(url)}" title="${esc(title)}"></iframe>`;
+  document.body.appendChild(o);
+  $("#pdf-close",o).onclick=()=>o.remove();
+  o.addEventListener("keydown",e=>{if(e.key==="Escape")o.remove()});
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){const p=$(".pdf-ov");if(p){p.remove();return}const o=$(".ov");o&&o.remove()}
+});
+go("login");
+</script></body></html>
