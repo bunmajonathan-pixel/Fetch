@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .cache import TTLCache
@@ -13,9 +14,9 @@ log = logging.getLogger(__name__)
 class Retriever:
     """Pipeline: cache -> fan-out to sources -> dedupe -> rank -> truncate."""
 
-    def __init__(self, sources: list[Source], ranker: Ranker | None = None,
+    def __init__(self, sources: Sequence[Source], ranker: Ranker | None = None,
                  cache: TTLCache | None = None, max_workers: int = 8):
-        self.sources = sources
+        self.sources = list(sources)
         self.ranker = ranker or KeywordRanker()
         self.cache = cache
         self.max_workers = max_workers

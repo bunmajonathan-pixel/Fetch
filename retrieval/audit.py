@@ -39,13 +39,13 @@ def configure(log_path: str | Path) -> None:
     _LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
-def record(event: str, username: str, ip: str = "", detail: dict[str, Any] | None = None) -> None:
+def record(event: str, username: str, ip: str | None = "", detail: dict[str, Any] | None = None) -> None:
     """Append one log entry.  Never raises — logging must not break the request."""
     entry = {
         "ts":       datetime.now(timezone.utc).isoformat(timespec="microseconds"),
         "event":    event,
         "username": username,
-        "ip":       ip,
+        "ip":       ip or "",
         "detail":   detail or {},
     }
 
