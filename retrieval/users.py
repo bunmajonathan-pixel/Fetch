@@ -28,6 +28,9 @@ class UserRecord:
     # Record-level limit: contract owners (departments) this user may see.
     # None = no limit (every owner within their tickers); [] = nothing.
     owners: Optional[list[str]] = None
+    # Can manage accounts and read the audit log.  Says nothing about data access:
+    # an admin sees company data only for the tickers in document_ids, like anyone else.
+    is_admin: bool = False
 
     def check_password(self, password: str) -> bool:
         return _check(password, self._password_hash)
@@ -55,9 +58,14 @@ DEFAULT_ACCOUNTS: list[tuple[str, str, list[str], Optional[list[str]]]] = [
     ("NL-2048",  "password1234", ["BLFD", "HDYN", "MCLD"], None),
 ]
 
+# Usernames among DEFAULT_ACCOUNTS that are administrators.  The demo admin has no
+# document_ids, so it can manage accounts but cannot read any company's data.
+DEFAULT_ADMINS = {"ADM-01"}
+DEFAULT_ACCOUNTS.append(("ADM-01", "admin2024", [], None))
+
 # In-memory fallback store (used only when db_users.init_db() has not been called).
 _USER_DB: dict[str, UserRecord] = {
-    u: UserRecord(u, _hash(p), list(ids), None if own is None else list(own))
+    u: UserRecord(u, _hash(p), list(ids), None if own is None else list(own), u in DEFAULT_ADMINS)
     for u, p, ids, own in DEFAULT_ACCOUNTS
 }
 

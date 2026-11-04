@@ -73,3 +73,11 @@ def active_sessions() -> dict[str, str]:
     """Return {token: username} for all non-expired sessions (diagnostic use)."""
     now = time.monotonic()
     return {t: u for t, (u, exp) in _SESSIONS.items() if exp > now}
+
+
+def revoke_user(username: str, keep: str | None = None) -> int:
+    """End every session of *username* (except the token *keep*).  Returns how many were ended."""
+    gone = [t for t, (u, _) in _SESSIONS.items() if u == username and t != keep]
+    for t in gone:
+        del _SESSIONS[t]
+    return len(gone)

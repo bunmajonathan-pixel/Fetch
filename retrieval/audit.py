@@ -9,7 +9,9 @@ Log entry schema
 {
   "ts":       "2026-01-15T14:32:01.123456",  # UTC ISO-8601
   "event":    "retrieve" | "signin" | "signin_fail" | "signout" | "refresh" | "rate_limited"
-                | "pdf_view" | "pdf_denied" | "analyze" | "analyze_denied",
+                | "pdf_view" | "pdf_denied" | "analyze" | "analyze_denied"
+                | "view_saved" | "view_deleted" | "admin_denied" | "admin_user_created"
+                | "admin_user_updated" | "admin_user_deleted" | "admin_user_unlocked",
   "username": "NL-2048",
   "ip":       "127.0.0.1",                   # optional — supplied by caller
   "detail":   { ... }                        # event-specific payload
@@ -38,6 +40,16 @@ def configure(log_path: str | Path) -> None:
     global _LOG_PATH
     _LOG_PATH = Path(log_path)
     _LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # Pick up the end of an existing log so the recent-entries view survives a restart
+    _ENTRIES.clear()
+    try:
+        for line in _LOG_PATH.read_text(encoding="utf-8").splitlines()[-_MAX_ENTRIES:]:
+            try:
+                _ENTRIES.append(json.loads(line))
+            except ValueError:
+                continue                      # a damaged line must not stop start-up
+    except OSError:
+        pass
 
 
 def record(event: str, username: str, ip: str | None = "", detail: dict[str, Any] | None = None) -> None:

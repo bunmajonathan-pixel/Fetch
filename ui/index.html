@@ -102,7 +102,7 @@ const DataService={
       const e=new Error(r?("Unexpected server response (HTTP "+r.status+"). Check the server terminal for errors."):"Cannot reach the server.");
       e.code="NETWORK";throw e}
     if(!r.ok){const e=new Error(d.error||"Sign-in failed");e.code=d.code||"BAD_CREDENTIALS";throw e}
-    this._token=d.token;this._scheduleRefresh();return{name:d.name,id:d.id,company:d.company}
+    this._token=d.token;this._scheduleRefresh();return{name:d.name,id:d.id,company:d.company,admin:!!d.admin}
   },
   async retrieve(text){
     const r=await fetch("/api/retrieve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:text,token:this._token})});
@@ -124,6 +124,12 @@ const DataService={
     const r=await fetch("/api/analyze/behavior",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async admin(method,path,body){
+    const r=await fetch("/api/admin"+path,{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Request failed");e.code=d.code||"ERROR";throw e}
     return d
   },
   async views(method,path,body){
@@ -171,7 +177,7 @@ const hlSnippet=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<mark class="hl">$1</mark>')
 const $=(s,r=document)=>r.querySelector(s);
 const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false,analysis:null,af:null,apage:0,aerr:null,fin:null,ff:null,ferr:null,beh:null,bf:null,berr:null};
 const PAGE_SIZE=10;
-const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3,banalyzing:2,behavior:3,canalyzing:2,company:3};
+const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3,banalyzing:2,behavior:3,canalyzing:2,company:3,adminloading:2,admin:3};
 const SESSION_MIN=15;
 
 /* ===== Dark / light mode ===== */
@@ -207,6 +213,7 @@ login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focu
  <button class="btn primary block" id="go">→ Sign in</button><p class="hint" style="margin-top:16px;border-top:1px solid var(--l);padding-top:12px">Trouble signing in? Contact your company's workspace administrator.</p></form></div>`,
 request:()=>`<div class="wrap narrow" style="padding-top:40px"><span class="pill" style="background:var(--oks);color:var(--ok)">Signed in · ${esc(S.user.id)}</span><h1 style="font-size:30px">What data would you like pulled?</h1><p>Hi ${esc(S.user.name.split(" ")[0])}. Describe the records you need. Results open in a temporary, read-only view for this session.</p>
  <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}
+ ${S.user.admin?`<div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-color:var(--b)"><div style="flex:1;min-width:220px"><b>Administration</b><p class="hint" style="margin-top:2px">Create accounts, set which companies and departments each person can see, reset passwords, unlock accounts and review the audit log.</p></div><button class="btn primary" id="to-adm">⚙ Open administration</button></div>`:""}
  <div id="sv-list"></div>
  <div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Company overview</b><p class="hint" style="margin-top:2px">One page per company that joins financials, customer behavior and supplier contracts, and flags what needs attention across them.</p></div><button class="btn primary" id="to-co">▦ Open overview</button></div>
  <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Contract expiry analytics</b><p class="hint" style="margin-top:2px">Totals and charts for the supplier contracts you are cleared to see. Filter by status, expiry quarter, category and department.</p></div><button class="btn primary" id="to-an">▥ Open analytics</button></div>
@@ -371,6 +378,37 @@ financials:()=>{
  ${tbl}`}
  </div></div>`},
 banalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing customer behavior…</b><div class="prog"><i></i></div><div class="hint">Only the companies your account is cleared to see are included.</div></div></div>`,
+adminloading:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Loading administration…</b><div class="prog"><i></i></div></div></div>`,
+admin:()=>{
+  const A=S.adm;
+  if(!A)return`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Administration unavailable</h2><p>${esc(S.admErr||"Something went wrong.")}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  const O=A.options,F=A.form;
+  const dept=ids=>[...new Set(ids.flatMap(t=>O.departments[t]||[]))].sort();
+  const form=!F?"":(()=>{
+    const ds=dept(F.document_ids),edit=F.mode==="edit";
+    return`<div class="card" id="a-form" style="padding:14px 16px;margin-bottom:12px"><b>${edit?"Edit "+esc(F.username):"New account"}</b>
+     ${S.admErr?`<div class="alert" style="margin:8px 0"><b>Couldn't save</b><span>${esc(S.admErr)}</span></div>`:""}
+     <div class="two" style="margin:10px 0 0">
+      <div><label for="a-user">Username</label><input id="a-user" value="${esc(F.username)}" ${edit?"disabled":""} maxlength="32" autocomplete="off"></div>
+      <div><label for="a-pw">${edit?"New password (leave blank to keep)":"Password"}</label><input id="a-pw" type="password" value="${esc(F.password)}" autocomplete="new-password" placeholder="at least ${O.min_password} characters"></div></div>
+     <div style="margin-top:10px"><label>Companies they can see</label><div class="chips" style="margin:4px 0">${O.companies.map(c=>`<label class="chip"><input type="checkbox" class="a-co" value="${c.ticker}" ${F.document_ids.includes(c.ticker)?"checked":""} style="width:auto;margin-right:6px">${esc(c.name)}</label>`).join("")}</div></div>
+     <div><label>Contract departments</label><div class="chips" style="margin:4px 0"><label class="chip"><input type="radio" name="a-all" id="a-all" ${F.owners==null?"checked":""} style="width:auto;margin-right:6px">All departments</label><label class="chip"><input type="radio" name="a-all" id="a-some" ${F.owners!=null?"checked":""} ${ds.length?"":"disabled"} style="width:auto;margin-right:6px">Only these:</label>${ds.map(d=>`<label class="chip"><input type="checkbox" class="a-dp" value="${esc(d)}" ${(F.owners||[]).includes(d)?"checked":""} ${F.owners==null?"disabled":""} style="width:auto;margin-right:6px">${esc(d)}</label>`).join("")}</div><p class="hint">A department limit applies to supplier contracts only. Financials and customer behavior follow the company list.</p></div>
+     <div><label class="chip"><input type="checkbox" id="a-adm" ${F.is_admin?"checked":""} style="width:auto;margin-right:6px">Administrator (manage accounts and read the audit log)</label></div>
+     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn primary" id="a-save">${edit?"Save changes":"Create account"}</button><button class="btn sec" id="a-cancel">Cancel</button></div></div>`})();
+  const tag=(t,c)=>`<span class="st ${c||""}">${esc(t)}</span>`;
+  const users=`<div class="chart wide"><h3>Accounts · ${A.users.length}</h3><div class="tw"><table class="num auto"><thead><tr><th>Username</th><th>Companies</th><th>Contract departments</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>${A.users.map(u=>`<tr><td><b>${esc(u.username)}</b>${u.username===S.user.id?' <span class="hint">(you)</span>':""}</td><td>${u.document_ids.length?u.document_ids.map(esc).join(", "):'<span class="hint">none</span>'}</td><td>${u.owners==null?"All":u.owners.length?u.owners.map(esc).join(", "):'<span class="hint">none</span>'}</td><td>${u.is_admin?tag("Admin","m"):"Analyst"}</td><td>${u.locked?tag("Locked","x"):u.sessions?tag("Signed in"):'<span class="hint">—</span>'}</td><td style="white-space:nowrap"><button class="btn sec a-edit" data-u="${esc(u.username)}" style="padding:3px 9px;font-size:11px">Edit</button> ${u.locked?`<button class="btn sec a-unlock" data-u="${esc(u.username)}" style="padding:3px 9px;font-size:11px">Unlock</button> `:""}${u.username===S.user.id?"":`<button class="btn sec a-del" data-u="${esc(u.username)}" style="padding:3px 9px;font-size:11px" title="Delete this account">✕</button>`}</td></tr>`).join("")}</tbody></table></div></div>`;
+  const AU=A.audit,fmt=d=>new Date(d).toLocaleString();
+  const audit=!AU?"":`${AU.flagged.length?`<div class="alert" style="margin:0 0 12px"><b>Accounts with repeated refusals or failed sign-ins</b><span>${AU.flagged.map(f=>`${esc(f.username)}: ${f.denied} denied, ${f.failed_signins} failed sign-ins, ${f.rate_limited} rate-limited`).join(" · ")}</span></div>`:""}
+    <div class="filters"><div><label for="au-user">Account</label><input id="au-user" value="${esc(A.af.user)}" placeholder="any account"></div><div><label for="au-event">Event</label><select id="au-event">${[["","All events"],...AU.events.map(e=>[e,e])].map(o=>`<option value="${esc(o[0])}" ${o[0]===A.af.event?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div></div>
+    <div class="chart wide"><h3>Audit log · newest first · ${AU.entries.length} shown of ${AU.total} kept</h3><div class="tw"><table class="num auto"><thead><tr><th>Time</th><th>Account</th><th>Event</th><th>Detail</th><th>From</th></tr></thead><tbody>${AU.entries.map(e=>`<tr><td>${esc(fmt(e.ts))}</td><td>${esc(e.username||"—")}</td><td>${esc(e.event)}</td><td style="white-space:normal;max-width:420px"><small>${esc(JSON.stringify(e.detail))}</small></td><td>${esc(e.ip||"")}</td></tr>`).join("")||'<tr><td colspan="5" class="hint">No entries match.</td></tr>'}</tbody></table></div></div>`;
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ <div class="top"><div><h2>Administration</h2><div class="scope"><span class="pill">Administrator: ${esc(S.user.id)}</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button>${A.tab==="users"?'<button class="btn primary" id="a-new" style="padding:7px 12px;font-size:12px">＋ New account</button>':'<button class="btn sec" id="export-au" style="padding:7px 12px;font-size:12px">↓ Export CSV</button>'}<button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="chips" style="margin:6px 0 12px"><button class="chip" id="tab-users" ${A.tab==="users"?'style="border-color:var(--b);color:var(--b)"':""}>Accounts</button><button class="chip" id="tab-audit" ${A.tab==="audit"?'style="border-color:var(--b);color:var(--b)"':""}>Audit log</button></div>
+ ${A.msg?`<div class="alert" style="margin:0 0 12px;background:var(--oks)"><b style="color:var(--ok)">${esc(A.msg)}</b></div>`:""}
+ <div id="an-body">${A.tab==="users"?form+users:audit}</div></div>`},
 canalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing company overview…</b><div class="prog"><i></i></div><div class="hint">Only the companies and contracts your account is cleared to see are included.</div></div></div>`,
 company:()=>{
   const A=S.co,F=S.cf;
@@ -468,6 +506,7 @@ request(){
   document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
   $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
   renderSaved();
+  const ta=$("#to-adm");if(ta)ta.onclick=openAdmin;
 },
 retrieving(){},
 analyzing(){},finalyzing(){},banalyzing(){},
@@ -479,7 +518,39 @@ company(){
   const t=$("#c-ticker");if(t)t.onchange=async()=>{const prev={...S.cf};S.cf.ticker=t.value;await refreshCo(prev)};
   if(S.co){tick();S.timer=setInterval(tick,1000)}
 },
-canalyzing(){},
+canalyzing(){},adminloading(){},
+admin(){
+  clearInterval(S.timer);
+  const A=S.adm,on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});
+  if(!A)return;
+  on("#tab-users",()=>{A.tab="users";A.msg=null;go("admin")});on("#tab-audit",async()=>{A.tab="audit";A.msg=null;await loadAudit();go("admin")});
+  on("#export-au",exportAuditCsv);
+  on("#a-new",()=>{A.form={mode:"create",username:"",password:"",document_ids:[],owners:null,is_admin:false};S.admErr=null;A.msg=null;go("admin");const u=$("#a-user");if(u)u.focus()});
+  document.querySelectorAll(".a-edit").forEach(b=>b.onclick=()=>{const u=A.users.find(x=>x.username===b.dataset.u);A.form={mode:"edit",username:u.username,password:"",document_ids:[...u.document_ids],owners:u.owners==null?null:[...u.owners],is_admin:u.is_admin};S.admErr=null;A.msg=null;go("admin");window.scrollTo(0,0)});
+  document.querySelectorAll(".a-unlock").forEach(b=>b.onclick=()=>admAct(()=>DataService.admin("POST","/users/"+encodeURIComponent(b.dataset.u)+"/unlock",{}),b.dataset.u+" unlocked."));
+  document.querySelectorAll(".a-del").forEach(b=>b.onclick=()=>{if(confirm("Delete the account "+b.dataset.u+"? This ends their sessions and removes their saved views."))admAct(()=>DataService.admin("DELETE","/users/"+encodeURIComponent(b.dataset.u)),b.dataset.u+" deleted.")});
+  const F=A.form;
+  if(F){
+    const read=()=>{const u=$("#a-user");if(u&&F.mode==="create")F.username=u.value.trim();F.password=$("#a-pw").value;F.is_admin=$("#a-adm").checked;
+      F.document_ids=[...document.querySelectorAll(".a-co:checked")].map(x=>x.value);
+      F.owners=$("#a-all").checked?null:[...document.querySelectorAll(".a-dp:checked")].map(x=>x.value)};
+    on("#a-cancel",()=>{A.form=null;S.admErr=null;go("admin")});
+    document.querySelectorAll(".a-co").forEach(c=>c.onchange=()=>{read();if(F.owners){const ok=new Set([...new Set(F.document_ids.flatMap(t=>A.options.departments[t]||[]))]);F.owners=F.owners.filter(o=>ok.has(o))}go("admin")});
+    $("#a-all").onchange=()=>{read();go("admin")};$("#a-some").onchange=()=>{read();if(F.owners==null)F.owners=[];go("admin")};
+    ["#a-user","#a-pw"].forEach(i=>{const el=$(i);if(el)el.oninput=read});
+    on("#a-save",async()=>{read();S.admErr=null;
+      try{
+        if(F.mode==="create")await DataService.admin("POST","/users",{username:F.username,password:F.password,document_ids:F.document_ids,owners:F.owners,is_admin:F.is_admin});
+        else{const b={document_ids:F.document_ids,owners:F.owners,is_admin:F.is_admin};if(F.password)b.password=F.password;await DataService.admin("PATCH","/users/"+encodeURIComponent(F.username),b)}
+        const name=F.username,mode=F.mode;A.form=null;await loadUsers();A.msg=mode==="create"?name+" created.":name+" updated.";go("admin");window.scrollTo(0,0)
+      }catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.admErr=e.message;go("admin")}});
+  }
+  const au=$("#au-user"),ae=$("#au-event");
+  if(au)au.onchange=async()=>{A.af.user=au.value.trim();await loadAudit();go("admin")};
+  if(ae)ae.onchange=async()=>{A.af.event=ae.value;await loadAudit();go("admin")};
+  tick();S.timer=setInterval(tick,1000);
+},
 behavior(){
   clearInterval(S.timer);
   const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
@@ -600,6 +671,33 @@ function exportFinCsv(){
   const A=S.fin;if(!A)return;
   const cols=[["ticker","Company"],["period","Quarter"],["revenue","Revenue ($M)"],["revenue_qoq","Revenue QoQ (%)"],["revenue_yoy","Revenue YoY (%)"],["gross_profit","Gross profit ($M)"],["gross_margin","Gross margin (%)"],["operating_income","Operating income ($M)"],["operating_margin","Operating margin (%)"],["net_income","Net income ($M)"],["net_margin","Net margin (%)"],["eps","Diluted EPS ($)"],["free_cash_flow","Free cash flow ($M)"],["fcf_margin","FCF margin (%)"],["ttm_revenue","Trailing 12-month revenue ($M)"]];
   downloadCsv("financials",cols,A.companies.flatMap(c=>c.series.map(r=>({ticker:c.ticker,...r}))));
+}
+
+/* ===== Administration ===== */
+async function loadUsers(){
+  const d=await DataService.admin("GET","/users");
+  S.adm.users=d.users;S.adm.options=d.options;
+  S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+}
+async function loadAudit(){
+  const q=new URLSearchParams();if(S.adm.af.user)q.set("user",S.adm.af.user);if(S.adm.af.event)q.set("event",S.adm.af.event);
+  try{S.adm.audit=await DataService.admin("GET","/audit?"+q);S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false}
+  catch(e){if(e.code==="UNAUTHORIZED")endSession();else S.admErr=e.message}
+}
+async function openAdmin(){
+  S.adm={tab:"users",users:[],options:null,audit:null,form:null,msg:null,af:{user:"",event:""}};S.admErr=null;
+  go("adminloading");
+  try{await loadUsers();if(S.screen==="adminloading")go("admin")}
+  catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.adm=null;S.admErr=e.message;go("admin")}
+}
+async function admAct(fn,msg){
+  try{await fn();await loadUsers();S.adm.msg=msg;S.admErr=null}
+  catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.adm.msg=null;S.admErr=e.message}
+  go("admin");
+}
+function exportAuditCsv(){
+  const A=S.adm;if(!A||!A.audit)return;
+  downloadCsv("audit-log",[["ts","Time (UTC)"],["username","Account"],["event","Event"],["detail","Detail"],["ip","From"]],A.audit.entries.map(e=>({...e,detail:JSON.stringify(e.detail)})));
 }
 
 /* ===== Saved views and printing ===== */
@@ -727,7 +825,7 @@ function confirmClose(){
   $("#yes",o).onclick=()=>{o.remove();endSession()};
 }
 async function endSession(){
-  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.beh=null;S.bf=null;S.berr=null;S.co=null;S.cf=null;S.cerr=null;S.query="";S.err=null;S.warnShown=false;
+  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.beh=null;S.bf=null;S.berr=null;S.co=null;S.cf=null;S.cerr=null;S.adm=null;S.admErr=null;S.query="";S.err=null;S.warnShown=false;
   try{await DataService.signOut()}catch(e){}
   S.user=null;go("loggedout");
 }

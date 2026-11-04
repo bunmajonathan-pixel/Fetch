@@ -29,7 +29,7 @@ from retrieval import (
     Retriever, TTLCache,
     AuthError, login, logout, validate_token,
 )
-from retrieval.auth import issue_token
+from retrieval.auth import issue_token, revoke_user
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
@@ -275,7 +275,8 @@ def api_signin():
     user_rec = db_users.get_user(username)
     display_name = getattr(user_rec, "display_name", None) or username
 
-    resp = jsonify(name=display_name, id=uid, company=company, token=token)
+    resp = jsonify(name=display_name, id=uid, company=company, token=token,
+                   admin=bool(getattr(user_rec, "is_admin", False)))
     resp.set_cookie("session_token", token, httponly=True, samesite="Strict")
     return resp
 
@@ -654,6 +655,212 @@ def api_views_delete(view_id: int):
         return jsonify(error="View not found.", code="NOT_FOUND"), 404
     _audit("view_deleted", username, ip=request.remote_addr, detail={"id": view_id})
     return jsonify(ok=True)
+
+
+# ---------------------------------------------------------------------------
+# Administration: accounts and the audit log (administrators only)
+# ---------------------------------------------------------------------------
+_USERNAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{1,31}$")
+MIN_PASSWORD = 10
+
+
+def _require_admin():
+    """(admin_username, token, None) for an administrator, else (None, None, error response)."""
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return None, None, (jsonify(error=str(e), code="UNAUTHORIZED"), 401)
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "admin"})
+        return None, None, (jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429)
+    rec = db_users.get_user(username)
+    if rec is None or not getattr(rec, "is_admin", False):
+        _audit("admin_denied", username, ip=request.remote_addr, detail={"path": request.path})
+        return None, None, (jsonify(error="Administrator access is required.", code="FORBIDDEN"), 403)
+    return username, token, None
+
+
+def _departments_for(tickers: list[str]) -> dict[str, list[str]]:
+    return {t: contracts.scope_options({t}, None)["owners"] for t in tickers}
+
+
+def _is_locked(username: str) -> bool:
+    return any(n >= MAX_ATTEMPTS and k.endswith(":" + username.lower()) for k, n in _login_attempts.items())
+
+
+def _account_json(rec) -> dict:
+    return {"username": rec.username, "document_ids": list(rec.document_ids),
+            "owners": None if rec.owners is None else list(rec.owners),
+            "is_admin": bool(rec.is_admin), "locked": _is_locked(rec.username),
+            "sessions": sum(1 for u in _active_sessions().values() if u == rec.username)}
+
+
+def _active_sessions() -> dict:
+    from retrieval.auth import active_sessions
+    return active_sessions()
+
+
+def _clean_access(body: dict, current=None):
+    """Validate document_ids / owners.  Returns (document_ids, owners) with owners as given (None = no limit)."""
+    ids = body.get("document_ids", None if current is None else current.document_ids)
+    if not isinstance(ids, list) or any(not isinstance(i, str) for i in ids):
+        raise ValueError("document_ids must be a list of company tickers.")
+    ids = sorted({i.strip().upper() for i in ids})
+    bad = [i for i in ids if i not in COMPANIES]
+    if bad:
+        raise ValueError(f"Unknown company: {', '.join(bad)}. Choose from {', '.join(COMPANIES)}.")
+    if "owners" in body:
+        owners = body["owners"]
+    else:
+        owners = None if current is None else current.owners
+    if owners is not None:
+        if not isinstance(owners, list) or any(not isinstance(o, str) for o in owners):
+            raise ValueError("owners must be a list of department names, or null for no limit.")
+        valid = {o for t in ids for o in _departments_for([t])[t]}
+        bad = sorted(set(owners) - valid)
+        if bad:
+            raise ValueError(f"Unknown department for these companies: {', '.join(bad)}.")
+        owners = sorted(set(owners))
+    return ids, owners
+
+
+def _clean_password(pw, username: str) -> str:
+    if not isinstance(pw, str) or len(pw) < MIN_PASSWORD:
+        raise ValueError(f"The password must be at least {MIN_PASSWORD} characters.")
+    if len(pw) > 128:
+        raise ValueError("The password is too long.")
+    if pw.lower() == username.lower():
+        raise ValueError("The password must not be the same as the username.")
+    return pw
+
+
+@app.get("/api/admin/users")
+def api_admin_users():
+    admin, _, err = _require_admin()
+    if err:
+        return err
+    return jsonify(users=[_account_json(r) for r in db_users.list_users()],
+                   options={"companies": [{"ticker": t, "name": c["name"]} for t, c in COMPANIES.items()],
+                            "departments": _departments_for(list(COMPANIES)), "min_password": MIN_PASSWORD})
+
+
+@app.post("/api/admin/users")
+def api_admin_create_user():
+    admin, _, err = _require_admin()
+    if err:
+        return err
+    body = request.get_json(force=True, silent=True) or {}
+    username = str(body.get("username") or "").strip()
+    try:
+        if not _USERNAME_RE.match(username):
+            raise ValueError("The username must be 2 to 32 letters, numbers, dots, dashes or underscores.")
+        pw = _clean_password(body.get("password"), username)
+        ids, owners = _clean_access({"document_ids": body.get("document_ids", []), "owners": body.get("owners")})
+        rec = db_users.register_user(username, pw, ids, owners, is_admin=bool(body.get("is_admin")))
+    except ValueError as e:
+        return jsonify(error=str(e), code="BAD_REQUEST"), 400
+    _audit("admin_user_created", admin, ip=request.remote_addr,
+           detail={"user": username, "document_ids": ids, "owners": owners, "is_admin": rec.is_admin})
+    return jsonify(_account_json(rec)), 201
+
+
+@app.patch("/api/admin/users/<username>")
+def api_admin_update_user(username: str):
+    """Body (all optional): document_ids, owners (null = no limit), password, is_admin."""
+    admin, token, err = _require_admin()
+    if err:
+        return err
+    body = request.get_json(force=True, silent=True) or {}
+    cur = db_users.get_user(username)
+    if cur is None:
+        return jsonify(error="User not found.", code="NOT_FOUND"), 404
+    changes: dict = {}
+    try:
+        if "document_ids" in body or "owners" in body:
+            ids, owners = _clean_access(body, cur)
+            changes["document_ids"], changes["owners"] = ids, owners
+        if "password" in body:
+            changes["password"] = _clean_password(body["password"], username)
+        if "is_admin" in body:
+            want = bool(body["is_admin"])
+            if not want and cur.is_admin and (username == admin or db_users.count_admins() <= 1):
+                raise ValueError("You cannot remove your own administrator rights or those of the last administrator.")
+            changes["is_admin"] = want
+        if not changes:
+            raise ValueError("Nothing to change.")
+    except ValueError as e:
+        return jsonify(error=str(e), code="BAD_REQUEST"), 400
+    rec = db_users.update_user(username, **changes)
+    ended = 0
+    if "password" in changes or changes.get("is_admin") is False:
+        ended = revoke_user(username, keep=token if username == admin else None)
+    _audit("admin_user_updated", admin, ip=request.remote_addr,
+           detail={"user": username, "changed": sorted(changes), "sessions_ended": ended,
+                   **{k: v for k, v in changes.items() if k in ("document_ids", "owners", "is_admin")}})
+    return jsonify(_account_json(rec))
+
+
+@app.delete("/api/admin/users/<username>")
+def api_admin_delete_user(username: str):
+    admin, _, err = _require_admin()
+    if err:
+        return err
+    cur = db_users.get_user(username)
+    if cur is None:
+        return jsonify(error="User not found.", code="NOT_FOUND"), 404
+    if username == admin:
+        return jsonify(error="You cannot delete your own account.", code="BAD_REQUEST"), 400
+    if cur.is_admin and db_users.count_admins() <= 1:
+        return jsonify(error="You cannot delete the last administrator.", code="BAD_REQUEST"), 400
+    db_users.delete_user(username)
+    ended = revoke_user(username)
+    for v in views.list_views(username):
+        views.delete(username, v["id"])
+    _audit("admin_user_deleted", admin, ip=request.remote_addr, detail={"user": username, "sessions_ended": ended})
+    return jsonify(ok=True)
+
+
+@app.post("/api/admin/users/<username>/unlock")
+def api_admin_unlock_user(username: str):
+    admin, _, err = _require_admin()
+    if err:
+        return err
+    if db_users.get_user(username) is None:
+        return jsonify(error="User not found.", code="NOT_FOUND"), 404
+    for k in [k for k in _login_attempts if k.endswith(":" + username.lower())]:
+        del _login_attempts[k]
+    _audit("admin_user_unlocked", admin, ip=request.remote_addr, detail={"user": username})
+    return jsonify(ok=True)
+
+
+@app.get("/api/admin/audit")
+def api_admin_audit():
+    """Recent audit entries, newest first.  Query: user, event, n (default 200, max 1000)."""
+    admin, _, err = _require_admin()
+    if err:
+        return err
+    try:
+        n = max(1, min(int(request.args.get("n", 200)), 1000))
+    except ValueError:
+        return jsonify(error="n must be a number.", code="BAD_REQUEST"), 400
+    user  = (request.args.get("user") or "").strip().lower()
+    event = (request.args.get("event") or "").strip()
+    pool  = _audit_recent(1000)
+    entries = [e for e in pool if (not user or e["username"].lower() == user) and (not event or e["event"] == event)]
+    # Accounts with repeated refusals or failed sign-ins, over everything in the buffer
+    bad = {"analyze_denied": "denied", "pdf_denied": "denied", "admin_denied": "denied",
+           "signin_fail": "failed_signins", "rate_limited": "rate_limited"}
+    flags: dict[str, dict[str, int]] = {}
+    for e in pool:
+        if e["event"] in bad:
+            f = flags.setdefault(e["username"] or "(unknown)", {"denied": 0, "failed_signins": 0, "rate_limited": 0})
+            f[bad[e["event"]]] += 1
+    flagged = sorted(({"username": u, **f, "total": sum(f.values())} for u, f in flags.items() if sum(f.values()) >= 3),
+                     key=lambda r: -r["total"])
+    return jsonify(entries=list(reversed(entries))[:n], events=sorted({e["event"] for e in pool}),
+                   flagged=flagged, total=len(pool))
 
 
 @app.post("/api/signout")
