@@ -36,6 +36,11 @@ def login(username: str, password: str, ttl: float = SESSION_TTL) -> str:
     if user is None or not user.check_password(password):
         raise AuthError("Invalid username or password.")
 
+    return issue_token(username, ttl)
+
+
+def issue_token(username: str, ttl: float = SESSION_TTL) -> str:
+    """Create a session for an already-authenticated user and return its token."""
     token = secrets.token_hex(32)
     _SESSIONS[token] = (username, time.monotonic() + ttl)
     return token

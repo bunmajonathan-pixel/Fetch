@@ -4,7 +4,8 @@ from .ranking import Ranker, KeywordRanker
 from .cache import TTLCache
 from .auth import AuthError, login, logout, validate_token
 from .pull_request import PullRequestAgent, PullResult
-from .users import UserRecord, get_user, register_user
+from .users import UserRecord
+from .db_users import get_user, register_user
 
 __all__ = [
     "Retriever", "Document", "Query", "Ranker", "KeywordRanker", "TTLCache",

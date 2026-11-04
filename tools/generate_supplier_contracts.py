@@ -2,7 +2,7 @@
 generate_supplier_contracts.py — builds the synthetic "Supplier Contracts" PDFs.
 
 One PDF per company per expiry quarter, written to
-``{retrieval/sources,tests,examples}/Supplier_Contracts/`` so the existing
+``data/Supplier_Contracts/`` so the existing
 PDFSource pipeline indexes them with no code changes:
 
     <TICKER>_<Qn-YYYY>_Supplier_Contracts.pdf
@@ -32,7 +32,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-OUT_DIR = BASE_DIR / "{retrieval" / "sources,tests,examples}" / "Supplier_Contracts"
+OUT_DIR = BASE_DIR / "data" / "Supplier_Contracts"
 
 AS_OF = date(2026, 11, 4)
 

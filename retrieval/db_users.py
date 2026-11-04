@@ -23,7 +23,7 @@ from typing import Optional
 
 import bcrypt
 
-from .users import UserRecord   # reuse the dataclass
+from .users import DEFAULT_ACCOUNTS, UserRecord   # shared dataclass + default accounts
 
 
 _DB_PATH: Path | None = None
@@ -66,17 +66,10 @@ def _hash(password: str) -> str:
 
 
 def _seed(conn: sqlite3.Connection) -> None:
-    """Insert the same default accounts as users.py."""
-    defaults = [
-        ("alice",   "alice123",    ["1", "3"]),
-        ("bob",     "bob456",      ["2"]),
-        ("BLFD-01", "blfd2024",    ["BLFD"]),
-        ("HDYN-01", "hdyn2024",    ["HDYN"]),
-        ("MCLD-01", "mcld2024",    ["MCLD"]),
-    ]
+    """Insert users.DEFAULT_ACCOUNTS (the single list shared with the in-memory store)."""
     conn.executemany(
         "INSERT INTO users (username, password_hash, document_ids) VALUES (?,?,?)",
-        [(u, _hash(p), json.dumps(ids)) for u, p, ids in defaults],
+        [(u, _hash(p), json.dumps(ids)) for u, p, ids in DEFAULT_ACCOUNTS],
     )
 
 

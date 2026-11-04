@@ -1,5 +1,5 @@
 """
-users.py — In-memory user store with hashed passwords and per-user document ownership.
+users.py — UserRecord, the default demo accounts, and an in-memory fallback store.
 
 In production replace _USER_DB with a real database lookup.
 Passwords are stored as bcrypt hashes; never store plain text.
@@ -31,16 +31,25 @@ class UserRecord:
 
 
 # ---------------------------------------------------------------------------
-# Seed store — replace or extend at runtime via register_user()
+# Default accounts — the single definition used to seed BOTH stores
+# (the in-memory fallback below and the SQLite store in db_users.py).
+# username, plain-text demo password, document_ids (tickers or test doc IDs)
 # ---------------------------------------------------------------------------
-_USER_DB: dict[str, UserRecord] = {
+DEFAULT_ACCOUNTS: list[tuple[str, str, list[str]]] = [
     # Unit-test users (document IDs)
-    "alice":   UserRecord("alice",   _hash("alice123"),     ["1", "3"]),
-    "bob":     UserRecord("bob",     _hash("bob456"),       ["2"]),
+    ("alice",   "alice123",     ["1", "3"]),
+    ("bob",     "bob456",       ["2"]),
     # Single-company analyst accounts
-    "BLFD-01": UserRecord("BLFD-01", _hash("blfd2024"),     ["BLFD"]),
-    "HDYN-01": UserRecord("HDYN-01", _hash("hdyn2024"),     ["HDYN"]),
-    "MCLD-01": UserRecord("MCLD-01", _hash("mcld2024"),     ["MCLD"]),
+    ("BLFD-01", "blfd2024",     ["BLFD"]),
+    ("HDYN-01", "hdyn2024",     ["HDYN"]),
+    ("MCLD-01", "mcld2024",     ["MCLD"]),
+    # Multi-company account used by tests/test_server.py
+    ("NL-2048", "password1234", ["BLFD", "HDYN", "MCLD"]),
+]
+
+# In-memory fallback store (used only when db_users.init_db() has not been called).
+_USER_DB: dict[str, UserRecord] = {
+    u: UserRecord(u, _hash(p), list(ids)) for u, p, ids in DEFAULT_ACCOUNTS
 }
 
 

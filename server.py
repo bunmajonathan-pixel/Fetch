@@ -1,9 +1,9 @@
 """
-server.py — Flask HTTP server bridging the Data Pull UI to the PDF retrieval backend.
+server.py — Flask HTTP server bridging the browser UI (ui/index.html) to the PDF retrieval backend.
 
 Endpoints
 ---------
-GET  /               → serves Data Pull UI.html
+GET  /               → serves ui/index.html
 POST /api/signin     { company, id, password }  → { name, id, company, token }
 POST /api/retrieve   { query, token }           → { title, subtitle, columns, rows, note? }
 POST /api/refresh    { token }                  → { token }   (new token, old one invalidated)
@@ -11,11 +11,12 @@ POST /api/signout    { token }                  → { ok: true }
 GET  /api/pdf/<ticker>/<filename>               → PDF file
 GET  /api/audit      (admin token required)     → { entries: [...] }
 
-Run from retrieval_framework/:
-    PYTHONPATH=. python server.py
+Run from the project root:
+    python server.py
 Then open http://localhost:5000
 """
 from __future__ import annotations
+import os
 import re
 import time
 from collections import defaultdict
@@ -27,6 +28,7 @@ from retrieval import (
     Retriever, TTLCache,
     AuthError, login, logout, validate_token,
 )
+from retrieval.auth import issue_token
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
@@ -36,12 +38,12 @@ from retrieval import db_users
 # Paths
 # ---------------------------------------------------------------------------
 BASE_DIR    = Path(__file__).parent
-# Root that contains ALL category folders (individual, behavior, Financial_and_Commercial, …)
-# The folder is literally named "{retrieval/sources,tests,examples}" in the repo (a leftover shell
-# brace-expansion name: dirs "{retrieval" > "sources,tests,examples}"). Build it from separate path
-# parts: the old "{retrieval\\sources,...}" string only resolved on Windows.
-DATA_ROOT   = BASE_DIR / "{retrieval" / "sources,tests,examples}"
-UI_PATH     = BASE_DIR / "Data Pull UI.html"
+# Root that contains ALL category folders (individual, behavior, Supplier_Contracts, …)
+DATA_ROOT   = BASE_DIR / "data"
+UI_PATH     = BASE_DIR / "ui" / "index.html"
+# Runtime files (users.db, audit.log). Created on first run, git-ignored.
+# Override with FETCH_INSTANCE_DIR (the test suite points it at a temp folder).
+INSTANCE_DIR = Path(os.environ.get("FETCH_INSTANCE_DIR") or BASE_DIR / "instance")
 
 # ---------------------------------------------------------------------------
 # Per-company config
@@ -77,15 +79,14 @@ COLUMNS = [
 # ---------------------------------------------------------------------------
 # Audit log
 # ---------------------------------------------------------------------------
-_audit_configure(BASE_DIR / "audit.log")
+_audit_configure(INSTANCE_DIR / "audit.log")
 
 # SQLite user store: must run once at startup, before any login
-db_users.init_db(BASE_DIR / "users.db")
+db_users.init_db(INSTANCE_DIR / "users.db")
 
 # Admin token — set env var AUDIT_TOKEN to enable the /api/audit endpoint.
 # Defaults to a disabled sentinel so the endpoint is off unless configured.
-import os as _os
-AUDIT_TOKEN = _os.environ.get("AUDIT_TOKEN", "")
+AUDIT_TOKEN = os.environ.get("AUDIT_TOKEN", "")
 
 # ---------------------------------------------------------------------------
 # Rate limiter  (per session token: max 30 retrieve calls per 60 s)
@@ -234,7 +235,7 @@ def api_refresh():
         return jsonify(error=str(e), code="UNAUTHORIZED"), 401
 
     logout(token)
-    new_token = _issue_token(username)
+    new_token = issue_token(username)
     _audit("refresh", username, ip=request.remote_addr)
 
     resp = jsonify(token=new_token)
@@ -352,15 +353,6 @@ def api_signout():
     resp = jsonify(ok=True)
     resp.delete_cookie("session_token")
     return resp
-
-
-def _issue_token(username: str) -> str:
-    """Create a new session for an already-authenticated user (used by refresh)."""
-    import secrets
-    from retrieval.auth import _SESSIONS, SESSION_TTL
-    token = secrets.token_hex(32)
-    _SESSIONS[token] = (username, time.monotonic() + SESSION_TTL)
-    return token
 
 
 if __name__ == "__main__":

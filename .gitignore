@@ -2,8 +2,8 @@
 __pycache__/
 *.pyc
 
-# Runtime log written by server.py
-audit.log
+# Runtime files written by server.py (users.db, audit.log)
+instance/
 
 # Virtual environments / test caches
 .venv/
