@@ -12,6 +12,8 @@ from __future__ import annotations
 import secrets
 import time
 
+import bcrypt
+
 from .db_users import get_user
 
 
@@ -25,6 +27,9 @@ _SESSIONS: dict[str, tuple[str, float]] = {}
 SESSION_TTL: float = 3600.0  # seconds
 
 
+_DUMMY_HASH = bcrypt.hashpw(b"not-a-real-password", bcrypt.gensalt())
+
+
 def login(username: str, password: str, ttl: float = SESSION_TTL) -> str:
     """
     Validate credentials and return a session token.
@@ -32,7 +37,10 @@ def login(username: str, password: str, ttl: float = SESSION_TTL) -> str:
     Raises AuthError on bad username or wrong password.
     """
     user = get_user(username)
-    if user is None or not user.check_password(password):
+    if user is None:
+        bcrypt.checkpw(password.encode()[:72], _DUMMY_HASH)   # same cost as a real check: no timing tell
+        raise AuthError("Invalid username or password.")
+    if not user.check_password(password):
         raise AuthError("Invalid username or password.")
 
     return issue_token(username, ttl)

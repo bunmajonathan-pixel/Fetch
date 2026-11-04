@@ -66,6 +66,50 @@ def test_signin_lockout(client):
     assert r.get_json()["code"] == "LOCKED"
 
 
+def test_lockout_cannot_be_dodged_by_changing_company(client):
+    """The sign-in form sends a free-text company; varying it must not reset the counter."""
+    for i in range(3):
+        client.post("/api/signin", json={"id": "NL-2048", "password": "bad", "company": f"c{i}"})
+    r = client.post("/api/signin", json={"id": "NL-2048", "password": "password1234", "company": "other"})
+    assert r.status_code == 403 and r.get_json()["code"] == "LOCKED"
+
+
+def test_lockout_ignores_id_case(client):
+    for _ in range(3):
+        client.post("/api/signin", json={"id": "nl-2048", "password": "bad"})
+    assert _signin(client).status_code == 403
+
+
+def test_unknown_user_costs_a_bcrypt_check(client, monkeypatch):
+    """No timing tell: an unknown account still runs one bcrypt comparison."""
+    import bcrypt
+    calls = []
+    real = bcrypt.checkpw
+    monkeypatch.setattr(_auth_mod.bcrypt, "checkpw", lambda a, b: calls.append(1) or real(a, b))
+    assert _signin(client, uid="nobody", password="whatever-password").status_code == 401
+    assert calls
+
+
+def test_security_headers_present(client):
+    for path in ("/", "/api/signout"):
+        r = client.get(path) if path == "/" else client.post(path, json={})
+        assert r.headers["X-Content-Type-Options"] == "nosniff"
+        assert r.headers["X-Frame-Options"] == "SAMEORIGIN"
+        assert "frame-ancestors 'self'" in r.headers["Content-Security-Policy"]
+    assert client.post("/api/signout", json={}).headers["Cache-Control"] == "no-store"
+
+
+def test_session_cookie_is_httponly_and_strict(client):
+    cookie = _signin(client).headers["Set-Cookie"]
+    assert "HttpOnly" in cookie and "SameSite=Strict" in cookie
+
+
+def test_debugger_is_off_by_default():
+    import inspect
+    src = inspect.getsource(srv)
+    assert 'debug=True' not in src and 'FETCH_DEBUG' in src
+
+
 # ---------------------------------------------------------------------------
 # Retrieve
 # ---------------------------------------------------------------------------
