@@ -258,7 +258,7 @@ Filters: company, first and last quarter, the chart measure, what the flags comp
 
 **Reading the flags.** They use the same rule as Customer behavior: a ratio (a margin, or SG&A as a share of revenue) counts as moved when it changes by 1 percentage point or by 5% of its own level, and an amount (revenue, profit, cash, debt, a segment's revenue) when it changes by 2%. Anything smaller is *Flat*, so noise is not reported as progress or decline. Each measure knows which direction is good: lower debt and a lower SG&A share count as better, higher everything else does. Quarter-on-quarter flags are noisier than year-on-year ones because of seasonality. The company overview also raises a watch item when any financial measure got worse.
 
-**Reading the estimate.** It is the same quarter a year earlier plus the average of the last three year-on-year changes, so it keeps each business's seasonal shape. The range comes from running that same method on every earlier quarter it could have been applied to: it is about 80% of the typical misses (the *±%* shown is the typical miss). It is a statistical estimate from past reports, not company guidance, and it cannot see events that have not shown up in a report yet. It needs at least ten quarters of history and follows the *To* filter.
+**Reading the estimate.** It is the same quarter a year earlier plus the average of the last three year-on-year changes, so it keeps each business's seasonal shape. The range comes from running that same method on every earlier quarter it could have been applied to: it is about 80% of the typical misses (the *±%* shown is the typical miss). It is a statistical estimate from past reports, not company guidance, and it cannot see events that have not shown up in a report yet. It needs at least ten quarters of history and follows the *To* filter. The screen repeats this under the table: with only 6 earlier quarters to test on, the range is probably narrower than the real uncertainty, so treat it as rough.
 
 **Reading the statistics**
 
@@ -388,7 +388,7 @@ PDFs are read from the `data/` folder, recursively. The sub-folder name becomes 
 
 The first part of the filename must be the ticker. A file with no period in its name is skipped whenever the query contains a period. Restart the server after adding files; PDFs are indexed on first use.
 
-**Regenerate the supplier-contract sample data** (needs `pip install reportlab`):
+**Regenerate the supplier-contract sample data** (needs `pip install reportlab`, or `pip install -e ".[tools]"`; the Q3 2026 report generator, `tools/generate_q3_2026_reports.py`, needs it too):
 
 ```bash
 python tools/generate_supplier_contracts.py
@@ -591,6 +591,13 @@ The demo passwords above are written in the source code. Change them before depl
 - The sign-in endpoint has no per-address rate limit, only the per-account lockout.
 - The page needs `'unsafe-inline'` scripts because the UI is a single file, which limits what the Content-Security-Policy can prevent.
 - `instance/audit.log` grows without limit and `instance/*.db` are plain files; protect them with file permissions and back them up.
+
+### Accessibility
+
+- A "Skip to content" link, a focusable `<main>` landmark, and focus moved to it on each screen change; the screen name is announced through a polite live region and set as the page title.
+- Line charts carry a text description (first and last value per company); bar charts are decorative because their values are printed beside them. Every data table has a label and column-header scope.
+- Improved / Worse / Flat badges carry a symbol (✓ ⚠ –) as well as colour, and changes are shown with a sign, so meaning does not depend on colour alone.
+- Errors use `role="alert"`; spinners are hidden from screen readers; animation is reduced when the operating system asks for it.
 
 ### Extending
 

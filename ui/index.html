@@ -88,7 +88,7 @@ select{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px sol
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:6px;color:var(--m)}.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
 table.auto{table-layout:auto;width:100%}.auto td,.auto th{white-space:nowrap;overflow:visible;text-overflow:clip;padding-left:8px;padding-right:8px}table.num{table-layout:auto;min-width:640px}.num td,.num th{white-space:normal;overflow:visible;text-overflow:clip;vertical-align:top}.num td:not(:first-child),.num th:not(:first-child){text-align:right}.pos{color:var(--ok)}.neg{color:var(--d)}.fn{font-size:11px;color:var(--m);margin:8px 0 0;line-height:1.5}
 .rk{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}.rk span{white-space:nowrap}
-.st.m{background:var(--bs);color:var(--m)}.print-only{display:none}
+.st.m{background:var(--bs);color:var(--m)}.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}.skip{position:absolute;left:8px;top:-48px;z-index:99;background:var(--b);color:#fff;padding:8px 14px;border-radius:6px;font-size:13px;text-decoration:none}.skip:focus{top:8px}main:focus{outline:none}a:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--b);outline-offset:2px}.fw{background:var(--warns);color:var(--warn);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:12px;line-height:1.45}.fw b{font-weight:700}@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}.print-only{display:none}
 @media print{#hdr,footer,.banner,.top-actions,.filters,#sv-form,#warn-slot,.theme-btn{display:none!important}body{background:#fff!important}.print-only{display:block;font-size:11px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid #999}.chart,.kpi,.sig,.card,tr{break-inside:avoid}.wrap{max-width:none!important;padding:0!important}#an-body{opacity:1!important}}
 .sig{border:1px solid var(--l);border-left-width:4px;border-radius:8px;padding:10px 14px;margin:8px 0;background:var(--s)}.sig.watch{border-left-color:var(--d)}.sig.good{border-left-color:var(--ok)}.sig.info{border-left-color:var(--m)}.sig .sh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sig p{margin:6px 0;font-size:13px}.sig .ev{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;margin:4px 0}.sig .ev small{color:var(--m);margin-right:4px}.sig .src{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.co .sp{flex:1}
 .co{margin:22px 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.co h2{font-size:20px;margin:0}
@@ -96,7 +96,7 @@ table.auto{table-layout:auto;width:100%}.auto td,.auto th{white-space:nowrap;ove
 .flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.flow b{font-size:18px}.flow .op{color:var(--m)}.flow>div{background:var(--bs);border-radius:8px;padding:8px 12px}.flow small{display:block;color:var(--m);font-size:11px}
 </style></head>
 <body>
-<div id="hdr"></div><div id="app"></div>
+<a class="skip" href="#main">Skip to content</a><div id="hdr"></div><div id="app"></div><div id="live" class="vh" role="status" aria-live="polite"></div>
 <footer><span>Illustrative workspace · Sample data only</span><span>Read-only · Session-based access</span></footer>
 <script>
 /* ===== Live DataService — calls the Flask backend at /api/* ===== */
@@ -214,10 +214,19 @@ function themeIcon(){const t=document.documentElement.getAttribute("data-theme")
 
 function header(){
   const st=STEP[S.screen];
-  $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Fetch</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
+  $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Fetch</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Switch between light and dark theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
   <div class="crumb"><span>${S.user?esc(S.user.company?S.user.company.toUpperCase():S.user.id):"WORKSPACE"} / DATA WORKSPACE</span><div class="steps">${["Sign in","Request","Retrieve","Review"].map((n,i)=>i===st?`<span><b>${n}</b></span>`:`<span>${n}</span>`).join("")}</div></div>`;
 }
-function go(screen){S.screen=screen;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const tal=$("#to-al");if(tal)tal.onclick=openAlerts;const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
+function a11y(prev){const app=$("#app"),m=$("#main",app);
+  app.querySelectorAll("th:not([scope])").forEach(h=>h.setAttribute("scope","col"));
+  app.querySelectorAll(".chart,.card").forEach((c,i)=>{const h=c.querySelector("h3");if(!h)return;if(!h.id)h.id="h"+i;c.querySelectorAll("table").forEach(t=>t.hasAttribute("aria-labelledby")||t.setAttribute("aria-labelledby",h.id))});
+  app.querySelectorAll(".alert:not([role])").forEach(a=>a.setAttribute("role","alert"));
+  app.querySelectorAll(".spin").forEach(x=>x.setAttribute("aria-hidden","true"));
+  app.querySelectorAll(".prog").forEach(x=>x.setAttribute("aria-hidden","true"));
+  const h=$("h1",app)||$("h2",app)||$("b",app),name=h?h.innerText.replace(/\s+/g," ").trim():"";
+  if(name){document.title=name+" · Fetch";$("#live").textContent=name}
+  if(prev&&prev!==S.screen&&m)m.focus({preventScroll:true})}
+function go(screen){const prev=S.screen;S.screen=screen;header();const f=VIEWS[screen];$("#app").innerHTML=`<main id="main" tabindex="-1">${f()}</main>`;a11y(prev);BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const tal=$("#to-al");if(tal)tal.onclick=openAlerts;const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
 
 const CHEV=`<svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
 const VIEWS={
@@ -259,7 +268,7 @@ results:()=>{
  <div id="warn-slot"></div>
  <div class="top"><div><h2>${esc(R.title)}</h2><p>${esc(R.subtitle)}</p><p class="hint">${total} records · Sample dataset</p></div>
  <div class="top-actions"><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
- <div class="tw"><table><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
+ <div class="tw"><table aria-label="Matching reports"><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
    if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
    if(c.type==="pdf_link")return`<td><button class="btn sec pdfv" style="padding:4px 10px;font-size:11px" data-u="${esc(r[c.key])}" data-t="${esc(r.report)}">↗ View</button></td>`;
    if(c.key==="snippet")return`<td title="${esc(r[c.key])}">${hlSnippet(r[c.key]||"")}</td>`;
@@ -277,13 +286,13 @@ analytics:()=>{
   const sel=(k,label,opts)=>`<div><label for="f-${k}">${label}</label><select id="f-${k}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(F[k])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
   const win=A.filters.quarter?A.filters.quarter.replace("-"," "):(A.filters.expiry_from?A.filters.expiry_from+" → "+(A.filters.expiry_to||"…"):"all expiry dates");
   const fmtK=k=>k>=1000?"$"+(k/1000).toFixed(1)+"M":"$"+k+"K";
-  const hbars=(items,key,showShare)=>{const mx=Math.max(1,...items.map(i=>i.value_k));return items.map(i=>`<div class="hb" title="${esc(i[key])}: ${i.contracts} contract${i.contracts===1?"":"s"}, $${i.value_k.toLocaleString()}K"><span>${esc(i[key])}</span><span class="tr"><i style="width:${i.value_k?Math.max(2,Math.round(100*i.value_k/mx)):0}%"></i></span><span>${fmtK(i.value_k)}${showShare&&i.share_pct!=null?" · "+i.share_pct+"%":""}</span></div>`).join("")||'<p class="hint">No contracts match these filters.</p>'};
+  const hbars=(items,key,showShare)=>{const mx=Math.max(1,...items.map(i=>i.value_k));return items.map(i=>`<div class="hb" title="${esc(i[key])}: ${i.contracts} contract${i.contracts===1?"":"s"}, $${i.value_k.toLocaleString()}K"><span>${esc(i[key])}</span><span class="tr" aria-hidden="true"><i style="width:${i.value_k?Math.max(2,Math.round(100*i.value_k/mx)):0}%"></i></span><span>${fmtK(i.value_k)}${showShare&&i.share_pct!=null?" · "+i.share_pct+"%":""}</span></div>`).join("")||'<p class="hint">No contracts match these filters.</p>'};
   const pts=A.timeline.points,tmx=Math.max(1,...pts.map(p=>p.value_k));
-  const cols=pts.length?`<div class="cols">${pts.map(p=>`<div class="col" title="${esc(p.label)}: ${p.contracts} contract${p.contracts===1?"":"s"}, $${p.value_k.toLocaleString()}K"><b>${p.contracts?fmtK(p.value_k):""}</b><i style="height:${p.contracts?Math.max(3,Math.round(120*p.value_k/tmx)):1}px"></i><span>${esc(p.label)}</span><small>${p.contracts} contract${p.contracts===1?"":"s"}</small></div>`).join("")}</div>`:'<p class="hint">No contracts match these filters.</p>';
+  const cols=pts.length?`<div class="cols">${pts.map(p=>`<div class="col" title="${esc(p.label)}: ${p.contracts} contract${p.contracts===1?"":"s"}, $${p.value_k.toLocaleString()}K"><b>${p.contracts?fmtK(p.value_k):""}</b><i aria-hidden="true" style="height:${p.contracts?Math.max(3,Math.round(120*p.value_k/tmx)):1}px"></i><span>${esc(p.label)}</span><small>${p.contracts} contract${p.contracts===1?"":"s"}</small></div>`).join("")}</div>`:'<p class="hint">No contracts match these filters.</p>';
   const total=A.rows.length,totalPages=Math.ceil(total/PAGE_SIZE),pageRows=A.rows.slice(S.apage*PAGE_SIZE,(S.apage+1)*PAGE_SIZE);
   const ts=K.top_supplier;
   const omx=Math.max(1,...A.outlook.map(o=>o.value_k));
-  const outlook=A.outlook.length?`<div class="cols">${A.outlook.map(o=>`<div class="col" title="${esc(o.label)}: ${o.contracts} contract${o.contracts===1?"":"s"}, $${o.value_k.toLocaleString()}K, ${o.not_started.contracts} with renewal not started"><b>${o.contracts?fmtK(o.value_k):""}</b><i style="height:${o.contracts?Math.max(3,Math.round(120*o.value_k/omx)):1}px"></i><span>${esc(o.label)}</span><small>${o.contracts} contract${o.contracts===1?"":"s"}${o.not_started.contracts?` · <span class="neg">${o.not_started.contracts} not started</span>`:""}</small></div>`).join("")}</div>`:'<p class="hint">No active contracts expire in this period.</p>';
+  const outlook=A.outlook.length?`<div class="cols">${A.outlook.map(o=>`<div class="col" title="${esc(o.label)}: ${o.contracts} contract${o.contracts===1?"":"s"}, $${o.value_k.toLocaleString()}K, ${o.not_started.contracts} with renewal not started"><b>${o.contracts?fmtK(o.value_k):""}</b><i aria-hidden="true" style="height:${o.contracts?Math.max(3,Math.round(120*o.value_k/omx)):1}px"></i><span>${esc(o.label)}</span><small>${o.contracts} contract${o.contracts===1?"":"s"}${o.not_started.contracts?` · <span class="neg">${o.not_started.contracts} not started</span>`:""}</small></div>`).join("")}</div>`:'<p class="hint">No active contracts expire in this period.</p>';
   const lv=l=>`<span class="st ${l==="Low"?"":"x"}">${esc(l)}</span>`;
   const conc=A.concentration.length?`<div class="chart wide" style="margin-bottom:12px"><h3>Supplier concentration by category · active contracts</h3><div class="tw"><table class="num"><thead><tr>${["Category","Suppliers","Contracts","Value","Concentration (HHI)","Largest supplier","Sole-source"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${A.concentration.map(c=>`<tr><td>${esc(c.category)}</td><td>${c.suppliers}</td><td>${c.contracts}</td><td>${fmtK(c.value_k)}</td><td>${c.hhi.toLocaleString()} ${lv(c.level)}</td><td>${esc(c.top_supplier)} · <span class="${c.top_flagged?"neg":""}">${c.top_share_pct}%</span></td><td>${c.sole_source.contracts?c.sole_source.contracts+" · "+fmtK(c.sole_source.value_k):"—"}</td></tr>`).join("")}</tbody></table></div><p class="fn">HHI is the sum of squared supplier shares of annual value: under 1,500 low, 1,500–2,499 moderate, 2,500 or more high. A supplier above 40% of a category is flagged in red.</p></div>`:"";
   return`<div class="wrap">
@@ -359,7 +368,8 @@ financials:()=>{
       const dots=pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="${P.length>14?2:3}" fill="${c}"><title>${esc(r.ticker)} · ${esc(pl(P[i]))}: ${esc(fv(r.vals[i],unit))}</title></circle>`:"").join("");
       const last=pts.filter(Boolean).pop();
       return`<path class="ln" d="${d}" stroke="${c}"/>${dots}${last?`<text class="lb" x="${last[0]+6}" y="${last[1]+4}" style="fill:${c}">${esc(r.ticker)}</text>`:""}`}).join("");
-    return`<svg class="lc" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} by quarter">${grid}${xl}${lines}</svg>`};
+    const desc=rows.map(r=>{const v=r.vals.map((x,i)=>x==null?null:[i,x]).filter(Boolean);if(!v.length)return"";const a=v[0],b=v[v.length-1];return`${r.ticker}: ${fv(a[1],unit)} in ${pl(P[a[0]])}, ${fv(b[1],unit)} in ${pl(P[b[0]])}`}).filter(Boolean).join("; ");
+    return`<svg class="lc" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} by quarter. ${esc(desc)}.">${grid}${xl}${lines}</svg>`};
   const at=(c,key)=>A.periods.map(p=>{const r=c.series.find(s=>s.period===p);return r?r[key]:null});
   const trend=line(cos.map(c=>({ticker:c.ticker,vals:at(c,M.key)})),M.unit,M.label);
   const idx=multi&&cos.length>1?line(cos.map(c=>({ticker:c.ticker,vals:A.periods.map(p=>{const r=c.indexed.find(s=>s.period===p);return r?r.value:null})})),"idx","Revenue indexed"):"";
@@ -373,7 +383,7 @@ financials:()=>{
   const rk=A.ranking.length?`<div class="chart wide"><h3>Who leads · ${esc(pl(A.as_of))}</h3><div class="tw"><table class="rkt"><tbody>${A.ranking.map(r=>`<tr><td style="width:30%">${esc(r.measure)}</td><td><div class="rk">${r.order.map((o,i)=>`<span><b>${i+1}. ${esc(o.ticker)}</b> ${o.value>=0&&/growth/i.test(r.measure)?"+":""}${o.value.toFixed(1)}%</span>`).join("")}</div></td></tr>`).join("")}</tbody></table></div></div>`:"";
   const seg=cos.map(c=>`<div class="chart"><h3>${esc(c.ticker)} · revenue by segment</h3>${c.segments.map(g=>`<div class="hb" title="${esc(g.name)}: ${fv(g.revenue)} · ${g.share_pct}% of revenue"><span>${esc(g.name)}</span><span class="tr"><i style="width:${Math.max(2,Math.round(g.share_pct||0))}%"></i></span><span>${fv(g.revenue)} · ${g.yoy_pct==null?"—":(g.yoy_pct>=0?"+":"")+g.yoy_pct.toFixed(1)+"%"}</span></div>`).join("")}<p class="fn">Bar = share of revenue. Right column = revenue and growth vs. last year.</p></div>`).join("");
   const ST=cos.map(c=>{const s=c.stats,z=s.seasonality;return`<tr><td><b>${esc(c.ticker)}</b></td><td>${s.revenue_cagr_2y_pct==null?"—":s.revenue_cagr_2y_pct.toFixed(1)+"%"}</td><td>${s.qoq_mean_pct==null?"—":s.qoq_mean_pct.toFixed(1)+"%"}</td><td>${s.qoq_stdev_pct==null?"—":s.qoq_stdev_pct.toFixed(1)+" pts"}</td><td>${s.trend_slope_per_qtr>=0?"+":""}${s.trend_slope_per_qtr.toFixed(1)}</td><td>${s.trend_r2.toFixed(2)}</td><td>${z?["Q1","Q2","Q3","Q4"].map(q=>z[q]==null?"":`${q} ${z[q].toFixed(2)}`).filter(Boolean).join(" · "):"—"}</td></tr>`}).join("");
-  const ftag=(a,w)=>a==="improved"?`<span class="st" title="${esc(w||"")}">Improved</span>`:a==="worsened"?`<span class="st x" title="${esc(w||"")}">Worse</span>`:a==="flat"?`<span class="st m" title="${esc(w||"")}">Flat</span>`:"";
+  const ftag=(a,w)=>a==="improved"?`<span class="st" title="${esc(w||"")}"><span aria-hidden="true">✓ </span>Improved</span>`:a==="worsened"?`<span class="st x" title="${esc(w||"")}"><span aria-hidden="true">⚠ </span>Worse</span>`:a==="flat"?`<span class="st m" title="${esc(w||"")}"><span aria-hidden="true">– </span>Flat</span>`:"";
   const fchg=m=>m.change==null?"—":m.kind==="pts"?(m.change>=0?"+":"−")+Math.abs(m.change).toFixed(1)+" pts":(m.change>=0?"+":"−")+Math.abs(m.change).toFixed(1)+"%";
   const fcls=m=>m.assessment==="improved"?"pos":m.assessment==="worsened"?"neg":"";
   const withFlags=cos.filter(c=>c.scorecard);
@@ -389,6 +399,7 @@ financials:()=>{
   const fcFor=c=>{const f=c.forecast;if(!f)return"";
     return`<div class="chart wide" style="margin-bottom:12px"><h3>${esc(c.ticker)} · estimate for ${esc(pl(f.period))} <span class="st m" title="${esc(f.caution)}">Estimate</span></h3>
     <div class="tw"><table class="num"><thead><tr><th>Measure</th><th>${esc(pl(f.based_on))} actual</th><th>Estimate</th><th>Likely range</th><th>vs. ${esc(pl(f.period.replace(/-(\d{4})/,(m,y)=>"-"+(+y-1))))}</th></tr></thead><tbody>${f.measures.map(m=>`<tr><td>${esc(m.label)}</td><td>${fv(m.last,m.unit)}</td><td><b>${fv(m.estimate,m.unit)}</b></td><td>${fv(m.low,m.unit)} – ${fv(m.high,m.unit)}${m.typical_miss_pct==null?"":` <small class="hint" title="Typical miss when this method was tested on earlier quarters">±${m.typical_miss_pct}%</small>`}</td><td>${gr(m.vs_year_ago_pct)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="fw" role="note"><b>Treat the range as rough.</b> It rests on only ${f.tested_on} earlier quarter${f.tested_on===1?"":"s"} of testing${f.tested_on<8?", which is a small sample, so the real range is probably wider than shown":""}.</p>
     <p class="fn"><b>An estimate, not guidance.</b> ${esc(f.method)} It cannot see events that have not shown up in a report yet, so a weak quarter can move the real figure outside the range.</p></div>`};
   const fcHtml=cos.map(fcFor).join("");
   const single=cos.length===1?cos[0]:null;
@@ -527,7 +538,7 @@ behavior:()=>{
   const sg=(v,d=1)=>(v>=0?"+":"−")+Math.abs(v).toFixed(d);
   const chg=r=>r.change==null?"—":r.change_kind==="pts"?sg(r.change)+" pts":sg(r.change)+"%";
   const gr=v=>v==null?'<span class="hint">—</span>':`<span class="${v>=0?"pos":"neg"}">${sg(v)}%</span>`;
-  const tag=(a,w)=>a==="improved"?`<span class="st" title="${esc(w||"")}">Improved</span>`:a==="worsened"?`<span class="st x" title="${esc(w||"")}">Worse</span>`:a==="flat"?`<span class="st m" title="${esc(w||"")}">Flat</span>`:"";
+  const tag=(a,w)=>a==="improved"?`<span class="st" title="${esc(w||"")}"><span aria-hidden="true">✓ </span>Improved</span>`:a==="worsened"?`<span class="st x" title="${esc(w||"")}"><span aria-hidden="true">⚠ </span>Worse</span>`:a==="flat"?`<span class="st m" title="${esc(w||"")}"><span aria-hidden="true">– </span>Flat</span>`:"";
   const pcls=(r)=>r.assessment==="improved"?"pos":r.assessment==="worsened"?"neg":"";
   const li=(r)=>`<div class="li"><span>${esc(r.label)}<br><small>${esc(r.section)} · ${fv(r.prior,r.unit)} → ${fv(r.value,r.unit)}</small>${r.context?`<br><small>${esc(r.context)}</small>`:""}${r.why?`<br><small>${esc(r.why)}</small>`:""}</span><span class="${pcls(r)}">${chg(r)}</span></div>`;
   const Y=A.year,P=Y-1;
