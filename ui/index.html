@@ -210,7 +210,7 @@ function header(){
   $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Fetch</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
   <div class="crumb"><span>${S.user?esc(S.user.company?S.user.company.toUpperCase():S.user.id):"WORKSPACE"} / DATA WORKSPACE</span><div class="steps">${["Sign in","Request","Retrieve","Review"].map((n,i)=>i===st?`<span><b>${n}</b></span>`:`<span>${n}</span>`).join("")}</div></div>`;
 }
-function go(screen){S.screen=screen;if(screen==="results")S.page=0;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
+function go(screen){S.screen=screen;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
 
 const CHEV=`<svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
 const VIEWS={
@@ -619,7 +619,7 @@ async function run(text){
   S.query=text;go("retrieving");
   try{const r=await DataService.retrieve(text);if(S.screen!=="retrieving")return;
     if(!r.rows||!r.rows.length){go("notfound");return}
-    S.result=r;S.end=Date.now()+SESSION_MIN*60000;go("results")}
+    S.result=r;S.page=0;S.end=Date.now()+SESSION_MIN*60000;go("results")}
   catch(e){go("notfound")}
 }
 
