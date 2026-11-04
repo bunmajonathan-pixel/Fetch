@@ -244,13 +244,16 @@ From the request screen or the results screen, choose **Financial trends**. It t
 |---------|---------------|
 | Latest quarter | Revenue, growth vs. last year, gross and operating margin with the change in basis points (bp) vs. last year, net income, EPS, free cash flow, trailing-12-month revenue |
 | Chart | Any of revenue, gross / operating / net margin, net income, EPS, free cash flow, FCF margin, by quarter, one line per company |
+| Improved / Worse / Flat flags | For each company, the latest quarter's growth, margin, cost, cash, balance-sheet and segment measures (about 20 per company), each tagged *Improved*, *Worse* or *Flat* with a one-sentence reason, plus a quarter-by-quarter tally of how many measures fell into each group. **Export flags** downloads them |
 | Revenue growth index | Each company's revenue with its first quarter set to 100, so a small and a large company can be compared on growth |
 | Who leads | League table for the latest quarter on growth, margins and EPS growth (only when you can see two or more companies) |
 | Revenue by segment | Each company's segment mix and each segment's growth vs. last year |
 | Trend statistics | Two-year revenue CAGR, average and volatility of quarter-on-quarter growth, least-squares trend and its R², and a seasonality index |
 | Quarter by quarter | The full table behind the charts. **Export CSV** downloads it |
 
-Filters: company, first and last quarter, and the chart measure. Growth rates are always calculated on the full history, so the first quarter in a window still shows its YoY.
+Filters: company, first and last quarter, the chart measure, what the flags compare against (*same quarter last year* or *previous quarter*) and which flags to show (*All / Improved only / Worse only / Flat only*). Growth rates are always calculated on the full history, so the first quarter in a window still shows its YoY.
+
+**Reading the flags.** They use the same rule as Customer behavior: a ratio (a margin, or SG&A as a share of revenue) counts as moved when it changes by 1 percentage point or by 5% of its own level, and an amount (revenue, profit, cash, debt, a segment's revenue) when it changes by 2%. Anything smaller is *Flat*, so noise is not reported as progress or decline. Each measure knows which direction is good: lower debt and a lower SG&A share count as better, higher everything else does. Quarter-on-quarter flags are noisier than year-on-year ones because of seasonality. The company overview also raises a watch item when any financial measure got worse.
 
 **Reading the statistics**
 
@@ -525,7 +528,7 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
 | `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, renewal, sole_source, token }` → statistics (`kpis` incl. `at_risk` and `sole_source`, `risk_rule`, `renewal_pipeline`, `concentration`, `outlook`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
-| `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, token }` (periods like `Q2-2026`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
+| `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, assessment, basis, token }` (periods like `Q2-2026`; `assessment`: `all`, `improved`, `worsened`, `flat`; `basis`: `yoy` or `qoq`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`, `scorecard` with the improved/worsened/flat tally, `measures`, `concerns` and per-quarter `history`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
 | `POST` | `/api/analyze/behavior` | Optional `{ ticker, year, assessment, token }` (`assessment`: `all`, `improved`, `worsened`, `flat`) → `companies` (revenue, customers, `growth`, `scorecard`, `improved`, `concerns`, `mix_moves`, `rollforward`, `sections`), `comparison`, `years`, `rule`, `scope`. `403` for a company outside the user's scope; `400` for an unknown year or assessment. |
 | `POST` | `/api/analyze/company` | Optional `{ ticker, token }` → `companies` (each with `financials`, `behavior`, `contracts`, `weight`, `signals`, `counts`, `partial_contracts`) and `scope`. `403` for a company outside the user's scope. |
 | `GET` / `POST` | `/api/views` | List the signed-in user's saved views / save one `{ name, screen, filters }` (`screen`: `contracts`, `financials`, `behavior`, `company`). Filters are validated by the same rules as the screen; `400` for anything else. |

@@ -124,6 +124,25 @@ def signals(fin: dict, beh: dict, con: dict, partial: bool) -> list[dict]:
                                ["Financials", "Customer behavior"],
                                [(f"Full year {beh['year']}", f"{g['revenue_pct']:+.1f}%"), (lat["period"], f"{lat['revenue_yoy']:+.1f}%")]))
 
+    # 6. Financial measures that moved the wrong way  (financials)
+    fsc = fin.get("scorecard")
+    if fsc and fsc.get("tracked"):
+        ev = [(f"Financial measures, {fsc['period']} vs. {fsc['prior_period']}",
+               f"{fsc['improved']} improved, {fsc['worsened']} worse, {fsc['flat']} flat")]
+        if fsc["worsened"]:
+            names = ", ".join(m["label"] for m in fsc["concerns"])
+            more = fsc["worsened"] - len(fsc["concerns"])
+            out.append(_signal("financial_flags", "watch", "Some financial measures are getting worse",
+                               f"{_plural(fsc['worsened'], 'measure')} got worse than in {fsc['prior_period']}"
+                               f"{f', including {names}' if names else ''}"
+                               f"{f' (and {more} more)' if more > 0 else ''}. {fsc['improved']} improved and {fsc['flat']} were flat.",
+                               ["Financials"],
+                               ev + [(m["label"], f"{m['prior']:g} → {m['value']:g}") for m in fsc["concerns"]]))
+        elif fsc["improved"] > fsc["flat"]:
+            out.append(_signal("financial_flags", "good", "No financial measure got worse",
+                               f"{fsc['improved']} of {fsc['tracked']} financial measures improved against {fsc['prior_period']} "
+                               f"and {fsc['flat']} were flat.", ["Financials"], ev))
+
     return out
 
 
@@ -146,7 +165,9 @@ def profile(ticker: str, name: str, fin: dict, beh: dict, con: dict, partial: bo
         "financials": {"period": lat["period"], "revenue": lat["revenue"], "revenue_yoy": lat["revenue_yoy"],
                        "gross_margin": lat["gross_margin"], "operating_margin": lat["operating_margin"],
                        "margin_change_bps_yoy": fin["margin_change_bps_yoy"], "net_income": lat["net_income"],
-                       "free_cash_flow": lat["free_cash_flow"], "ttm_revenue": lat["ttm_revenue"]},
+                       "free_cash_flow": lat["free_cash_flow"], "ttm_revenue": lat["ttm_revenue"],
+                       "scorecard": ({k: fin["scorecard"][k] for k in ("period", "prior_period", "improved", "worsened", "flat", "tracked")}
+                                     if fin.get("scorecard") else None)},
         "behavior": {"year": beh["year"], "revenue_pct": (beh.get("growth") or {}).get("revenue_pct"),
                      "customers": beh["customers"], "growth": beh.get("growth"), "scorecard": beh.get("scorecard"),
                      "concerns": [{"label": r["label"], "prior": r["prior"], "value": r["value"], "unit": r["unit"],
