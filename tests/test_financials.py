@@ -98,7 +98,7 @@ def tiny(tmp_path):
 
 def test_every_report_reconciles(extracted):
     reports, summaries = extracted
-    assert len(reports) == 36 and len(summaries) == 3
+    assert len(reports) == 39 and len(summaries) == 3
     assert ef.reconcile(reports, summaries) == []
 
 
@@ -192,7 +192,7 @@ def test_real_data_matches_the_reports():
     The PDF rounds from unrounded data while we divide figures already rounded to $0.1M,
     so a difference of a tenth of a point is expected and allowed."""
     financials.init_financials(IND / "financials.csv", IND / "segments.csv")
-    c = financials.analyze({"BLFD"}, Filters())["companies"][0]
+    c = financials.analyze({"BLFD"}, Filters(to_period="Q2-2026"))["companies"][0]
     assert c["latest"]["revenue_yoy"] == pytest.approx(2.2, abs=0.1)
     assert c["latest"]["operating_income_yoy"] == pytest.approx(12.3, abs=0.1)
     assert c["latest"]["net_income_yoy"] == pytest.approx(16.2, abs=0.1)
@@ -248,7 +248,7 @@ def test_api_single_company_user_sees_only_their_company(client):
     d = r.get_json()
     assert [c["ticker"] for c in d["companies"]] == ["BLFD"]
     assert [c["ticker"] for c in d["scope"]["companies"]] == ["BLFD"]
-    assert d["ranking"] == [] and d["as_of"] == "Q2-2026" and len(d["periods"]) == 12
+    assert d["ranking"] == [] and d["as_of"] == "Q3-2026" and len(d["periods"]) == 13
     body = r.get_data(as_text=True)
     assert "HDYN" not in body and "MCLD" not in body and "Robotics" not in body
 

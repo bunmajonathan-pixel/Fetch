@@ -47,6 +47,10 @@ BLFD,Q2-2026,2026,2,Snacks,471.9
 BLFD,Q2-2026,2026,2,Beverages,375.4
 BLFD,Q2-2026,2026,2,Frozen and Prepared,234.9
 BLFD,Q2-2026,2026,2,International,139.6
+BLFD,Q3-2026,2026,3,Snacks,481.1
+BLFD,Q3-2026,2026,3,Beverages,371.0
+BLFD,Q3-2026,2026,3,Frozen and Prepared,233.5
+BLFD,Q3-2026,2026,3,International,144.8
 HDYN,Q3-2023,2023,3,Factory Automation,199.3
 HDYN,Q3-2023,2023,3,Robotics and Vision,112.1
 HDYN,Q3-2023,2023,3,Services and Software,103.8
@@ -83,6 +87,9 @@ HDYN,Q1-2026,2026,1,Services and Software,134.1
 HDYN,Q2-2026,2026,2,Factory Automation,212.9
 HDYN,Q2-2026,2026,2,Robotics and Vision,152.7
 HDYN,Q2-2026,2026,2,Services and Software,147.5
+HDYN,Q3-2026,2026,3,Factory Automation,205.0
+HDYN,Q3-2026,2026,3,Robotics and Vision,157.0
+HDYN,Q3-2026,2026,3,Services and Software,152.2
 MCLD,Q3-2023,2023,3,Subscription Platform,187.6
 MCLD,Q3-2023,2023,3,Analytics Add-ons,46.9
 MCLD,Q3-2023,2023,3,Professional Services,26.1
@@ -119,3 +126,6 @@ MCLD,Q1-2026,2026,1,Professional Services,28.7
 MCLD,Q2-2026,2026,2,Subscription Platform,274.6
 MCLD,Q2-2026,2026,2,Analytics Add-ons,90.2
 MCLD,Q2-2026,2026,2,Professional Services,28.9
+MCLD,Q3-2026,2026,3,Subscription Platform,285.1
+MCLD,Q3-2026,2026,3,Analytics Add-ons,95.9
+MCLD,Q3-2026,2026,3,Professional Services,30.8

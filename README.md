@@ -238,7 +238,7 @@ The department limit applies to *contract* data. Company-wide documents such as 
 
 ### 5. Analyze financial trends
 
-From the request screen or the results screen, choose **Financial trends**. It turns the quarterly-report PDFs (Q3 2023 to Q2 2026, 12 quarters per company) into numbers you can compare, for the companies your account is cleared to see.
+From the request screen or the results screen, choose **Financial trends**. It turns the quarterly-report PDFs (Q3 2023 to Q3 2026, 13 quarters per company) into numbers you can compare, for the companies your account is cleared to see.
 
 | Section | What it shows |
 |---------|---------------|
@@ -396,6 +396,8 @@ python tools/extract_financials.py            # rebuild the CSVs
 python tools/extract_financials.py --check    # only check that the PDFs reconcile
 ```
 
+The Q3 2026 reports were written by `python tools/generate_q3_2026_reports.py`, which builds each PDF from the Q2 2026 and Q3 2025 rows so the comparison columns agree with the earlier reports (the extractor then reconciles them). BrightLeaf's quarter is deliberately weak and Halcyon's cash flow slips, so the Worse flags have something to show; Meridian beats its guidance.
+
 This reads every `data/individual/<TICKER>/*_Quarterly_Report.pdf` and writes `data/individual/financials.csv` (one row per company per quarter) and `data/individual/segments.csv`. It refuses to write anything unless the numbers agree: each statement adds up, segments sum to total revenue, the "prior quarter" and "prior-year" columns match the reports they refer to, and the three-year summary PDFs match the individual reports. Run it after adding or replacing a quarterly report, and restart the server (the CSVs are re-read when they change).
 
 **Extract the customer behavior** from the report PDFs:
@@ -415,7 +417,7 @@ This reads every `data/behavior/*_Customer_Behavior_<year>.pdf` and writes `data
 | HDYN | Halcyon Dynamics Inc. | Industrial Automation |
 | MCLD | Meridian Cloudworks Corp. | Enterprise Software |
 
-All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv` and `behavior/behavior.csv`, which feed the analytics.
+All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q3-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv` and `behavior/behavior.csv`, which feed the analytics.
 
 ### 11. Run the tests
 
@@ -500,7 +502,7 @@ retrieval/                The library
 run.py, run.sh, Fetch.bat   One-step launcher (creates .venv, installs, starts, opens browser)
 ui/index.html             Single-page front-end
 data/                     PDF reports, one sub-folder per category
-tools/                    generate_supplier_contracts.py (CSV + PDFs), extract_financials.py and extract_behavior.py (PDFs → CSVs), check_login.py
+tools/                    generate_supplier_contracts.py (CSV + PDFs), generate_q3_2026_reports.py (Q3 2026 quarterly PDFs), extract_financials.py and extract_behavior.py (PDFs → CSVs), check_login.py
 examples/demo.py          Auth + retrieval demo (PYTHONPATH=. python examples/demo.py)
 tests/                    pytest suite
 instance/                 Runtime files: users.db, views.db, contracts.db, audit.log (git-ignored, created on first run)
