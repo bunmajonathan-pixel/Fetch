@@ -33,7 +33,7 @@ from retrieval.auth import issue_token
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
-from retrieval import behavior, contracts, db_users, financials
+from retrieval import behavior, company, contracts, db_users, financials
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -536,6 +536,58 @@ def api_analyze_behavior():
            detail={"kind": "behavior", "filters": result["filters"],
                    "companies": [c["ticker"] for c in result["companies"]]})
     return jsonify(result)
+
+
+@app.post("/api/analyze/company")
+def api_analyze_company():
+    """
+    One page per company that joins financials, customer behavior and supplier contracts,
+    with signals that need two sources to see.
+
+    Body (optional): ticker.  Without it every company in the caller's scope is returned.
+
+    Each source keeps its own rule.  Financials and behavior follow the caller's tickers;
+    contracts also follow the caller's departments, so a department-limited account gets
+    its own departments' contracts only (``partial_contracts`` is then true and signals
+    that compare contract totals with company-wide numbers are left out).
+    """
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return jsonify(error=str(e), code="UNAUTHORIZED"), 401
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "analyze_company"})
+        return jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429
+
+    user_rec = db_users.get_user(username)
+    if user_rec is None:
+        return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
+
+    want = (body.get("ticker") or "").strip().upper() or None
+    tickers = set(user_rec.document_ids) & set(COMPANIES)
+    if want and want not in tickers:
+        _audit("analyze_denied", username, ip=request.remote_addr, detail={"ticker": want, "kind": "company"})
+        return jsonify(error="You are not authorised to view this company.", code="FORBIDDEN"), 403
+
+    owners  = None if user_rec.owners is None else set(user_rec.owners)
+    profiles = []
+    for t in sorted(tickers):
+        if want and t != want:
+            continue
+        fin = financials.analyze({t}, financials.parse_filters({}))["companies"]
+        beh = behavior.analyze({t}, behavior.Filters())["companies"]
+        if not fin or not beh:
+            continue
+        con = contracts.analyze({t}, owners, contracts.parse_filters({"ticker": t}))
+        profiles.append(company.profile(t, COMPANIES[t]["name"], fin[0], beh[0], con, partial=owners is not None))
+
+    _audit("analyze", username, ip=request.remote_addr,
+           detail={"kind": "company", "companies": [p["ticker"] for p in profiles]})
+    return jsonify({"companies": profiles,
+                    "scope": {"companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
+                              "owners": None if owners is None else sorted(owners)}})
 
 
 @app.post("/api/signout")
