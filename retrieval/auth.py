@@ -11,7 +11,6 @@ Default session lifetime: 3600 seconds (1 hour).
 from __future__ import annotations
 import secrets
 import time
-from typing import Optional
 
 from .db_users import get_user
 
