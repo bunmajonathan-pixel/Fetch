@@ -59,10 +59,11 @@ Bob follows a minimal-change discipline: every edit traces directly to the reque
 2. [Sign in and run a query](#2-sign-in-and-run-a-query)
 3. [Walkthrough: supplier contracts expiring in Q4 2026](#3-walkthrough-supplier-contracts-expiring-in-q4-2026)
 4. [Analyze supplier contracts](#4-analyze-supplier-contracts)
-5. [Manage users and permissions](#5-manage-users-and-permissions)
-6. [Add or regenerate data](#6-add-or-regenerate-data)
-7. [Run the tests](#7-run-the-tests)
-8. [Troubleshooting](#8-troubleshooting)
+5. [Analyze financial trends](#5-analyze-financial-trends)
+6. [Manage users and permissions](#6-manage-users-and-permissions)
+7. [Add or regenerate data](#7-add-or-regenerate-data)
+8. [Run the tests](#8-run-the-tests)
+9. [Troubleshooting](#9-troubleshooting)
 
 ### 1. Install and start the app
 
@@ -213,7 +214,34 @@ Both totals use the same data. The limited account's numbers, including the shar
 
 The department limit applies to *contract* data. Company-wide documents such as quarterly reports stay available to those accounts.
 
-### 5. Manage users and permissions
+### 5. Analyze financial trends
+
+From the request screen or the results screen, choose **Financial trends**. It turns the quarterly-report PDFs (Q3 2023 to Q2 2026, 12 quarters per company) into numbers you can compare, for the companies your account is cleared to see.
+
+| Section | What it shows |
+|---------|---------------|
+| Latest quarter | Revenue, growth vs. last year, gross and operating margin with the change in basis points (bp) vs. last year, net income, EPS, free cash flow, trailing-12-month revenue |
+| Chart | Any of revenue, gross / operating / net margin, net income, EPS, free cash flow, FCF margin, by quarter, one line per company |
+| Revenue growth index | Each company's revenue with its first quarter set to 100, so a small and a large company can be compared on growth |
+| Who leads | League table for the latest quarter on growth, margins and EPS growth (only when you can see two or more companies) |
+| Revenue by segment | Each company's segment mix and each segment's growth vs. last year |
+| Trend statistics | Two-year revenue CAGR, average and volatility of quarter-on-quarter growth, least-squares trend and its R², and a seasonality index |
+| Quarter by quarter | The full table behind the charts. **Export CSV** downloads it |
+
+Filters: company, first and last quarter, and the chart measure. Growth rates are always calculated on the full history, so the first quarter in a window still shows its YoY.
+
+**Reading the statistics**
+
+- *2-yr revenue CAGR* compares trailing-12-month revenue now with two years earlier.
+- *Trend* is the straight-line change in revenue per quarter; *R²* close to 1 means growth has been steady (MCLD, 0.98), close to 0 means it is mostly noise or seasonality (BLFD, 0.28).
+- *QoQ volatility* is the standard deviation of quarter-on-quarter growth. Seasonal businesses read high because Q4 is always strong.
+- *Seasonality* is each calendar quarter's revenue divided by its year's average (1.00 = average). It uses complete calendar years only, so with this data that means 2024 and 2025.
+
+**Permissions.** Access follows the quarterly-report PDFs: a user sees the companies in their `document_ids`, and asking for another company returns `403` and an `analyze_denied` audit entry. Other companies are not used in any ranking or comparison either. The department limit (`owners`) covers the contract register only, so `BLFD-LOG` sees BrightLeaf's financials just as it can open BrightLeaf's quarterly reports.
+
+**Accuracy.** The numbers come from CSVs extracted from the PDFs by `tools/extract_financials.py` (see [guide 7](#7-add-or-regenerate-data)), not from text parsed at request time. Growth rates are calculated from figures printed to $0.1M, so they can differ from the percentage printed in a report by about a tenth of a point (BLFD Q2 2026 revenue: 2.15% here, "+2.2%" in the PDF).
+
+### 6. Manage users and permissions
 
 Accounts live in the `users` table of `instance/users.db`:
 
@@ -250,7 +278,7 @@ python -c "import sqlite3; c=sqlite3.connect('instance/users.db'); c.execute('DE
 
 If the account is one of the defaults, also remove it from `DEFAULT_ACCOUNTS`, otherwise it comes back when the database is recreated.
 
-### 6. Add or regenerate data
+### 7. Add or regenerate data
 
 PDFs are read from the `data/` folder, recursively. The sub-folder name becomes the report **category**, and the filename decides the ticker and period:
 
@@ -277,6 +305,15 @@ The other quarters are generated from a fixed random seed (`SEED`, with the supp
 
 The server loads the CSV into `instance/contracts.db` at start-up and reloads it automatically whenever the CSV changes, so you never edit the database by hand.
 
+**Extract the quarterly financials** from the report PDFs:
+
+```bash
+python tools/extract_financials.py            # rebuild the CSVs
+python tools/extract_financials.py --check    # only check that the PDFs reconcile
+```
+
+This reads every `data/individual/<TICKER>/*_Quarterly_Report.pdf` and writes `data/individual/financials.csv` (one row per company per quarter) and `data/individual/segments.csv`. It refuses to write anything unless the numbers agree: each statement adds up, segments sum to total revenue, the "prior quarter" and "prior-year" columns match the reports they refer to, and the three-year summary PDFs match the individual reports. Run it after adding or replacing a quarterly report, and restart the server (the CSVs are re-read when they change).
+
 **Data on disk**
 
 | Ticker | Company | Industry |
@@ -287,7 +324,7 @@ The server loads the CSV into `instance/contracts.db` at start-up and reloads it
 
 All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv`, which feeds the analytics.
 
-### 7. Run the tests
+### 8. Run the tests
 
 ```bash
 pip install pytest
@@ -296,7 +333,7 @@ pytest
 
 Run it from the project root. `pyproject.toml` already sets the test folder and import path. The suite writes its user database and audit log to a throw-away temp folder (via `FETCH_INSTANCE_DIR`), so it never touches your real `instance/` data.
 
-### 8. Troubleshooting
+### 9. Troubleshooting
 
 **Sign-in says "ID or password is incorrect".**
 Run the backend check from the project root:
@@ -358,12 +395,13 @@ retrieval/                The library
   db_users.py             SQLite user store (bcrypt hashes + ticker ACLs)
   users.py                UserRecord, DEFAULT_ACCOUNTS, in-memory fallback store
   contracts.py            Supplier-contract store (SQLite) and expiry analytics, permission-scoped
+  financials.py           Quarterly growth, margin, trend and peer statistics (from the extracted CSVs)
   audit.py                Append-only access log
   pull_request.py         PullRequestAgent — ownership-aware retrieval helper
 
 ui/index.html             Single-page front-end
 data/                     PDF reports, one sub-folder per category
-tools/                    generate_supplier_contracts.py (CSV + PDFs), check_login.py
+tools/                    generate_supplier_contracts.py (CSV + PDFs), extract_financials.py (PDFs → CSVs), check_login.py
 examples/demo.py          Auth + retrieval demo (PYTHONPATH=. python examples/demo.py)
 tests/                    pytest suite
 instance/                 Runtime files: users.db, contracts.db, audit.log (git-ignored, created on first run)
@@ -391,6 +429,7 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
 | `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, token }` → statistics (`kpis`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
+| `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, token }` (periods like `Q2-2026`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
 | `POST` | `/api/signout` | `{ token }` → `{ ok: true }` |
 | `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. Department-limited accounts get `403` for `Supplier_Contracts/` files. |
 | `GET` | `/api/audit` | Recent audit entries. Requires the `X-Audit-Token` header; disabled unless the `AUDIT_TOKEN` environment variable is set. |

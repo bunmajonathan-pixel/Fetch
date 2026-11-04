@@ -33,7 +33,7 @@ from retrieval.auth import issue_token
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
-from retrieval import contracts, db_users
+from retrieval import contracts, db_users, financials
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -88,6 +88,10 @@ db_users.init_db(INSTANCE_DIR / "users.db")
 # Supplier-contract analytics store, rebuilt from the CSV whenever the CSV changes
 CONTRACTS_CSV = DATA_ROOT / "Supplier_Contracts" / "contracts.csv"
 contracts.init_contracts(INSTANCE_DIR / "contracts.db", CONTRACTS_CSV)
+
+# Quarterly financial trends, read from the CSVs that tools/extract_financials.py builds from the PDFs
+financials.init_financials(DATA_ROOT / "individual" / "financials.csv",
+                           DATA_ROOT / "individual" / "segments.csv")
 
 # The contract-register PDFs list EVERY department's contracts. A user limited to
 # certain departments (user.owners is not None) must not see them, or the record-level
@@ -436,6 +440,52 @@ def api_analyze_contracts():
     }
     _audit("analyze", username, ip=request.remote_addr,
            detail={"filters": result["filters"], "contracts": result["kpis"]["contracts"]})
+    return jsonify(result)
+
+
+@app.post("/api/analyze/financials")
+def api_analyze_financials():
+    """
+    Growth, margin, trend and peer-comparison statistics from the quarterly reports.
+
+    Body (all optional): ticker, from / to (Q2-2026 style), metric (revenue | gross_margin |
+    operating_margin | net_margin | net_income | eps | free_cash_flow | fcf_margin).
+
+    Scope is the caller's tickers, the same rule that governs the quarterly-report PDFs.
+    Other companies are neither returned nor used in any comparison or ranking; asking
+    for one by name is a 403.
+    """
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return jsonify(error=str(e), code="UNAUTHORIZED"), 401
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "analyze_financials"})
+        return jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429
+
+    user_rec = db_users.get_user(username)
+    if user_rec is None:
+        return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
+
+    try:
+        f = financials.parse_filters(body)
+    except ValueError as e:
+        return jsonify(error=str(e), code="BAD_REQUEST"), 400
+
+    tickers = set(user_rec.document_ids) & set(COMPANIES)
+    if f.ticker and f.ticker not in tickers:
+        _audit("analyze_denied", username, ip=request.remote_addr, detail={"ticker": f.ticker, "kind": "financials"})
+        return jsonify(error="You are not authorised to view this company's financials.",
+                       code="FORBIDDEN"), 403
+
+    result = financials.analyze(tickers, f)
+    result["scope"] = {"companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
+                       "periods": financials.scope_periods(tickers)}
+    _audit("analyze", username, ip=request.remote_addr,
+           detail={"kind": "financials", "filters": result["filters"],
+                   "companies": [c["ticker"] for c in result["companies"]]})
     return jsonify(result)
 
 
