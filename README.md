@@ -182,6 +182,8 @@ Search finds documents. The analytics view turns the contract data into totals, 
 | Expiry period | All expiry dates, or any quarter from Q1 2025 to Q4 2028 |
 | Category | Ingredients, Logistics, Software… (the categories in your scope) |
 | Department | The contract owner. Department-limited accounts only see their own |
+| Renewal | Any renewal stage: Not started, In negotiation, Renewal agreed, Notice to exit |
+| Supplier options | All contracts, or Sole-source only (no alternative supplier) |
 
 **What you get:**
 
@@ -191,8 +193,13 @@ Search finds documents. The analytics view turns the contract data into totals, 
 | Annual value | Sum of their annual contract value. For Active status it also shows the share of the *active spend* (all Active contracts in the same company, category and department selection, whatever their expiry date) |
 | Expiring in the next 30 days | Contracts whose expiry falls within 30 days of the status date |
 | Largest supplier | Highest-value supplier in the selection, with its share and the top-3 share |
+| Needs attention | Active contracts that expire within 60 days and whose renewal has **not started**, with their annual value. The rule is shown on the card |
+| Sole-source contracts | Contracts flagged as having no alternative supplier, with their value |
+| Renewal pipeline | Annual value by renewal stage |
+| Next four quarters | Value expiring in the current and next three quarters, with how many of those contracts have no renewal started |
+| Supplier concentration | Per category: supplier count, value, **HHI** (sum of squared supplier shares of value: under 1,500 low, 1,500–2,499 moderate, 2,500 or more high), the largest supplier and its share (flagged above 40%), and sole-source value |
 | Charts | Expiries by month (or by quarter for windows over 12 months), by category, time until expiry, top suppliers, and by department or company when more than one applies |
-| Contracts table | Every matching contract, paged, with **Export CSV** |
+| Contracts table | Every matching contract with its renewal stage and a *sole* tag, paged, with **Export CSV** |
 
 Days to expiry are counted from the data's status date, **November 4, 2026**, not from today's date.
 
@@ -205,6 +212,7 @@ Days to expiry are counted from the data's status date, **November 4, 2026**, no
 | Contracts | 5 | 2 |
 | Annual value | $10.8M (10,770 $K) | $6.1M (6,110 $K) |
 | Share of active spend | 7.7% of $139.6M | 15.8% of $38.7M |
+| Needs attention | 1 contract, $3.8M (BLFD-SC-2411, renewal not started, 41 days left) | 0 |
 | Departments in the filters and charts | Logistics, Procurement, Operations, Quality | Logistics only |
 
 Both totals use the same data. The limited account's numbers, including the share-of-spend denominator, are computed from its own department's contracts only. `BLFD-LOG` is also refused everything that could show the other rows:
@@ -303,6 +311,8 @@ This writes two things, identically every time:
 
 The other quarters are generated from a fixed random seed (`SEED`, with the supplier names and value ranges in `PROFILE`). Edit those to change the sample data.
 
+The CSV also carries `renewal_status` (set for Active contracts only, roughly three in four of them *Not started*) and `sole_source` (about 16% of contracts). Both are derived from a hash of the contract ID, so they are stable between runs and the PDFs and the original columns do not change. Older CSVs without these columns still load; the new filters then see blanks.
+
 The server loads the CSV into `instance/contracts.db` at start-up and reloads it automatically whenever the CSV changes, so you never edit the database by hand.
 
 **Extract the quarterly financials** from the report PDFs:
@@ -336,6 +346,8 @@ Run it from the project root. `pyproject.toml` already sets the test folder and 
 ### 9. Troubleshooting
 
 **Sign-in says "ID or password is incorrect".**
+If only a newer account such as `BLFD-LOG` fails, your `instance/users.db` was created before that account existed. Stop the server, delete `instance/users.db` and start again; it is re-created with all demo accounts.
+
 Run the backend check from the project root:
 
 ```bash
@@ -428,7 +440,7 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | `POST` | `/api/signin` | `{ company, id, password }` → `{ name, id, company, token }`. Also sets an HttpOnly `session_token` cookie. |
 | `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
-| `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, token }` → statistics (`kpis`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
+| `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, renewal, sole_source, token }` → statistics (`kpis` incl. `at_risk` and `sole_source`, `risk_rule`, `renewal_pipeline`, `concentration`, `outlook`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
 | `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, token }` (periods like `Q2-2026`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
 | `POST` | `/api/signout` | `{ token }` → `{ ok: true }` |
 | `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. Department-limited accounts get `403` for `Supplier_Contracts/` files. |

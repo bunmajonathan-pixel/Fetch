@@ -34,6 +34,7 @@ Usage (from the project root; needs `pip install reportlab`):
 from __future__ import annotations
 
 import csv
+import hashlib
 import random
 from datetime import date, timedelta
 from pathlib import Path
@@ -132,7 +133,8 @@ CONTRACTS: dict[str, dict[str, list[tuple]]] = {
 # ---------------------------------------------------------------------------
 CSV_PATH = OUT_DIR / "contracts.csv"
 CSV_FIELDS = ["contract_id", "ticker", "supplier", "category", "owner",
-              "start_date", "expiry_date", "status", "annual_value_k"]
+              "start_date", "expiry_date", "status", "annual_value_k",
+              "renewal_status", "sole_source"]
 SEED = 20261104
 PDF_QUARTERS = {"Q3-2026", "Q4-2026", "Q1-2027"}          # hand-written above
 GENERATED_QUARTERS = [f"Q{q}-{y}" for y in (2025, 2026, 2027, 2028) for q in (1, 2, 3, 4)
@@ -201,6 +203,42 @@ def _start_date(contract_id: str, expiry: date) -> date:
     return _years_before(expiry, random.Random(contract_id).choice([1, 2, 3, 3, 5]))
 
 
+# Renewal progress and sole-source flags exist only in the CSV (the register PDFs do not list them).
+# They are derived from a hash of the contract ID, so adding or removing a contract never
+# changes any other contract's values, and the hand-written PDF rows stay untouched.
+SOLE_SOURCE_SHARE = 0.15
+# (state, weight) lists by how close the contract is to expiry
+RENEWAL_WEIGHTS = {
+    "near": [("Not started", 20), ("In negotiation", 45), ("Renewal agreed", 25), ("Notice to exit", 10)],   # <= 60 days
+    "mid":  [("Not started", 45), ("In negotiation", 35), ("Renewal agreed", 12), ("Notice to exit", 8)],    # 61-180
+    "far":  [("Not started", 80), ("In negotiation", 12), ("Renewal agreed", 3), ("Notice to exit", 5)],     # 181+
+}
+
+
+def _unit(contract_id: str, salt: str) -> float:
+    """A stable pseudo-random number in [0, 1) for this contract and purpose."""
+    h = hashlib.sha256(f"{salt}:{contract_id}".encode()).digest()
+    return int.from_bytes(h[:8], "big") / 2**64
+
+
+def renewal_status(contract_id: str, status: str, expiry: date) -> str:
+    """Only Active contracts have a renewal in progress; every other status is blank."""
+    if status != "Active":
+        return ""
+    days = (expiry - AS_OF).days
+    table = RENEWAL_WEIGHTS["near" if days <= 60 else "mid" if days <= 180 else "far"]
+    x, acc = _unit(contract_id, "renewal") * sum(w for _, w in table), 0
+    for state, w in table:
+        acc += w
+        if x < acc:
+            return state
+    return table[-1][0]
+
+
+def sole_source(contract_id: str) -> str:
+    return "Yes" if _unit(contract_id, "sole") < SOLE_SOURCE_SHARE else "No"
+
+
 def build_dataset() -> list[dict]:
     """Hand-written PDF-quarter rows + seeded generated rows for all other quarters."""
     rows: list[dict] = []
@@ -210,7 +248,9 @@ def build_dataset() -> list[dict]:
                 exp = date.fromisoformat(expiry)
                 rows.append(dict(contract_id=cid, ticker=ticker, supplier=supplier, category=category,
                                  owner=owner, start_date=_start_date(cid, exp).isoformat(),
-                                 expiry_date=expiry, status=status, annual_value_k=value))
+                                 expiry_date=expiry, status=status, annual_value_k=value,
+                                 renewal_status=renewal_status(cid, status, exp),
+                                 sole_source=sole_source(cid)))
 
     rng = random.Random(SEED)
     for ticker in sorted(PROFILE):
@@ -245,7 +285,9 @@ def build_dataset() -> list[dict]:
                                  category=cat, owner=rng.choice(owners),
                                  start_date=_start_date(cid, expiry).isoformat(),
                                  expiry_date=expiry.isoformat(), status=status,
-                                 annual_value_k=int(round(rng.uniform(lo, hi) / 10) * 10)))
+                                 annual_value_k=int(round(rng.uniform(lo, hi) / 10) * 10),
+                                 renewal_status=renewal_status(cid, status, expiry),
+                                 sole_source=sole_source(cid)))
 
     assert len({r["contract_id"] for r in rows}) == len(rows), "duplicate contract IDs"
     return sorted(rows, key=lambda r: (r["ticker"], r["expiry_date"], r["contract_id"]))

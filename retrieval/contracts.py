@@ -39,6 +39,13 @@ MAX_ROWS = 1000                              # cap on contract rows returned per
 _QUARTER_RE = re.compile(r"^Q([1-4])-(\d{4})$")
 _COLUMNS = ("contract_id", "ticker", "supplier", "category", "owner",
             "start_date", "expiry_date", "status", "annual_value_k")
+_OPTIONAL = ("renewal_status", "sole_source")          # absent from older CSVs
+_ALL_COLUMNS = _COLUMNS + _OPTIONAL
+
+RENEWAL_STATES = ("Not started", "In negotiation", "Renewal agreed", "Notice to exit")
+AT_RISK_DAYS = 60            # an Active contract this close to expiry with no renewal work under way is "at risk"
+HHI_MODERATE, HHI_HIGH = 1500, 2500     # supplier-concentration bands (sum of squared % shares)
+TOP_SUPPLIER_FLAG_PCT = 40.0            # one supplier above this share of a category is flagged
 
 _DB_PATH: Path | None = None
 
@@ -89,6 +96,12 @@ def init_contracts(db_path: str | Path, csv_path: str | Path) -> int:
     csv_path = Path(csv_path)
 
     with _connect() as conn:
+        # The table is derived data. If it predates the renewal columns, rebuild it from the CSV.
+        have = {r["name"] for r in conn.execute("PRAGMA table_info(contracts)")}
+        if have and not set(_OPTIONAL) <= have:
+            conn.execute("DROP TABLE contracts")
+            conn.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+            conn.execute("DELETE FROM meta WHERE key='csv_sha256'")
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS contracts (
                 contract_id    TEXT PRIMARY KEY,
@@ -99,7 +112,9 @@ def init_contracts(db_path: str | Path, csv_path: str | Path) -> int:
                 start_date     TEXT NOT NULL,
                 expiry_date    TEXT NOT NULL,
                 status         TEXT NOT NULL,
-                annual_value_k INTEGER NOT NULL
+                annual_value_k INTEGER NOT NULL,
+                renewal_status TEXT NOT NULL DEFAULT '',
+                sole_source    TEXT NOT NULL DEFAULT 'No'
             );
             CREATE INDEX IF NOT EXISTS ix_contracts_scope ON contracts (ticker, owner, expiry_date);
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -117,9 +132,12 @@ def init_contracts(db_path: str | Path, csv_path: str | Path) -> int:
                         raise ValueError(f"{csv_path.name} is missing columns: {sorted(missing)}")
                     rows = [(r["contract_id"], r["ticker"].upper(), r["supplier"], r["category"],
                              r["owner"], r["start_date"], r["expiry_date"], r["status"],
-                             int(r["annual_value_k"])) for r in reader]
+                             int(r["annual_value_k"]),
+                             (r.get("renewal_status") or "").strip(),
+                             "Yes" if (r.get("sole_source") or "").strip().lower() in ("yes", "true", "1") else "No")
+                            for r in reader]
                 conn.execute("DELETE FROM contracts")
-                conn.executemany("INSERT INTO contracts VALUES (?,?,?,?,?,?,?,?,?)", rows)
+                conn.executemany("INSERT INTO contracts VALUES (?,?,?,?,?,?,?,?,?,?,?)", rows)
                 conn.execute("INSERT OR REPLACE INTO meta VALUES ('csv_sha256', ?)", (digest,))
         return conn.execute("SELECT COUNT(*) FROM contracts").fetchone()[0]
 
@@ -137,6 +155,8 @@ class Filters:
     expiry_to: date | None = None
     category: str | None = None
     owner: str | None = None
+    renewal: str | None = None               # one of RENEWAL_STATES (Active contracts only carry one)
+    sole_source: bool = False                # only contracts flagged as having no alternative supplier
 
 
 def _opt_str(body: dict, key: str) -> str | None:
@@ -179,10 +199,26 @@ def parse_filters(body: dict) -> Filters:
     if expiry_from and expiry_to and expiry_from > expiry_to:
         raise ValueError("expiry_from must not be after expiry_to.")
 
+    renewal = _opt_str(body, "renewal")
+    if renewal and renewal.lower() != "all":
+        match = [r for r in RENEWAL_STATES if r.lower() == renewal.lower()]
+        if not match:
+            raise ValueError(f"renewal must be one of {', '.join(RENEWAL_STATES)}, or all.")
+        renewal = match[0]
+    else:
+        renewal = None
+
+    ss = body.get("sole_source", False)
+    if isinstance(ss, str):
+        ss = ss.strip().lower() in ("yes", "true", "1")
+    elif not isinstance(ss, bool):
+        raise ValueError("sole_source must be true or false.")
+
     ticker = _opt_str(body, "ticker")
     return Filters(ticker=ticker.upper() if ticker else None, status=status,
                    expiry_from=expiry_from, expiry_to=expiry_to,
-                   category=_opt_str(body, "category"), owner=_opt_str(body, "owner"))
+                   category=_opt_str(body, "category"), owner=_opt_str(body, "owner"),
+                   renewal=renewal, sole_source=ss)
 
 
 # ---------------------------------------------------------------------------
@@ -209,10 +245,12 @@ def fetch_contracts(tickers: Iterable[str], owners: Iterable[str] | None,
         where.append(clause)
         params += vals
     for col, val in (("ticker", f.ticker), ("status", f.status), ("category", f.category),
-                     ("owner", f.owner)):
+                     ("owner", f.owner), ("renewal_status", f.renewal)):
         if val:
             where.append(f"{col} = ?")
             params.append(val)
+    if f.sole_source:
+        where.append("sole_source = 'Yes'")
     if f.expiry_from:
         where.append("expiry_date >= ?")
         params.append(f.expiry_from.isoformat())
@@ -220,7 +258,7 @@ def fetch_contracts(tickers: Iterable[str], owners: Iterable[str] | None,
         where.append("expiry_date <= ?")
         params.append(f.expiry_to.isoformat())
 
-    sql = (f"SELECT {', '.join(_COLUMNS)} FROM contracts WHERE {' AND '.join(where)} "
+    sql = (f"SELECT {', '.join(_ALL_COLUMNS)} FROM contracts WHERE {' AND '.join(where)} "
            "ORDER BY expiry_date, annual_value_k DESC, contract_id")
     with _connect() as conn:
         rows = [dict(r) for r in conn.execute(sql, params)]
@@ -240,6 +278,7 @@ def scope_options(tickers: Iterable[str], owners: Iterable[str] | None) -> dict[
         "owners": sorted({r["owner"] for r in rows}),
         "tickers": sorted({r["ticker"] for r in rows}),
         "statuses": list(STATUSES),
+        "renewal_states": list(RENEWAL_STATES),
         "expiry_min": min((r["expiry_date"] for r in rows), default=None),
         "expiry_max": max((r["expiry_date"] for r in rows), default=None),
     }
@@ -276,6 +315,61 @@ def _buckets(rows: list[dict]) -> list[dict]:
                and (hi is None or r["days_to_expiry"] <= hi)]
         out.append({"label": label, "contracts": len(sel),
                     "value_k": sum(r["annual_value_k"] for r in sel)})
+    return out
+
+
+def _at_risk(r: dict) -> bool:
+    return (r["status"] == "Active" and r["renewal_status"] == "Not started"
+            and 0 <= r["days_to_expiry"] <= AT_RISK_DAYS)
+
+
+def _count_value(rows: list[dict]) -> dict:
+    return {"contracts": len(rows), "value_k": sum(r["annual_value_k"] for r in rows)}
+
+
+def _concentration(active: list[dict]) -> list[dict]:
+    """
+    Supplier concentration per category over ALL Active contracts in the selection.
+    HHI = sum of squared percentage shares (0-10,000); 2,500+ is "highly concentrated".
+    """
+    out = []
+    for cat in sorted({r["category"] for r in active}):
+        rows = [r for r in active if r["category"] == cat]
+        total = sum(r["annual_value_k"] for r in rows)
+        by_sup = _group(rows, "supplier")
+        hhi = round(sum((g["value_k"] * 100.0 / total) ** 2 for g in by_sup)) if total else 0
+        top = by_sup[0]
+        flagged = top["share_pct"] is not None and top["share_pct"] > TOP_SUPPLIER_FLAG_PCT
+        level = "High" if hhi >= HHI_HIGH else "Moderate" if hhi >= HHI_MODERATE else "Low"
+        out.append({"category": cat, "contracts": len(rows), "suppliers": len(by_sup),
+                    "value_k": total, "hhi": hhi, "level": level,
+                    "top_supplier": top["name"], "top_share_pct": top["share_pct"],
+                    "top_flagged": flagged,
+                    "sole_source": _count_value([r for r in rows if r["sole_source"] == "Yes"])})
+    return sorted(out, key=lambda c: (-c["hhi"], c["category"]))
+
+
+def _renewal_pipeline(active: list[dict]) -> list[dict]:
+    total = sum(r["annual_value_k"] for r in active)
+    out = []
+    for state in RENEWAL_STATES:
+        sel = [r for r in active if r["renewal_status"] == state]
+        out.append({"name": state, **_count_value(sel), "share_pct": _pct(sum(r["annual_value_k"] for r in sel), total)})
+    return out
+
+
+def _outlook(active: list[dict], quarters: int = 4) -> list[dict]:
+    """Active value expiring in the current and next quarters: shows whether renewals bunch up."""
+    y, q = AS_OF.year, (AS_OF.month - 1) // 3 + 1
+    out = []
+    for _ in range(quarters):
+        lo, hi = quarter_bounds(f"Q{q}-{y}")
+        sel = [r for r in active if lo.isoformat() <= r["expiry_date"] <= hi.isoformat()]
+        out.append({"label": f"Q{q} {y}", **_count_value(sel),
+                    "not_started": _count_value([r for r in sel if r["renewal_status"] == "Not started"])})
+        q += 1
+        if q == 5:
+            q, y = 1, y + 1
     return out
 
 
@@ -320,8 +414,8 @@ def analyze(tickers: Iterable[str], owners: Iterable[str] | None, f: Filters) ->
     rows = fetch_contracts(tickers, owners, f)
     # Denominator for "share of active spend": ALL active contracts for the same
     # company/category/owner selection, whatever their expiry date.
-    active_all = fetch_contracts(tickers, owners, replace(f, status="Active",
-                                                          expiry_from=None, expiry_to=None))
+    active_all = fetch_contracts(tickers, owners, replace(f, status="Active", expiry_from=None,
+                                                          expiry_to=None, renewal=None, sole_source=False))
     options = scope_options(tickers, owners)
 
     value = sum(r["annual_value_k"] for r in rows)
@@ -341,6 +435,7 @@ def analyze(tickers: Iterable[str], owners: Iterable[str] | None, f: Filters) ->
             "expiry_from": f.expiry_from.isoformat() if f.expiry_from else None,
             "expiry_to": f.expiry_to.isoformat() if f.expiry_to else None,
             "category": f.category, "owner": f.owner,
+            "renewal": f.renewal, "sole_source": f.sole_source,
         },
         "kpis": {
             "contracts": len(rows),
@@ -352,7 +447,13 @@ def analyze(tickers: Iterable[str], owners: Iterable[str] | None, f: Filters) ->
             "top3_share_pct": _pct(sum(s["value_k"] for s in suppliers[:3]), value),
             "expiring_30d": {"contracts": len(soon), "value_k": sum(r["annual_value_k"] for r in soon)},
             "avg_days_to_expiry": round(sum(upcoming) / len(upcoming)) if upcoming else None,
+            "at_risk": _count_value([r for r in rows if _at_risk(r)]),
+            "sole_source": _count_value([r for r in rows if r["sole_source"] == "Yes"]),
         },
+        "risk_rule": {"days": AT_RISK_DAYS, "text": f"Active, expires within {AT_RISK_DAYS} days, renewal not started"},
+        "renewal_pipeline": _renewal_pipeline([r for r in rows if r["status"] == "Active"]),
+        "concentration": _concentration(active_all),
+        "outlook": _outlook(active_all),
         "timeline": _timeline(rows, f, options["expiry_min"], options["expiry_max"]),
         "by_category": _group(rows, "category"),
         "by_owner": _group(rows, "owner"),

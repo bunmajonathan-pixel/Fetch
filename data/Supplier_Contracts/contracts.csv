@@ -1,389 +1,389 @@
-contract_id,ticker,supplier,category,owner,start_date,expiry_date,status,annual_value_k
-BLFD-SC-10005,BLFD,Golden Pallet Systems,Logistics,Logistics,2022-01-22,2025-01-22,Expired,3750
-BLFD-SC-10003,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2022-01-29,2025-01-29,Renewed,1290
-BLFD-SC-10007,BLFD,Sunfield Sanitation Services,Facilities,Operations,2023-01-29,2025-01-29,Renewed,690
-BLFD-SC-10002,BLFD,Aspen Pallet Systems,Logistics,Logistics,2022-02-18,2025-02-18,Expired,3280
-BLFD-SC-10004,BLFD,Riverbend Growers,Ingredients,Procurement,2022-02-25,2025-02-25,Expired,3770
-BLFD-SC-10006,BLFD,Golden Freight,Logistics,Logistics,2020-02-27,2025-02-27,Expired,5410
-BLFD-SC-10001,BLFD,Cobalt Lab Testing,Quality,Quality,2022-03-10,2025-03-10,Expired,520
-BLFD-SC-10013,BLFD,Cobalt Lab Testing,Quality,Quality,2020-04-08,2025-04-08,Expired,540
-BLFD-SC-10008,BLFD,Golden Pallet Systems,Logistics,Logistics,2020-04-13,2025-04-13,Renewed,4460
-BLFD-SC-10014,BLFD,Aspen Pest Control Services,Facilities,Quality,2024-04-19,2025-04-19,Renewed,810
-BLFD-SC-10011,BLFD,Fairview Grain Co.,Ingredients,Procurement,2024-04-22,2025-04-22,Expired,3300
-BLFD-SC-10018,BLFD,Pinecrest Pest Control Services,Facilities,Quality,2023-04-25,2025-04-25,Expired,340
-BLFD-SC-10016,BLFD,Fairview Grain Co.,Ingredients,Procurement,2023-04-26,2025-04-26,Expired,2790
-BLFD-SC-10017,BLFD,Fairview Grain Co.,Ingredients,Procurement,2022-04-30,2025-04-30,Expired,4760
-BLFD-SC-10012,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2024-05-08,2025-05-08,Renewed,2000
-BLFD-SC-10015,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2022-05-08,2025-05-08,Renewed,4030
-BLFD-SC-10010,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2024-05-11,2025-05-11,Renewed,3840
-BLFD-SC-10009,BLFD,Bluebird Films,Packaging,Procurement,2024-06-16,2025-06-16,Expired,1450
-BLFD-SC-10022,BLFD,Golden Freight,Logistics,Logistics,2024-07-01,2025-07-01,Expired,1980
-BLFD-SC-10024,BLFD,Pinecrest Pest Control Services,Facilities,Operations,2020-07-04,2025-07-04,Renewed,260
-BLFD-SC-10019,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2023-07-27,2025-07-27,Terminated,670
-BLFD-SC-10023,BLFD,Golden Freight,Logistics,Logistics,2022-08-07,2025-08-07,Expired,1610
-BLFD-SC-10020,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2020-08-26,2025-08-26,Expired,780
-BLFD-SC-10026,BLFD,Fairview Grain Co.,Ingredients,Procurement,2024-08-29,2025-08-29,Renewed,4300
-BLFD-SC-10021,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2022-09-11,2025-09-11,Expired,3930
-BLFD-SC-10025,BLFD,Sunfield Sanitation Services,Facilities,Operations,2022-09-12,2025-09-12,Expired,270
-BLFD-SC-10029,BLFD,Aspen Pallet Systems,Logistics,Logistics,2020-10-05,2025-10-05,Expired,5170
-BLFD-SC-10030,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2020-10-08,2025-10-08,Expired,4580
-BLFD-SC-10031,BLFD,Golden Freight,Logistics,Logistics,2023-10-08,2025-10-08,Renewed,4600
-BLFD-SC-10028,BLFD,Riverbend Lab Testing,Quality,Quality,2022-11-17,2025-11-17,Expired,330
-BLFD-SC-10033,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2022-11-28,2025-11-28,Expired,4610
-BLFD-SC-10027,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2022-12-01,2025-12-01,Expired,3850
-BLFD-SC-10032,BLFD,Bluebird Films,Packaging,Operations,2024-12-26,2025-12-26,Expired,1600
-BLFD-SC-10040,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2024-01-09,2026-01-09,Expired,5320
-BLFD-SC-10038,BLFD,Cobalt Lab Testing,Quality,Quality,2024-01-16,2026-01-16,Renewed,500
-BLFD-SC-10036,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2025-01-18,2026-01-18,Renewed,2500
-BLFD-SC-10039,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2024-01-23,2026-01-23,Expired,1520
-BLFD-SC-10034,BLFD,Riverbend Growers,Ingredients,Procurement,2021-01-26,2026-01-26,Expired,1770
-BLFD-SC-10035,BLFD,Golden Pallet Systems,Logistics,Logistics,2023-02-03,2026-02-03,Renewed,2660
-BLFD-SC-10041,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2021-02-04,2026-02-04,Terminated,1820
-BLFD-SC-10044,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2021-02-07,2026-02-07,Renewed,1860
-BLFD-SC-10043,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2023-02-17,2026-02-17,Renewed,1320
-BLFD-SC-10042,BLFD,Fairview Grain Co.,Ingredients,Procurement,2023-02-26,2026-02-26,Expired,4710
-BLFD-SC-10037,BLFD,Bluebird Films,Packaging,Operations,2023-03-10,2026-03-10,Renewed,1370
-BLFD-SC-10049,BLFD,Riverbend Growers,Ingredients,Procurement,2025-04-02,2026-04-02,Renewed,1700
-BLFD-SC-10050,BLFD,Golden Freight,Logistics,Logistics,2025-04-25,2026-04-25,Renewed,2510
-BLFD-SC-10051,BLFD,Coastal Films,Packaging,Procurement,2025-04-27,2026-04-27,Expired,1060
-BLFD-SC-10045,BLFD,Riverbend Lab Testing,Quality,Quality,2025-05-03,2026-05-03,Expired,190
-BLFD-SC-10046,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2021-05-04,2026-05-04,Expired,2940
-BLFD-SC-10047,BLFD,Aspen Pallet Systems,Logistics,Logistics,2021-05-17,2026-05-17,Renewed,1100
-BLFD-SC-10048,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2021-06-18,2026-06-18,Expired,3700
-BLFD-SC-2301,BLFD,Golden Plains Grain Co.,Ingredients,Procurement,2023-07-31,2026-07-31,Renewed,4200
-BLFD-SC-2307,BLFD,NorthStar Cold Freight,Logistics,Logistics,2025-08-15,2026-08-15,Expired,2850
-BLFD-SC-2318,BLFD,Verdant Dairy Collective,Ingredients,Procurement,2021-09-12,2026-09-12,Terminated,3100
-BLFD-SC-2312,BLFD,Harbor Packaging Ltd.,Packaging,Operations,2021-09-30,2026-09-30,Renewed,1900
-BLFD-SC-2402,BLFD,Sunridge Sweeteners Inc.,Ingredients,Procurement,2024-10-31,2026-10-31,Expired,1750
-BLFD-SC-2405,BLFD,Pacific Cold Chain LLC,Logistics,Logistics,2023-11-15,2026-11-15,Active,5200
-BLFD-SC-2409,BLFD,Redwood Label & Print,Packaging,Operations,2023-11-30,2026-11-30,Active,640
-BLFD-SC-2419,BLFD,FreshGuard Lab Testing,Quality,Quality,2023-12-01,2026-12-01,Terminated,380
-BLFD-SC-2411,BLFD,Cedar Mill Flour Co.,Ingredients,Procurement,2023-12-15,2026-12-15,Active,3800
-BLFD-SC-2414,BLFD,Summit Pest Control Services,Facilities,Quality,2021-12-31,2026-12-31,Active,220
-BLFD-SC-2416,BLFD,Eastbay Pallet Systems,Logistics,Logistics,2025-12-31,2026-12-31,Active,910
-BLFD-SC-2503,BLFD,Orchard Lane Fruit Growers,Ingredients,Procurement,2024-01-31,2027-01-31,Active,2600
-BLFD-SC-2506,BLFD,Bluewater Shipping Agents,Logistics,Logistics,2025-02-28,2027-02-28,Active,1450
-BLFD-SC-2513,BLFD,Ironwood Maintenance Group,Facilities,Operations,2024-03-15,2027-03-15,Active,760
-BLFD-SC-2510,BLFD,ClearPack Films,Packaging,Operations,2026-03-31,2027-03-31,Active,1120
-BLFD-SC-10057,BLFD,Bluebird Films,Packaging,Procurement,2024-04-26,2027-04-26,Active,1280
-BLFD-SC-10053,BLFD,Coastal Films,Packaging,Operations,2024-05-11,2027-05-11,Active,840
-BLFD-SC-10054,BLFD,Coastal Films,Packaging,Operations,2025-05-17,2027-05-17,Active,1250
-BLFD-SC-10059,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2026-06-15,2027-06-15,Active,3640
-BLFD-SC-10058,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2025-06-19,2027-06-19,Active,1040
-BLFD-SC-10052,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2024-06-20,2027-06-20,Terminated,1210
-BLFD-SC-10055,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2024-06-26,2027-06-26,Active,1300
-BLFD-SC-10056,BLFD,Riverbend Growers,Ingredients,Procurement,2024-06-26,2027-06-26,Active,3630
-BLFD-SC-10066,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2022-07-02,2027-07-02,Active,560
-BLFD-SC-10064,BLFD,Golden Pallet Systems,Logistics,Logistics,2025-07-19,2027-07-19,Active,4510
-BLFD-SC-10062,BLFD,Riverbend Growers,Ingredients,Procurement,2024-07-31,2027-07-31,Active,3040
-BLFD-SC-10063,BLFD,Coastal Films,Packaging,Procurement,2024-08-08,2027-08-08,Terminated,1210
-BLFD-SC-10065,BLFD,Aspen Pallet Systems,Logistics,Logistics,2022-08-09,2027-08-09,Active,3080
-BLFD-SC-10060,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2024-09-06,2027-09-06,Active,940
-BLFD-SC-10061,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2026-09-08,2027-09-08,Active,1840
-BLFD-SC-10069,BLFD,Aspen Pest Control Services,Facilities,Operations,2024-10-07,2027-10-07,Active,890
-BLFD-SC-10073,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2024-11-01,2027-11-01,Active,1620
-BLFD-SC-10072,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2024-11-05,2027-11-05,Active,5050
-BLFD-SC-10067,BLFD,Riverbend Growers,Ingredients,Procurement,2024-11-20,2027-11-20,Active,3790
-BLFD-SC-10068,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2024-12-01,2027-12-01,Active,1930
-BLFD-SC-10070,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2025-12-08,2027-12-08,Active,1870
-BLFD-SC-10071,BLFD,Aspen Pest Control Services,Facilities,Operations,2024-12-22,2027-12-22,Active,460
-BLFD-SC-10078,BLFD,Willow Sanitation Services,Facilities,Quality,2027-01-11,2028-01-11,Active,570
-BLFD-SC-10080,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2025-01-16,2028-01-16,Active,5150
-BLFD-SC-10082,BLFD,Bluebird Films,Packaging,Operations,2025-01-19,2028-01-19,Active,910
-BLFD-SC-10081,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2027-01-26,2028-01-26,Terminated,1820
-BLFD-SC-10076,BLFD,Bluebird Packaging Ltd.,Packaging,Procurement,2025-01-30,2028-01-30,Active,1800
-BLFD-SC-10075,BLFD,Bluebird Films,Packaging,Operations,2025-02-02,2028-02-02,Active,1410
-BLFD-SC-10084,BLFD,Riverbend Growers,Ingredients,Procurement,2025-02-07,2028-02-07,Terminated,1780
-BLFD-SC-10079,BLFD,Bluebird Films,Packaging,Procurement,2026-02-15,2028-02-15,Active,530
-BLFD-SC-10083,BLFD,Aspen Pest Control Services,Facilities,Quality,2027-02-26,2028-02-26,Active,460
-BLFD-SC-10074,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2026-03-13,2028-03-13,Active,1980
-BLFD-SC-10077,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2023-03-21,2028-03-21,Active,1070
-BLFD-SC-10093,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2025-04-02,2028-04-02,Active,3630
-BLFD-SC-10090,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2026-04-11,2028-04-11,Active,2850
-BLFD-SC-10085,BLFD,Riverbend Growers,Ingredients,Procurement,2023-04-15,2028-04-15,Active,3510
-BLFD-SC-10095,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2025-04-18,2028-04-18,Active,1400
-BLFD-SC-10092,BLFD,Willow Sanitation Services,Facilities,Operations,2025-05-13,2028-05-13,Active,650
-BLFD-SC-10089,BLFD,Willow Sanitation Services,Facilities,Quality,2025-05-25,2028-05-25,Active,650
-BLFD-SC-10088,BLFD,Riverbend Growers,Ingredients,Procurement,2027-05-27,2028-05-27,Active,4820
-BLFD-SC-10091,BLFD,Willow Sanitation Services,Facilities,Operations,2026-05-30,2028-05-30,Active,480
-BLFD-SC-10086,BLFD,Bluebird Films,Packaging,Operations,2027-06-04,2028-06-04,Active,710
-BLFD-SC-10094,BLFD,Riverbend Growers,Ingredients,Procurement,2025-06-11,2028-06-11,Active,3440
-BLFD-SC-10087,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2027-06-22,2028-06-22,Active,2840
-BLFD-SC-10098,BLFD,Coastal Films,Packaging,Operations,2023-07-07,2028-07-07,Active,1740
-BLFD-SC-10097,BLFD,Golden Freight,Logistics,Logistics,2026-07-08,2028-07-08,Active,4830
-BLFD-SC-10099,BLFD,Golden Pallet Systems,Logistics,Logistics,2023-07-20,2028-07-20,Active,3000
-BLFD-SC-10096,BLFD,Sunfield Sanitation Services,Facilities,Operations,2026-09-07,2028-09-07,Active,770
-BLFD-SC-10100,BLFD,Pinecrest Pest Control Services,Facilities,Quality,2026-09-21,2028-09-21,Terminated,300
-BLFD-SC-10101,BLFD,Golden Pallet Systems,Logistics,Logistics,2027-09-21,2028-09-21,Active,1840
-BLFD-SC-10102,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2027-09-28,2028-09-28,Active,3470
-BLFD-SC-10110,BLFD,Fairview Grain Co.,Ingredients,Procurement,2025-10-08,2028-10-08,Active,4730
-BLFD-SC-10104,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2026-10-15,2028-10-15,Active,1550
-BLFD-SC-10111,BLFD,Bluebird Films,Packaging,Operations,2027-10-21,2028-10-21,Active,1950
-BLFD-SC-10108,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2025-11-07,2028-11-07,Active,870
-BLFD-SC-10109,BLFD,Golden Pallet Systems,Logistics,Logistics,2025-11-15,2028-11-15,Active,3550
-BLFD-SC-10112,BLFD,Riverbend Growers,Ingredients,Procurement,2027-11-21,2028-11-21,Active,2900
-BLFD-SC-10106,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2023-11-30,2028-11-30,Terminated,2090
-BLFD-SC-10105,BLFD,Fairview Grain Co.,Ingredients,Procurement,2025-12-03,2028-12-03,Active,4410
-BLFD-SC-10103,BLFD,Aspen Pallet Systems,Logistics,Logistics,2025-12-06,2028-12-06,Active,5280
-BLFD-SC-10107,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2023-12-14,2028-12-14,Active,560
-HDYN-SC-10009,HDYN,Vanguard PLC Systems,Electronics,Engineering,2022-01-21,2025-01-21,Expired,3610
-HDYN-SC-10002,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-01-25,2025-01-25,Expired,2030
-HDYN-SC-10007,HDYN,Cascade Bearing Co.,Components,Manufacturing,2023-02-05,2025-02-05,Expired,2160
-HDYN-SC-10006,HDYN,Falcon Steel Service,Materials,Manufacturing,2022-02-11,2025-02-11,Expired,1100
-HDYN-SC-10001,HDYN,Pioneer Automation Services,Services,Engineering,2024-02-16,2025-02-16,Expired,1300
-HDYN-SC-10003,HDYN,Falcon Steel Service,Materials,Procurement,2024-03-16,2025-03-16,Expired,1660
-HDYN-SC-10010,HDYN,Cascade Bearing Co.,Components,Manufacturing,2022-03-25,2025-03-25,Terminated,4720
-HDYN-SC-10005,HDYN,Forge Freight Solutions,Logistics,Supply Chain,2022-03-26,2025-03-26,Renewed,1180
-HDYN-SC-10004,HDYN,Falcon Steel Service,Materials,Manufacturing,2023-03-28,2025-03-28,Renewed,2160
-HDYN-SC-10008,HDYN,Bedrock PLC Systems,Electronics,Engineering,2023-03-31,2025-03-31,Expired,1560
-HDYN-SC-10012,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2024-04-02,2025-04-02,Renewed,890
-HDYN-SC-10020,HDYN,Atlas Industrial Coatings,Materials,Procurement,2022-04-03,2025-04-03,Expired,1230
-HDYN-SC-10018,HDYN,Vertex Freight Solutions,Logistics,Supply Chain,2022-04-20,2025-04-20,Expired,1620
-HDYN-SC-10013,HDYN,Forge Alloys Inc.,Materials,Procurement,2023-05-02,2025-05-02,Renewed,3330
-HDYN-SC-10016,HDYN,Falcon Steel Service,Materials,Manufacturing,2020-05-06,2025-05-06,Expired,2670
-HDYN-SC-10014,HDYN,Cascade Bearing Co.,Components,Manufacturing,2022-05-07,2025-05-07,Terminated,5180
-HDYN-SC-10017,HDYN,Apex Automation Services,Services,Quality,2022-05-07,2025-05-07,Renewed,2190
-HDYN-SC-10019,HDYN,Falcon Steel Service,Materials,Manufacturing,2022-05-26,2025-05-26,Expired,3310
-HDYN-SC-10015,HDYN,Ironclad Gear Works,Components,Manufacturing,2024-06-03,2025-06-03,Expired,4400
-HDYN-SC-10011,HDYN,Cascade Bearing Co.,Components,Manufacturing,2020-06-27,2025-06-27,Expired,6160
-HDYN-SC-10023,HDYN,Forge Bearing Co.,Components,Manufacturing,2022-07-16,2025-07-16,Expired,2290
-HDYN-SC-10021,HDYN,Quantum PLC Systems,Electronics,Engineering,2020-07-30,2025-07-30,Renewed,3900
-HDYN-SC-10022,HDYN,Vertex Calibration Labs,Services,Quality,2022-08-21,2025-08-21,Renewed,1600
-HDYN-SC-10026,HDYN,Atlas Industrial Coatings,Materials,Procurement,2022-09-03,2025-09-03,Expired,3170
-HDYN-SC-10024,HDYN,Quantum PLC Systems,Electronics,Engineering,2022-09-21,2025-09-21,Expired,1490
-HDYN-SC-10025,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2024-09-26,2025-09-26,Renewed,600
-HDYN-SC-10027,HDYN,Atlas Industrial Coatings,Materials,Procurement,2024-09-30,2025-09-30,Expired,2470
-HDYN-SC-10032,HDYN,Forge Alloys Inc.,Materials,Manufacturing,2022-10-10,2025-10-10,Expired,3630
-HDYN-SC-10031,HDYN,Apex Automation Services,Services,Engineering,2024-10-18,2025-10-18,Renewed,1620
-HDYN-SC-10035,HDYN,Bedrock PLC Systems,Electronics,Engineering,2022-10-29,2025-10-29,Expired,2190
-HDYN-SC-10037,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2024-11-03,2025-11-03,Renewed,710
-HDYN-SC-10033,HDYN,Atlas Industrial Coatings,Materials,Procurement,2024-11-15,2025-11-15,Renewed,3510
-HDYN-SC-10036,HDYN,Atlas Industrial Coatings,Materials,Procurement,2022-11-18,2025-11-18,Terminated,3250
-HDYN-SC-10028,HDYN,Quantum Servo Motors,Components,Manufacturing,2024-11-24,2025-11-24,Renewed,2200
-HDYN-SC-10034,HDYN,Ironclad Gear Works,Components,Manufacturing,2020-11-27,2025-11-27,Expired,4900
-HDYN-SC-10030,HDYN,Quantum PLC Systems,Electronics,Engineering,2022-12-10,2025-12-10,Renewed,3130
-HDYN-SC-10029,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2024-12-15,2025-12-15,Terminated,1850
-HDYN-SC-10038,HDYN,Quantum PLC Systems,Electronics,Engineering,2023-01-07,2026-01-07,Expired,3700
-HDYN-SC-10044,HDYN,Ironclad Gear Works,Components,Manufacturing,2021-01-08,2026-01-08,Terminated,5650
-HDYN-SC-10042,HDYN,Forge Bearing Co.,Components,Manufacturing,2024-02-09,2026-02-09,Terminated,5880
-HDYN-SC-10045,HDYN,Orion Circuit Group,Electronics,Engineering,2023-02-21,2026-02-21,Renewed,3500
-HDYN-SC-10043,HDYN,Falcon Steel Service,Materials,Manufacturing,2021-02-23,2026-02-23,Expired,3140
-HDYN-SC-10041,HDYN,Forge Bearing Co.,Components,Manufacturing,2024-03-07,2026-03-07,Renewed,4700
-HDYN-SC-10039,HDYN,Quantum Servo Motors,Components,Manufacturing,2021-03-14,2026-03-14,Expired,4360
-HDYN-SC-10040,HDYN,Summit Steel Service,Materials,Manufacturing,2023-03-27,2026-03-27,Expired,2730
-HDYN-SC-10055,HDYN,Quantum PLC Systems,Electronics,Engineering,2025-04-05,2026-04-05,Expired,3420
-HDYN-SC-10053,HDYN,Vertex Freight Solutions,Logistics,Supply Chain,2025-04-14,2026-04-14,Expired,1900
-HDYN-SC-10051,HDYN,Atlas Industrial Coatings,Materials,Procurement,2021-04-15,2026-04-15,Expired,1700
-HDYN-SC-10054,HDYN,Quantum Servo Motors,Components,Manufacturing,2021-04-17,2026-04-17,Expired,4440
-HDYN-SC-10050,HDYN,Vanguard PLC Systems,Electronics,Engineering,2023-04-25,2026-04-25,Expired,2470
-HDYN-SC-10052,HDYN,Pioneer Automation Services,Services,Quality,2023-05-11,2026-05-11,Expired,3060
-HDYN-SC-10046,HDYN,Ironclad Gear Works,Components,Manufacturing,2023-05-15,2026-05-15,Expired,5840
-HDYN-SC-10049,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2023-05-25,2026-05-25,Renewed,790
-HDYN-SC-10048,HDYN,Ironclad Gear Works,Components,Manufacturing,2023-06-10,2026-06-10,Renewed,3100
-HDYN-SC-10047,HDYN,Orion Circuit Group,Electronics,Engineering,2023-06-12,2026-06-12,Renewed,2440
-HDYN-SC-2302,HDYN,Precision Castings Group,Components,Manufacturing,2023-07-15,2026-07-15,Renewed,6400
-HDYN-SC-2308,HDYN,Lumen Sensor Works,Electronics,Engineering,2025-08-31,2026-08-31,Expired,2300
-HDYN-SC-2314,HDYN,Tri-State Steel Service,Materials,Procurement,2021-09-30,2026-09-30,Renewed,3900
-HDYN-SC-2403,HDYN,Atlas Motion Controls,Electronics,Engineering,2023-10-15,2026-10-15,Expired,2750
-HDYN-SC-2406,HDYN,Kestrel Servo Motors,Components,Manufacturing,2023-11-20,2026-11-20,Active,4850
-HDYN-SC-2408,HDYN,Northfield Wire & Cable,Materials,Procurement,2025-11-30,2026-11-30,Active,1340
-HDYN-SC-2420,HDYN,BlueArc Calibration Labs,Services,Quality,2025-12-05,2026-12-05,Terminated,410
-HDYN-SC-2412,HDYN,Orbis Robotics Integrators,Services,Engineering,2024-12-10,2026-12-10,Active,3200
-HDYN-SC-2415,HDYN,Ridgeline Industrial Coatings,Materials,Manufacturing,2023-12-31,2026-12-31,Active,870
-HDYN-SC-2417,HDYN,Vantage Freight Solutions,Logistics,Supply Chain,2023-12-31,2026-12-31,Active,1960
-HDYN-SC-2504,HDYN,Helix Bearing Co.,Components,Manufacturing,2022-01-31,2027-01-31,Active,2150
-HDYN-SC-2507,HDYN,Zenith PLC Systems,Electronics,Engineering,2026-02-28,2027-02-28,Active,3550
-HDYN-SC-2511,HDYN,Crestview Packaging Supply,Logistics,Supply Chain,2025-03-31,2027-03-31,Active,590
-HDYN-SC-10065,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2022-04-12,2027-04-12,Active,1020
-HDYN-SC-10063,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2024-04-13,2027-04-13,Active,1800
-HDYN-SC-10057,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2026-04-20,2027-04-20,Active,2470
-HDYN-SC-10056,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2022-05-03,2027-05-03,Active,630
-HDYN-SC-10066,HDYN,Orion Circuit Group,Electronics,Engineering,2024-05-04,2027-05-04,Active,1600
-HDYN-SC-10061,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2024-05-12,2027-05-12,Active,3240
-HDYN-SC-10058,HDYN,Bedrock PLC Systems,Electronics,Engineering,2024-06-01,2027-06-01,Active,1350
-HDYN-SC-10062,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2025-06-03,2027-06-03,Active,1690
-HDYN-SC-10064,HDYN,Cascade Bearing Co.,Components,Manufacturing,2024-06-20,2027-06-20,Active,3240
-HDYN-SC-10059,HDYN,Summit Steel Service,Materials,Manufacturing,2025-06-24,2027-06-24,Active,2920
-HDYN-SC-10060,HDYN,Falcon Steel Service,Materials,Procurement,2024-06-26,2027-06-26,Terminated,1180
-HDYN-SC-10074,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2022-07-04,2027-07-04,Active,650
-HDYN-SC-10069,HDYN,Quantum Servo Motors,Components,Manufacturing,2024-07-23,2027-07-23,Active,4920
-HDYN-SC-10072,HDYN,Ironclad Calibration Labs,Services,Quality,2024-08-05,2027-08-05,Active,310
-HDYN-SC-10073,HDYN,Orion Circuit Group,Electronics,Engineering,2026-08-08,2027-08-08,Active,3710
-HDYN-SC-10071,HDYN,Vertex Freight Solutions,Logistics,Supply Chain,2024-08-09,2027-08-09,Active,1650
-HDYN-SC-10070,HDYN,Cascade Bearing Co.,Components,Manufacturing,2026-08-18,2027-08-18,Active,5170
-HDYN-SC-10067,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2022-09-09,2027-09-09,Active,1820
-HDYN-SC-10068,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-09-25,2027-09-25,Active,2500
-HDYN-SC-10083,HDYN,Vanguard PLC Systems,Electronics,Engineering,2022-10-12,2027-10-12,Active,3590
-HDYN-SC-10081,HDYN,Summit Steel Service,Materials,Procurement,2025-10-29,2027-10-29,Active,1620
-HDYN-SC-10082,HDYN,Summit Steel Service,Materials,Manufacturing,2024-11-01,2027-11-01,Terminated,2190
-HDYN-SC-10075,HDYN,Apex Automation Services,Services,Engineering,2025-11-03,2027-11-03,Active,2860
-HDYN-SC-10080,HDYN,Quantum PLC Systems,Electronics,Engineering,2026-11-11,2027-11-11,Active,2670
-HDYN-SC-10076,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-11-13,2027-11-13,Active,1450
-HDYN-SC-10077,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-11-29,2027-11-29,Active,2560
-HDYN-SC-10078,HDYN,Quantum Servo Motors,Components,Manufacturing,2024-12-02,2027-12-02,Active,6460
-HDYN-SC-10079,HDYN,Ironclad Gear Works,Components,Manufacturing,2025-12-24,2027-12-24,Active,3280
-HDYN-SC-10088,HDYN,Orion Circuit Group,Electronics,Engineering,2025-01-14,2028-01-14,Active,3070
-HDYN-SC-10089,HDYN,Ironclad Calibration Labs,Services,Engineering,2026-01-23,2028-01-23,Active,940
-HDYN-SC-10090,HDYN,Vertex Calibration Labs,Services,Quality,2026-02-08,2028-02-08,Active,2000
-HDYN-SC-10091,HDYN,Atlas Industrial Coatings,Materials,Procurement,2026-02-27,2028-02-27,Active,4000
-HDYN-SC-10092,HDYN,Vertex Calibration Labs,Services,Quality,2023-02-28,2028-02-29,Active,330
-HDYN-SC-10085,HDYN,Orion Circuit Group,Electronics,Engineering,2025-03-01,2028-03-01,Active,1930
-HDYN-SC-10086,HDYN,Cascade Bearing Co.,Components,Manufacturing,2025-03-04,2028-03-04,Active,4870
-HDYN-SC-10084,HDYN,Forge Bearing Co.,Components,Manufacturing,2026-03-19,2028-03-19,Active,3940
-HDYN-SC-10087,HDYN,Quantum Servo Motors,Components,Manufacturing,2025-03-27,2028-03-27,Active,5280
-HDYN-SC-10095,HDYN,Forge Freight Solutions,Logistics,Supply Chain,2023-04-19,2028-04-19,Active,1380
-HDYN-SC-10096,HDYN,Forge Bearing Co.,Components,Manufacturing,2025-04-20,2028-04-20,Active,4680
-HDYN-SC-10094,HDYN,Cascade Bearing Co.,Components,Manufacturing,2027-05-15,2028-05-15,Active,3240
-HDYN-SC-10098,HDYN,Vertex Calibration Labs,Services,Quality,2023-05-25,2028-05-25,Active,2840
-HDYN-SC-10097,HDYN,Bedrock PLC Systems,Electronics,Engineering,2025-05-27,2028-05-27,Active,2580
-HDYN-SC-10099,HDYN,Quantum Servo Motors,Components,Manufacturing,2025-05-27,2028-05-27,Active,2570
-HDYN-SC-10093,HDYN,Orion Circuit Group,Electronics,Engineering,2027-06-26,2028-06-26,Active,3930
-HDYN-SC-10102,HDYN,Forge Freight Solutions,Logistics,Supply Chain,2023-08-02,2028-08-02,Active,1010
-HDYN-SC-10101,HDYN,Bedrock PLC Systems,Electronics,Engineering,2026-08-13,2028-08-13,Active,3350
-HDYN-SC-10104,HDYN,Pioneer Automation Services,Services,Engineering,2023-09-09,2028-09-09,Active,500
-HDYN-SC-10103,HDYN,Vertex Calibration Labs,Services,Engineering,2025-09-10,2028-09-10,Terminated,1640
-HDYN-SC-10105,HDYN,Quantum Servo Motors,Components,Manufacturing,2025-09-12,2028-09-12,Active,6250
-HDYN-SC-10107,HDYN,Summit Steel Service,Materials,Manufacturing,2023-09-14,2028-09-14,Active,2100
-HDYN-SC-10106,HDYN,Summit Steel Service,Materials,Manufacturing,2026-09-16,2028-09-16,Active,3520
-HDYN-SC-10100,HDYN,Forge Bearing Co.,Components,Manufacturing,2027-09-24,2028-09-24,Active,3880
-HDYN-SC-10114,HDYN,Vanguard PLC Systems,Electronics,Engineering,2027-10-14,2028-10-14,Active,1730
-HDYN-SC-10112,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2025-10-24,2028-10-24,Active,2820
-HDYN-SC-10108,HDYN,Forge Alloys Inc.,Materials,Procurement,2023-11-03,2028-11-03,Active,1640
-HDYN-SC-10115,HDYN,Ironclad Gear Works,Components,Manufacturing,2027-11-04,2028-11-04,Active,4680
-HDYN-SC-10113,HDYN,Forge Bearing Co.,Components,Manufacturing,2023-11-10,2028-11-10,Active,6460
-HDYN-SC-10111,HDYN,Forge Bearing Co.,Components,Manufacturing,2023-11-18,2028-11-18,Active,4220
-HDYN-SC-10110,HDYN,Forge Bearing Co.,Components,Manufacturing,2025-12-24,2028-12-24,Terminated,6040
-HDYN-SC-10109,HDYN,Quantum PLC Systems,Electronics,Engineering,2027-12-31,2028-12-31,Active,2620
-MCLD-SC-10005,MCLD,Stratus Payments Gateway,Software,Finance,2020-01-09,2025-01-09,Expired,3760
-MCLD-SC-10003,MCLD,Beacon Observability Inc.,Software,Engineering,2022-01-11,2025-01-11,Expired,3540
-MCLD-SC-10004,MCLD,Stratus Payments Gateway,Software,Engineering,2020-01-11,2025-01-11,Expired,1520
-MCLD-SC-10008,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2023-02-08,2025-02-08,Expired,4570
-MCLD-SC-10002,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2022-03-19,2025-03-19,Expired,3700
-MCLD-SC-10010,MCLD,Stratus Payments Gateway,Software,Engineering,2020-03-20,2025-03-20,Expired,4030
-MCLD-SC-10009,MCLD,Radian Colocation Group,Data Center,Infrastructure,2020-03-21,2025-03-21,Expired,10120
-MCLD-SC-10007,MCLD,Beacon Observability Inc.,Software,Engineering,2020-03-22,2025-03-22,Renewed,4030
-MCLD-SC-10006,MCLD,Beacon Observability Inc.,Software,Finance,2022-03-27,2025-03-27,Expired,3120
-MCLD-SC-10001,MCLD,Helix Support Outsourcing,Services,Customer Success,2022-03-31,2025-03-31,Expired,1310
-MCLD-SC-10015,MCLD,Polaris GPU Capacity,Hardware,Infrastructure,2022-04-07,2025-04-07,Renewed,6320
-MCLD-SC-10017,MCLD,Helix Edge Carriers,Networking,Infrastructure,2020-04-16,2025-04-16,Renewed,4140
-MCLD-SC-10019,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2022-04-16,2025-04-16,Renewed,2860
-MCLD-SC-10016,MCLD,Helix Edge Carriers,Networking,Infrastructure,2023-04-22,2025-04-22,Expired,3120
-MCLD-SC-10011,MCLD,Stratus Payments Gateway,Software,Finance,2022-04-30,2025-04-30,Expired,2630
-MCLD-SC-10013,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-05-02,2025-05-02,Expired,10870
-MCLD-SC-10020,MCLD,Beacon Observability Inc.,Software,Engineering,2023-05-03,2025-05-03,Renewed,3450
-MCLD-SC-10018,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2022-06-06,2025-06-06,Expired,9330
-MCLD-SC-10014,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-06-07,2025-06-07,Renewed,5440
-MCLD-SC-10012,MCLD,Radian Colocation Group,Data Center,Infrastructure,2024-06-15,2025-06-15,Renewed,12660
-MCLD-SC-10021,MCLD,Helix Edge Carriers,Networking,Infrastructure,2022-06-16,2025-06-16,Renewed,5060
-MCLD-SC-10024,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2022-07-13,2025-07-13,Renewed,9890
-MCLD-SC-10025,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2023-07-15,2025-07-15,Expired,9430
-MCLD-SC-10028,MCLD,Radian Colocation Group,Data Center,Infrastructure,2022-07-30,2025-07-30,Renewed,13280
-MCLD-SC-10029,MCLD,Stratus Payments Gateway,Software,Engineering,2023-08-06,2025-08-06,Renewed,4210
-MCLD-SC-10027,MCLD,Stratus Payments Gateway,Software,Finance,2024-08-19,2025-08-19,Expired,4360
-MCLD-SC-10030,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2022-09-05,2025-09-05,Renewed,5890
-MCLD-SC-10022,MCLD,Polaris SOC Services,Services,Security,2024-09-15,2025-09-15,Renewed,1790
-MCLD-SC-10026,MCLD,Helix Support Outsourcing,Services,Customer Success,2023-09-18,2025-09-18,Renewed,1490
-MCLD-SC-10031,MCLD,Polaris SOC Services,Services,Customer Success,2020-09-18,2025-09-18,Renewed,650
-MCLD-SC-10023,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-09-28,2025-09-28,Renewed,8490
-MCLD-SC-10032,MCLD,Cirrus Database Software,Software,Engineering,2024-10-08,2025-10-08,Renewed,1420
-MCLD-SC-10034,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2020-10-26,2025-10-26,Terminated,6820
-MCLD-SC-10033,MCLD,Helix Edge Carriers,Networking,Infrastructure,2022-11-08,2025-11-08,Renewed,5530
-MCLD-SC-10038,MCLD,Stratus Payments Gateway,Software,Engineering,2020-11-22,2025-11-22,Renewed,1690
-MCLD-SC-10035,MCLD,Radian Colocation Group,Data Center,Infrastructure,2022-11-27,2025-11-27,Renewed,8860
-MCLD-SC-10036,MCLD,Helix Edge Carriers,Networking,Infrastructure,2022-12-02,2025-12-02,Expired,6070
-MCLD-SC-10039,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2024-12-09,2025-12-09,Expired,4180
-MCLD-SC-10040,MCLD,Stratus Payments Gateway,Software,Engineering,2022-12-09,2025-12-09,Terminated,2920
-MCLD-SC-10037,MCLD,Radian Colocation Group,Data Center,Infrastructure,2022-12-29,2025-12-29,Renewed,6680
-MCLD-SC-10045,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-01-07,2026-01-07,Renewed,8940
-MCLD-SC-10050,MCLD,Polaris SOC Services,Services,Security,2023-01-10,2026-01-10,Renewed,2040
-MCLD-SC-10042,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2023-02-12,2026-02-12,Renewed,6850
-MCLD-SC-10046,MCLD,Nimbus Observability Inc.,Software,Finance,2023-02-18,2026-02-18,Expired,1680
-MCLD-SC-10048,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2023-02-28,2026-02-28,Expired,8840
-MCLD-SC-10047,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-03-08,2026-03-08,Expired,4400
-MCLD-SC-10049,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2023-03-09,2026-03-09,Expired,6860
-MCLD-SC-10041,MCLD,Pivot Server Systems,Hardware,Infrastructure,2024-03-10,2026-03-10,Terminated,9870
-MCLD-SC-10043,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-03-13,2026-03-13,Expired,11320
-MCLD-SC-10044,MCLD,Stratus Payments Gateway,Software,Finance,2023-03-14,2026-03-14,Expired,2770
-MCLD-SC-10052,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2024-04-16,2026-04-16,Renewed,3780
-MCLD-SC-10053,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-04-16,2026-04-16,Expired,6770
-MCLD-SC-10056,MCLD,Radian Colocation Group,Data Center,Infrastructure,2023-05-05,2026-05-05,Renewed,14790
-MCLD-SC-10055,MCLD,Pivot Server Systems,Hardware,Infrastructure,2025-05-12,2026-05-12,Terminated,6430
-MCLD-SC-10057,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2021-05-14,2026-05-14,Terminated,4350
-MCLD-SC-10051,MCLD,Lattice Compliance Advisory,Services,Security,2021-05-20,2026-05-20,Expired,1280
-MCLD-SC-10059,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2023-05-24,2026-05-24,Renewed,4040
-MCLD-SC-10054,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2021-06-04,2026-06-04,Renewed,3500
-MCLD-SC-10058,MCLD,Radian Colocation Group,Data Center,Infrastructure,2024-06-08,2026-06-08,Expired,13770
-MCLD-SC-10060,MCLD,Beacon Observability Inc.,Software,Finance,2025-06-14,2026-06-14,Expired,3200
-MCLD-SC-2303,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-07-31,2026-07-31,Renewed,12800
-MCLD-SC-2309,MCLD,Quanta Network Transit,Networking,Infrastructure,2023-08-31,2026-08-31,Expired,4600
-MCLD-SC-2317,MCLD,Beacon Security Audits,Services,Security,2025-09-15,2026-09-15,Renewed,720
-MCLD-SC-2315,MCLD,Polaris Analytics Licensing,Software,Engineering,2021-09-30,2026-09-30,Terminated,1850
-MCLD-SC-2404,MCLD,Cobalt Hardware Leasing,Hardware,Infrastructure,2023-10-31,2026-10-31,Expired,5300
-MCLD-SC-2410,MCLD,Meridian Edge Carriers,Networking,Infrastructure,2024-11-15,2026-11-15,Active,6100
-MCLD-SC-2407,MCLD,Stratus Colocation Group,Data Center,Infrastructure,2021-11-30,2026-11-30,Active,14500
-MCLD-SC-2422,MCLD,Vector Observability Inc.,Software,Engineering,2024-12-01,2026-12-01,Terminated,940
-MCLD-SC-2418,MCLD,Sentinel SOC Services,Services,Security,2023-12-15,2026-12-15,Active,2250
-MCLD-SC-2413,MCLD,Lattice Database Software,Software,Engineering,2025-12-31,2026-12-31,Active,3900
-MCLD-SC-2421,MCLD,Ember Support Outsourcing,Services,Customer Success,2025-12-31,2026-12-31,Active,1480
-MCLD-SC-2505,MCLD,Nimbus GPU Capacity,Hardware,Infrastructure,2025-01-31,2027-01-31,Active,9800
-MCLD-SC-2508,MCLD,Harbor Payments Gateway,Software,Finance,2026-02-28,2027-02-28,Active,1700
-MCLD-SC-2512,MCLD,Tessera Compliance Advisory,Services,Security,2024-03-31,2027-03-31,Active,830
-MCLD-SC-10063,MCLD,Stratus Payments Gateway,Software,Finance,2024-04-04,2027-04-04,Active,4080
-MCLD-SC-10066,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2024-04-11,2027-04-11,Active,5630
-MCLD-SC-10061,MCLD,Stratus Payments Gateway,Software,Finance,2026-04-15,2027-04-15,Active,1320
-MCLD-SC-10068,MCLD,Cirrus Database Software,Software,Engineering,2025-04-20,2027-04-20,Active,2820
-MCLD-SC-10070,MCLD,Polaris SOC Services,Services,Security,2026-05-09,2027-05-09,Active,880
-MCLD-SC-10069,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-05-10,2027-05-10,Active,12340
-MCLD-SC-10064,MCLD,Stratus Payments Gateway,Software,Engineering,2025-05-16,2027-05-16,Active,4000
-MCLD-SC-10062,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2024-05-17,2027-05-17,Active,7230
-MCLD-SC-10067,MCLD,Lattice Compliance Advisory,Services,Customer Success,2022-05-28,2027-05-28,Active,2120
-MCLD-SC-10065,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2025-06-26,2027-06-26,Active,5500
-MCLD-SC-10074,MCLD,Stratus Payments Gateway,Software,Engineering,2022-07-24,2027-07-24,Active,4070
-MCLD-SC-10076,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-07-28,2027-07-28,Active,13620
-MCLD-SC-10078,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2026-08-07,2027-08-07,Active,5220
-MCLD-SC-10077,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2025-08-10,2027-08-10,Active,4590
-MCLD-SC-10072,MCLD,Radian Colocation Group,Data Center,Infrastructure,2024-09-01,2027-09-01,Active,7980
-MCLD-SC-10073,MCLD,Polaris SOC Services,Services,Security,2024-09-04,2027-09-04,Active,1170
-MCLD-SC-10071,MCLD,Lattice Compliance Advisory,Services,Security,2026-09-08,2027-09-08,Active,610
-MCLD-SC-10075,MCLD,Beacon Observability Inc.,Software,Engineering,2024-09-27,2027-09-27,Active,2850
-MCLD-SC-10081,MCLD,Cipher Security Audits,Services,Security,2024-10-14,2027-10-14,Active,2210
-MCLD-SC-10079,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2024-10-20,2027-10-20,Active,8670
-MCLD-SC-10085,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-10-20,2027-10-20,Active,14390
-MCLD-SC-10083,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2025-11-12,2027-11-12,Active,3690
-MCLD-SC-10084,MCLD,Polaris SOC Services,Services,Customer Success,2024-11-12,2027-11-12,Active,2140
-MCLD-SC-10080,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2024-12-03,2027-12-03,Active,9860
-MCLD-SC-10082,MCLD,Stratus Payments Gateway,Software,Engineering,2025-12-13,2027-12-13,Active,1090
-MCLD-SC-10089,MCLD,Cirrus Database Software,Software,Engineering,2025-01-22,2028-01-22,Active,1690
-MCLD-SC-10093,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2025-01-22,2028-01-22,Active,3040
-MCLD-SC-10086,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2025-01-31,2028-01-31,Active,3640
-MCLD-SC-10090,MCLD,Beacon Observability Inc.,Software,Finance,2025-02-10,2028-02-10,Active,1270
-MCLD-SC-10088,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2025-02-26,2028-02-26,Active,8910
-MCLD-SC-10087,MCLD,Stratus Payments Gateway,Software,Finance,2023-03-05,2028-03-05,Active,1760
-MCLD-SC-10091,MCLD,Pivot Server Systems,Hardware,Infrastructure,2025-03-22,2028-03-22,Active,9440
-MCLD-SC-10092,MCLD,Beacon Observability Inc.,Software,Finance,2025-03-31,2028-03-31,Active,2880
-MCLD-SC-10094,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2023-04-07,2028-04-07,Active,6860
-MCLD-SC-10098,MCLD,Helix Support Outsourcing,Services,Customer Success,2025-04-27,2028-04-27,Active,830
-MCLD-SC-10099,MCLD,Helix Edge Carriers,Networking,Infrastructure,2023-05-28,2028-05-28,Active,2600
-MCLD-SC-10096,MCLD,Beacon Observability Inc.,Software,Finance,2025-06-04,2028-06-04,Active,1270
-MCLD-SC-10097,MCLD,Radian Colocation Group,Data Center,Infrastructure,2023-06-12,2028-06-12,Active,6370
-MCLD-SC-10100,MCLD,Lattice Compliance Advisory,Services,Customer Success,2025-06-18,2028-06-18,Active,2030
-MCLD-SC-10095,MCLD,Stratus Payments Gateway,Software,Engineering,2025-06-27,2028-06-27,Active,1960
-MCLD-SC-10108,MCLD,Skyline Fiber Networks,Networking,Infrastructure,2025-07-05,2028-07-05,Active,6370
-MCLD-SC-10104,MCLD,Helix Edge Carriers,Networking,Infrastructure,2025-07-12,2028-07-12,Active,3210
-MCLD-SC-10105,MCLD,Polaris SOC Services,Services,Security,2025-07-28,2028-07-28,Active,1400
-MCLD-SC-10106,MCLD,Pivot Server Systems,Hardware,Infrastructure,2027-07-30,2028-07-30,Active,6700
-MCLD-SC-10109,MCLD,Helix Edge Carriers,Networking,Infrastructure,2026-08-07,2028-08-07,Active,3910
-MCLD-SC-10107,MCLD,Beacon Observability Inc.,Software,Finance,2025-08-19,2028-08-19,Active,1820
-MCLD-SC-10103,MCLD,Nimbus Observability Inc.,Software,Engineering,2025-08-21,2028-08-21,Active,1130
-MCLD-SC-10101,MCLD,Beacon Observability Inc.,Software,Finance,2025-09-10,2028-09-10,Active,1060
-MCLD-SC-10102,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2025-09-25,2028-09-25,Active,9950
-MCLD-SC-10118,MCLD,Helix Edge Carriers,Networking,Infrastructure,2023-10-02,2028-10-02,Active,3810
-MCLD-SC-10116,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2026-10-18,2028-10-18,Active,6930
-MCLD-SC-10110,MCLD,Polaris GPU Capacity,Hardware,Infrastructure,2023-10-19,2028-10-19,Active,5310
-MCLD-SC-10117,MCLD,Nimbus Observability Inc.,Software,Finance,2026-10-23,2028-10-23,Active,2910
-MCLD-SC-10119,MCLD,Lattice Compliance Advisory,Services,Customer Success,2025-10-31,2028-10-31,Active,2450
-MCLD-SC-10112,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-11-14,2028-11-14,Active,6690
-MCLD-SC-10115,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2025-11-17,2028-11-17,Active,14620
-MCLD-SC-10113,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2025-11-23,2028-11-23,Active,9320
-MCLD-SC-10111,MCLD,Skyline Fiber Networks,Networking,Infrastructure,2023-12-15,2028-12-15,Active,6110
-MCLD-SC-10114,MCLD,Pivot Server Systems,Hardware,Infrastructure,2026-12-21,2028-12-21,Active,3110
+contract_id,ticker,supplier,category,owner,start_date,expiry_date,status,annual_value_k,renewal_status,sole_source
+BLFD-SC-10005,BLFD,Golden Pallet Systems,Logistics,Logistics,2022-01-22,2025-01-22,Expired,3750,,No
+BLFD-SC-10003,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2022-01-29,2025-01-29,Renewed,1290,,No
+BLFD-SC-10007,BLFD,Sunfield Sanitation Services,Facilities,Operations,2023-01-29,2025-01-29,Renewed,690,,Yes
+BLFD-SC-10002,BLFD,Aspen Pallet Systems,Logistics,Logistics,2022-02-18,2025-02-18,Expired,3280,,No
+BLFD-SC-10004,BLFD,Riverbend Growers,Ingredients,Procurement,2022-02-25,2025-02-25,Expired,3770,,No
+BLFD-SC-10006,BLFD,Golden Freight,Logistics,Logistics,2020-02-27,2025-02-27,Expired,5410,,No
+BLFD-SC-10001,BLFD,Cobalt Lab Testing,Quality,Quality,2022-03-10,2025-03-10,Expired,520,,Yes
+BLFD-SC-10013,BLFD,Cobalt Lab Testing,Quality,Quality,2020-04-08,2025-04-08,Expired,540,,No
+BLFD-SC-10008,BLFD,Golden Pallet Systems,Logistics,Logistics,2020-04-13,2025-04-13,Renewed,4460,,No
+BLFD-SC-10014,BLFD,Aspen Pest Control Services,Facilities,Quality,2024-04-19,2025-04-19,Renewed,810,,No
+BLFD-SC-10011,BLFD,Fairview Grain Co.,Ingredients,Procurement,2024-04-22,2025-04-22,Expired,3300,,No
+BLFD-SC-10018,BLFD,Pinecrest Pest Control Services,Facilities,Quality,2023-04-25,2025-04-25,Expired,340,,No
+BLFD-SC-10016,BLFD,Fairview Grain Co.,Ingredients,Procurement,2023-04-26,2025-04-26,Expired,2790,,Yes
+BLFD-SC-10017,BLFD,Fairview Grain Co.,Ingredients,Procurement,2022-04-30,2025-04-30,Expired,4760,,No
+BLFD-SC-10012,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2024-05-08,2025-05-08,Renewed,2000,,Yes
+BLFD-SC-10015,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2022-05-08,2025-05-08,Renewed,4030,,No
+BLFD-SC-10010,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2024-05-11,2025-05-11,Renewed,3840,,No
+BLFD-SC-10009,BLFD,Bluebird Films,Packaging,Procurement,2024-06-16,2025-06-16,Expired,1450,,No
+BLFD-SC-10022,BLFD,Golden Freight,Logistics,Logistics,2024-07-01,2025-07-01,Expired,1980,,No
+BLFD-SC-10024,BLFD,Pinecrest Pest Control Services,Facilities,Operations,2020-07-04,2025-07-04,Renewed,260,,No
+BLFD-SC-10019,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2023-07-27,2025-07-27,Terminated,670,,No
+BLFD-SC-10023,BLFD,Golden Freight,Logistics,Logistics,2022-08-07,2025-08-07,Expired,1610,,No
+BLFD-SC-10020,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2020-08-26,2025-08-26,Expired,780,,No
+BLFD-SC-10026,BLFD,Fairview Grain Co.,Ingredients,Procurement,2024-08-29,2025-08-29,Renewed,4300,,No
+BLFD-SC-10021,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2022-09-11,2025-09-11,Expired,3930,,No
+BLFD-SC-10025,BLFD,Sunfield Sanitation Services,Facilities,Operations,2022-09-12,2025-09-12,Expired,270,,No
+BLFD-SC-10029,BLFD,Aspen Pallet Systems,Logistics,Logistics,2020-10-05,2025-10-05,Expired,5170,,Yes
+BLFD-SC-10030,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2020-10-08,2025-10-08,Expired,4580,,No
+BLFD-SC-10031,BLFD,Golden Freight,Logistics,Logistics,2023-10-08,2025-10-08,Renewed,4600,,No
+BLFD-SC-10028,BLFD,Riverbend Lab Testing,Quality,Quality,2022-11-17,2025-11-17,Expired,330,,No
+BLFD-SC-10033,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2022-11-28,2025-11-28,Expired,4610,,No
+BLFD-SC-10027,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2022-12-01,2025-12-01,Expired,3850,,No
+BLFD-SC-10032,BLFD,Bluebird Films,Packaging,Operations,2024-12-26,2025-12-26,Expired,1600,,No
+BLFD-SC-10040,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2024-01-09,2026-01-09,Expired,5320,,Yes
+BLFD-SC-10038,BLFD,Cobalt Lab Testing,Quality,Quality,2024-01-16,2026-01-16,Renewed,500,,Yes
+BLFD-SC-10036,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2025-01-18,2026-01-18,Renewed,2500,,No
+BLFD-SC-10039,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2024-01-23,2026-01-23,Expired,1520,,No
+BLFD-SC-10034,BLFD,Riverbend Growers,Ingredients,Procurement,2021-01-26,2026-01-26,Expired,1770,,No
+BLFD-SC-10035,BLFD,Golden Pallet Systems,Logistics,Logistics,2023-02-03,2026-02-03,Renewed,2660,,No
+BLFD-SC-10041,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2021-02-04,2026-02-04,Terminated,1820,,No
+BLFD-SC-10044,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2021-02-07,2026-02-07,Renewed,1860,,No
+BLFD-SC-10043,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2023-02-17,2026-02-17,Renewed,1320,,No
+BLFD-SC-10042,BLFD,Fairview Grain Co.,Ingredients,Procurement,2023-02-26,2026-02-26,Expired,4710,,No
+BLFD-SC-10037,BLFD,Bluebird Films,Packaging,Operations,2023-03-10,2026-03-10,Renewed,1370,,No
+BLFD-SC-10049,BLFD,Riverbend Growers,Ingredients,Procurement,2025-04-02,2026-04-02,Renewed,1700,,No
+BLFD-SC-10050,BLFD,Golden Freight,Logistics,Logistics,2025-04-25,2026-04-25,Renewed,2510,,No
+BLFD-SC-10051,BLFD,Coastal Films,Packaging,Procurement,2025-04-27,2026-04-27,Expired,1060,,No
+BLFD-SC-10045,BLFD,Riverbend Lab Testing,Quality,Quality,2025-05-03,2026-05-03,Expired,190,,No
+BLFD-SC-10046,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2021-05-04,2026-05-04,Expired,2940,,Yes
+BLFD-SC-10047,BLFD,Aspen Pallet Systems,Logistics,Logistics,2021-05-17,2026-05-17,Renewed,1100,,No
+BLFD-SC-10048,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2021-06-18,2026-06-18,Expired,3700,,No
+BLFD-SC-2301,BLFD,Golden Plains Grain Co.,Ingredients,Procurement,2023-07-31,2026-07-31,Renewed,4200,,No
+BLFD-SC-2307,BLFD,NorthStar Cold Freight,Logistics,Logistics,2025-08-15,2026-08-15,Expired,2850,,No
+BLFD-SC-2318,BLFD,Verdant Dairy Collective,Ingredients,Procurement,2021-09-12,2026-09-12,Terminated,3100,,No
+BLFD-SC-2312,BLFD,Harbor Packaging Ltd.,Packaging,Operations,2021-09-30,2026-09-30,Renewed,1900,,No
+BLFD-SC-2402,BLFD,Sunridge Sweeteners Inc.,Ingredients,Procurement,2024-10-31,2026-10-31,Expired,1750,,Yes
+BLFD-SC-2405,BLFD,Pacific Cold Chain LLC,Logistics,Logistics,2023-11-15,2026-11-15,Active,5200,Notice to exit,No
+BLFD-SC-2409,BLFD,Redwood Label & Print,Packaging,Operations,2023-11-30,2026-11-30,Active,640,Renewal agreed,No
+BLFD-SC-2419,BLFD,FreshGuard Lab Testing,Quality,Quality,2023-12-01,2026-12-01,Terminated,380,,No
+BLFD-SC-2411,BLFD,Cedar Mill Flour Co.,Ingredients,Procurement,2023-12-15,2026-12-15,Active,3800,Not started,No
+BLFD-SC-2414,BLFD,Summit Pest Control Services,Facilities,Quality,2021-12-31,2026-12-31,Active,220,In negotiation,No
+BLFD-SC-2416,BLFD,Eastbay Pallet Systems,Logistics,Logistics,2025-12-31,2026-12-31,Active,910,Renewal agreed,No
+BLFD-SC-2503,BLFD,Orchard Lane Fruit Growers,Ingredients,Procurement,2024-01-31,2027-01-31,Active,2600,Not started,No
+BLFD-SC-2506,BLFD,Bluewater Shipping Agents,Logistics,Logistics,2025-02-28,2027-02-28,Active,1450,In negotiation,No
+BLFD-SC-2513,BLFD,Ironwood Maintenance Group,Facilities,Operations,2024-03-15,2027-03-15,Active,760,Notice to exit,No
+BLFD-SC-2510,BLFD,ClearPack Films,Packaging,Operations,2026-03-31,2027-03-31,Active,1120,Not started,No
+BLFD-SC-10057,BLFD,Bluebird Films,Packaging,Procurement,2024-04-26,2027-04-26,Active,1280,In negotiation,No
+BLFD-SC-10053,BLFD,Coastal Films,Packaging,Operations,2024-05-11,2027-05-11,Active,840,Not started,No
+BLFD-SC-10054,BLFD,Coastal Films,Packaging,Operations,2025-05-17,2027-05-17,Active,1250,Notice to exit,No
+BLFD-SC-10059,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2026-06-15,2027-06-15,Active,3640,Not started,No
+BLFD-SC-10058,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2025-06-19,2027-06-19,Active,1040,Not started,No
+BLFD-SC-10052,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2024-06-20,2027-06-20,Terminated,1210,,No
+BLFD-SC-10055,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2024-06-26,2027-06-26,Active,1300,Not started,No
+BLFD-SC-10056,BLFD,Riverbend Growers,Ingredients,Procurement,2024-06-26,2027-06-26,Active,3630,Not started,No
+BLFD-SC-10066,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2022-07-02,2027-07-02,Active,560,Not started,No
+BLFD-SC-10064,BLFD,Golden Pallet Systems,Logistics,Logistics,2025-07-19,2027-07-19,Active,4510,Not started,No
+BLFD-SC-10062,BLFD,Riverbend Growers,Ingredients,Procurement,2024-07-31,2027-07-31,Active,3040,In negotiation,No
+BLFD-SC-10063,BLFD,Coastal Films,Packaging,Procurement,2024-08-08,2027-08-08,Terminated,1210,,No
+BLFD-SC-10065,BLFD,Aspen Pallet Systems,Logistics,Logistics,2022-08-09,2027-08-09,Active,3080,Not started,Yes
+BLFD-SC-10060,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2024-09-06,2027-09-06,Active,940,Not started,No
+BLFD-SC-10061,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2026-09-08,2027-09-08,Active,1840,Not started,No
+BLFD-SC-10069,BLFD,Aspen Pest Control Services,Facilities,Operations,2024-10-07,2027-10-07,Active,890,Not started,No
+BLFD-SC-10073,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2024-11-01,2027-11-01,Active,1620,In negotiation,No
+BLFD-SC-10072,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2024-11-05,2027-11-05,Active,5050,Not started,No
+BLFD-SC-10067,BLFD,Riverbend Growers,Ingredients,Procurement,2024-11-20,2027-11-20,Active,3790,Not started,No
+BLFD-SC-10068,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2024-12-01,2027-12-01,Active,1930,Not started,No
+BLFD-SC-10070,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2025-12-08,2027-12-08,Active,1870,In negotiation,No
+BLFD-SC-10071,BLFD,Aspen Pest Control Services,Facilities,Operations,2024-12-22,2027-12-22,Active,460,Not started,No
+BLFD-SC-10078,BLFD,Willow Sanitation Services,Facilities,Quality,2027-01-11,2028-01-11,Active,570,Not started,Yes
+BLFD-SC-10080,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2025-01-16,2028-01-16,Active,5150,Not started,Yes
+BLFD-SC-10082,BLFD,Bluebird Films,Packaging,Operations,2025-01-19,2028-01-19,Active,910,In negotiation,No
+BLFD-SC-10081,BLFD,Evergreen Pallet Systems,Logistics,Logistics,2027-01-26,2028-01-26,Terminated,1820,,No
+BLFD-SC-10076,BLFD,Bluebird Packaging Ltd.,Packaging,Procurement,2025-01-30,2028-01-30,Active,1800,Not started,No
+BLFD-SC-10075,BLFD,Bluebird Films,Packaging,Operations,2025-02-02,2028-02-02,Active,1410,In negotiation,No
+BLFD-SC-10084,BLFD,Riverbend Growers,Ingredients,Procurement,2025-02-07,2028-02-07,Terminated,1780,,No
+BLFD-SC-10079,BLFD,Bluebird Films,Packaging,Procurement,2026-02-15,2028-02-15,Active,530,Not started,Yes
+BLFD-SC-10083,BLFD,Aspen Pest Control Services,Facilities,Quality,2027-02-26,2028-02-26,Active,460,Not started,No
+BLFD-SC-10074,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2026-03-13,2028-03-13,Active,1980,Not started,No
+BLFD-SC-10077,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2023-03-21,2028-03-21,Active,1070,Not started,No
+BLFD-SC-10093,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2025-04-02,2028-04-02,Active,3630,Not started,Yes
+BLFD-SC-10090,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2026-04-11,2028-04-11,Active,2850,Not started,Yes
+BLFD-SC-10085,BLFD,Riverbend Growers,Ingredients,Procurement,2023-04-15,2028-04-15,Active,3510,Not started,No
+BLFD-SC-10095,BLFD,Lakeshore Packaging Ltd.,Packaging,Operations,2025-04-18,2028-04-18,Active,1400,In negotiation,No
+BLFD-SC-10092,BLFD,Willow Sanitation Services,Facilities,Operations,2025-05-13,2028-05-13,Active,650,Not started,No
+BLFD-SC-10089,BLFD,Willow Sanitation Services,Facilities,Quality,2025-05-25,2028-05-25,Active,650,Not started,No
+BLFD-SC-10088,BLFD,Riverbend Growers,Ingredients,Procurement,2027-05-27,2028-05-27,Active,4820,Not started,Yes
+BLFD-SC-10091,BLFD,Willow Sanitation Services,Facilities,Operations,2026-05-30,2028-05-30,Active,480,Not started,No
+BLFD-SC-10086,BLFD,Bluebird Films,Packaging,Operations,2027-06-04,2028-06-04,Active,710,Not started,No
+BLFD-SC-10094,BLFD,Riverbend Growers,Ingredients,Procurement,2025-06-11,2028-06-11,Active,3440,Notice to exit,No
+BLFD-SC-10087,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2027-06-22,2028-06-22,Active,2840,Renewal agreed,No
+BLFD-SC-10098,BLFD,Coastal Films,Packaging,Operations,2023-07-07,2028-07-07,Active,1740,Not started,No
+BLFD-SC-10097,BLFD,Golden Freight,Logistics,Logistics,2026-07-08,2028-07-08,Active,4830,Not started,Yes
+BLFD-SC-10099,BLFD,Golden Pallet Systems,Logistics,Logistics,2023-07-20,2028-07-20,Active,3000,Not started,No
+BLFD-SC-10096,BLFD,Sunfield Sanitation Services,Facilities,Operations,2026-09-07,2028-09-07,Active,770,In negotiation,Yes
+BLFD-SC-10100,BLFD,Pinecrest Pest Control Services,Facilities,Quality,2026-09-21,2028-09-21,Terminated,300,,No
+BLFD-SC-10101,BLFD,Golden Pallet Systems,Logistics,Logistics,2027-09-21,2028-09-21,Active,1840,Not started,No
+BLFD-SC-10102,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2027-09-28,2028-09-28,Active,3470,Not started,No
+BLFD-SC-10110,BLFD,Fairview Grain Co.,Ingredients,Procurement,2025-10-08,2028-10-08,Active,4730,Not started,No
+BLFD-SC-10104,BLFD,Lakeshore Sweeteners Inc.,Ingredients,Procurement,2026-10-15,2028-10-15,Active,1550,Not started,No
+BLFD-SC-10111,BLFD,Bluebird Films,Packaging,Operations,2027-10-21,2028-10-21,Active,1950,Not started,Yes
+BLFD-SC-10108,BLFD,Lakeshore Packaging Ltd.,Packaging,Procurement,2025-11-07,2028-11-07,Active,870,Renewal agreed,No
+BLFD-SC-10109,BLFD,Golden Pallet Systems,Logistics,Logistics,2025-11-15,2028-11-15,Active,3550,Not started,No
+BLFD-SC-10112,BLFD,Riverbend Growers,Ingredients,Procurement,2027-11-21,2028-11-21,Active,2900,Not started,No
+BLFD-SC-10106,BLFD,Maple Sweeteners Inc.,Ingredients,Procurement,2023-11-30,2028-11-30,Terminated,2090,,No
+BLFD-SC-10105,BLFD,Fairview Grain Co.,Ingredients,Procurement,2025-12-03,2028-12-03,Active,4410,Not started,Yes
+BLFD-SC-10103,BLFD,Aspen Pallet Systems,Logistics,Logistics,2025-12-06,2028-12-06,Active,5280,Not started,No
+BLFD-SC-10107,BLFD,Bluebird Packaging Ltd.,Packaging,Operations,2023-12-14,2028-12-14,Active,560,In negotiation,No
+HDYN-SC-10009,HDYN,Vanguard PLC Systems,Electronics,Engineering,2022-01-21,2025-01-21,Expired,3610,,No
+HDYN-SC-10002,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-01-25,2025-01-25,Expired,2030,,No
+HDYN-SC-10007,HDYN,Cascade Bearing Co.,Components,Manufacturing,2023-02-05,2025-02-05,Expired,2160,,No
+HDYN-SC-10006,HDYN,Falcon Steel Service,Materials,Manufacturing,2022-02-11,2025-02-11,Expired,1100,,No
+HDYN-SC-10001,HDYN,Pioneer Automation Services,Services,Engineering,2024-02-16,2025-02-16,Expired,1300,,No
+HDYN-SC-10003,HDYN,Falcon Steel Service,Materials,Procurement,2024-03-16,2025-03-16,Expired,1660,,No
+HDYN-SC-10010,HDYN,Cascade Bearing Co.,Components,Manufacturing,2022-03-25,2025-03-25,Terminated,4720,,Yes
+HDYN-SC-10005,HDYN,Forge Freight Solutions,Logistics,Supply Chain,2022-03-26,2025-03-26,Renewed,1180,,No
+HDYN-SC-10004,HDYN,Falcon Steel Service,Materials,Manufacturing,2023-03-28,2025-03-28,Renewed,2160,,No
+HDYN-SC-10008,HDYN,Bedrock PLC Systems,Electronics,Engineering,2023-03-31,2025-03-31,Expired,1560,,No
+HDYN-SC-10012,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2024-04-02,2025-04-02,Renewed,890,,No
+HDYN-SC-10020,HDYN,Atlas Industrial Coatings,Materials,Procurement,2022-04-03,2025-04-03,Expired,1230,,No
+HDYN-SC-10018,HDYN,Vertex Freight Solutions,Logistics,Supply Chain,2022-04-20,2025-04-20,Expired,1620,,No
+HDYN-SC-10013,HDYN,Forge Alloys Inc.,Materials,Procurement,2023-05-02,2025-05-02,Renewed,3330,,No
+HDYN-SC-10016,HDYN,Falcon Steel Service,Materials,Manufacturing,2020-05-06,2025-05-06,Expired,2670,,No
+HDYN-SC-10014,HDYN,Cascade Bearing Co.,Components,Manufacturing,2022-05-07,2025-05-07,Terminated,5180,,Yes
+HDYN-SC-10017,HDYN,Apex Automation Services,Services,Quality,2022-05-07,2025-05-07,Renewed,2190,,No
+HDYN-SC-10019,HDYN,Falcon Steel Service,Materials,Manufacturing,2022-05-26,2025-05-26,Expired,3310,,No
+HDYN-SC-10015,HDYN,Ironclad Gear Works,Components,Manufacturing,2024-06-03,2025-06-03,Expired,4400,,No
+HDYN-SC-10011,HDYN,Cascade Bearing Co.,Components,Manufacturing,2020-06-27,2025-06-27,Expired,6160,,No
+HDYN-SC-10023,HDYN,Forge Bearing Co.,Components,Manufacturing,2022-07-16,2025-07-16,Expired,2290,,No
+HDYN-SC-10021,HDYN,Quantum PLC Systems,Electronics,Engineering,2020-07-30,2025-07-30,Renewed,3900,,Yes
+HDYN-SC-10022,HDYN,Vertex Calibration Labs,Services,Quality,2022-08-21,2025-08-21,Renewed,1600,,No
+HDYN-SC-10026,HDYN,Atlas Industrial Coatings,Materials,Procurement,2022-09-03,2025-09-03,Expired,3170,,No
+HDYN-SC-10024,HDYN,Quantum PLC Systems,Electronics,Engineering,2022-09-21,2025-09-21,Expired,1490,,No
+HDYN-SC-10025,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2024-09-26,2025-09-26,Renewed,600,,No
+HDYN-SC-10027,HDYN,Atlas Industrial Coatings,Materials,Procurement,2024-09-30,2025-09-30,Expired,2470,,No
+HDYN-SC-10032,HDYN,Forge Alloys Inc.,Materials,Manufacturing,2022-10-10,2025-10-10,Expired,3630,,No
+HDYN-SC-10031,HDYN,Apex Automation Services,Services,Engineering,2024-10-18,2025-10-18,Renewed,1620,,No
+HDYN-SC-10035,HDYN,Bedrock PLC Systems,Electronics,Engineering,2022-10-29,2025-10-29,Expired,2190,,No
+HDYN-SC-10037,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2024-11-03,2025-11-03,Renewed,710,,No
+HDYN-SC-10033,HDYN,Atlas Industrial Coatings,Materials,Procurement,2024-11-15,2025-11-15,Renewed,3510,,No
+HDYN-SC-10036,HDYN,Atlas Industrial Coatings,Materials,Procurement,2022-11-18,2025-11-18,Terminated,3250,,No
+HDYN-SC-10028,HDYN,Quantum Servo Motors,Components,Manufacturing,2024-11-24,2025-11-24,Renewed,2200,,No
+HDYN-SC-10034,HDYN,Ironclad Gear Works,Components,Manufacturing,2020-11-27,2025-11-27,Expired,4900,,No
+HDYN-SC-10030,HDYN,Quantum PLC Systems,Electronics,Engineering,2022-12-10,2025-12-10,Renewed,3130,,No
+HDYN-SC-10029,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2024-12-15,2025-12-15,Terminated,1850,,No
+HDYN-SC-10038,HDYN,Quantum PLC Systems,Electronics,Engineering,2023-01-07,2026-01-07,Expired,3700,,No
+HDYN-SC-10044,HDYN,Ironclad Gear Works,Components,Manufacturing,2021-01-08,2026-01-08,Terminated,5650,,No
+HDYN-SC-10042,HDYN,Forge Bearing Co.,Components,Manufacturing,2024-02-09,2026-02-09,Terminated,5880,,Yes
+HDYN-SC-10045,HDYN,Orion Circuit Group,Electronics,Engineering,2023-02-21,2026-02-21,Renewed,3500,,No
+HDYN-SC-10043,HDYN,Falcon Steel Service,Materials,Manufacturing,2021-02-23,2026-02-23,Expired,3140,,No
+HDYN-SC-10041,HDYN,Forge Bearing Co.,Components,Manufacturing,2024-03-07,2026-03-07,Renewed,4700,,No
+HDYN-SC-10039,HDYN,Quantum Servo Motors,Components,Manufacturing,2021-03-14,2026-03-14,Expired,4360,,No
+HDYN-SC-10040,HDYN,Summit Steel Service,Materials,Manufacturing,2023-03-27,2026-03-27,Expired,2730,,No
+HDYN-SC-10055,HDYN,Quantum PLC Systems,Electronics,Engineering,2025-04-05,2026-04-05,Expired,3420,,No
+HDYN-SC-10053,HDYN,Vertex Freight Solutions,Logistics,Supply Chain,2025-04-14,2026-04-14,Expired,1900,,No
+HDYN-SC-10051,HDYN,Atlas Industrial Coatings,Materials,Procurement,2021-04-15,2026-04-15,Expired,1700,,No
+HDYN-SC-10054,HDYN,Quantum Servo Motors,Components,Manufacturing,2021-04-17,2026-04-17,Expired,4440,,No
+HDYN-SC-10050,HDYN,Vanguard PLC Systems,Electronics,Engineering,2023-04-25,2026-04-25,Expired,2470,,Yes
+HDYN-SC-10052,HDYN,Pioneer Automation Services,Services,Quality,2023-05-11,2026-05-11,Expired,3060,,No
+HDYN-SC-10046,HDYN,Ironclad Gear Works,Components,Manufacturing,2023-05-15,2026-05-15,Expired,5840,,No
+HDYN-SC-10049,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2023-05-25,2026-05-25,Renewed,790,,No
+HDYN-SC-10048,HDYN,Ironclad Gear Works,Components,Manufacturing,2023-06-10,2026-06-10,Renewed,3100,,Yes
+HDYN-SC-10047,HDYN,Orion Circuit Group,Electronics,Engineering,2023-06-12,2026-06-12,Renewed,2440,,No
+HDYN-SC-2302,HDYN,Precision Castings Group,Components,Manufacturing,2023-07-15,2026-07-15,Renewed,6400,,Yes
+HDYN-SC-2308,HDYN,Lumen Sensor Works,Electronics,Engineering,2025-08-31,2026-08-31,Expired,2300,,No
+HDYN-SC-2314,HDYN,Tri-State Steel Service,Materials,Procurement,2021-09-30,2026-09-30,Renewed,3900,,No
+HDYN-SC-2403,HDYN,Atlas Motion Controls,Electronics,Engineering,2023-10-15,2026-10-15,Expired,2750,,No
+HDYN-SC-2406,HDYN,Kestrel Servo Motors,Components,Manufacturing,2023-11-20,2026-11-20,Active,4850,Renewal agreed,No
+HDYN-SC-2408,HDYN,Northfield Wire & Cable,Materials,Procurement,2025-11-30,2026-11-30,Active,1340,Renewal agreed,Yes
+HDYN-SC-2420,HDYN,BlueArc Calibration Labs,Services,Quality,2025-12-05,2026-12-05,Terminated,410,,No
+HDYN-SC-2412,HDYN,Orbis Robotics Integrators,Services,Engineering,2024-12-10,2026-12-10,Active,3200,In negotiation,No
+HDYN-SC-2415,HDYN,Ridgeline Industrial Coatings,Materials,Manufacturing,2023-12-31,2026-12-31,Active,870,In negotiation,No
+HDYN-SC-2417,HDYN,Vantage Freight Solutions,Logistics,Supply Chain,2023-12-31,2026-12-31,Active,1960,Notice to exit,Yes
+HDYN-SC-2504,HDYN,Helix Bearing Co.,Components,Manufacturing,2022-01-31,2027-01-31,Active,2150,In negotiation,Yes
+HDYN-SC-2507,HDYN,Zenith PLC Systems,Electronics,Engineering,2026-02-28,2027-02-28,Active,3550,In negotiation,No
+HDYN-SC-2511,HDYN,Crestview Packaging Supply,Logistics,Supply Chain,2025-03-31,2027-03-31,Active,590,Not started,Yes
+HDYN-SC-10065,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2022-04-12,2027-04-12,Active,1020,Not started,No
+HDYN-SC-10063,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2024-04-13,2027-04-13,Active,1800,Renewal agreed,Yes
+HDYN-SC-10057,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2026-04-20,2027-04-20,Active,2470,Not started,No
+HDYN-SC-10056,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2022-05-03,2027-05-03,Active,630,In negotiation,No
+HDYN-SC-10066,HDYN,Orion Circuit Group,Electronics,Engineering,2024-05-04,2027-05-04,Active,1600,Notice to exit,No
+HDYN-SC-10061,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2024-05-12,2027-05-12,Active,3240,Not started,No
+HDYN-SC-10058,HDYN,Bedrock PLC Systems,Electronics,Engineering,2024-06-01,2027-06-01,Active,1350,Not started,No
+HDYN-SC-10062,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2025-06-03,2027-06-03,Active,1690,Not started,No
+HDYN-SC-10064,HDYN,Cascade Bearing Co.,Components,Manufacturing,2024-06-20,2027-06-20,Active,3240,Not started,No
+HDYN-SC-10059,HDYN,Summit Steel Service,Materials,Manufacturing,2025-06-24,2027-06-24,Active,2920,In negotiation,No
+HDYN-SC-10060,HDYN,Falcon Steel Service,Materials,Procurement,2024-06-26,2027-06-26,Terminated,1180,,No
+HDYN-SC-10074,HDYN,Dynamo Packaging Supply,Logistics,Supply Chain,2022-07-04,2027-07-04,Active,650,Not started,No
+HDYN-SC-10069,HDYN,Quantum Servo Motors,Components,Manufacturing,2024-07-23,2027-07-23,Active,4920,In negotiation,No
+HDYN-SC-10072,HDYN,Ironclad Calibration Labs,Services,Quality,2024-08-05,2027-08-05,Active,310,Not started,No
+HDYN-SC-10073,HDYN,Orion Circuit Group,Electronics,Engineering,2026-08-08,2027-08-08,Active,3710,Not started,No
+HDYN-SC-10071,HDYN,Vertex Freight Solutions,Logistics,Supply Chain,2024-08-09,2027-08-09,Active,1650,Not started,No
+HDYN-SC-10070,HDYN,Cascade Bearing Co.,Components,Manufacturing,2026-08-18,2027-08-18,Active,5170,Not started,No
+HDYN-SC-10067,HDYN,Nova Packaging Supply,Logistics,Supply Chain,2022-09-09,2027-09-09,Active,1820,Not started,No
+HDYN-SC-10068,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-09-25,2027-09-25,Active,2500,Not started,No
+HDYN-SC-10083,HDYN,Vanguard PLC Systems,Electronics,Engineering,2022-10-12,2027-10-12,Active,3590,Not started,No
+HDYN-SC-10081,HDYN,Summit Steel Service,Materials,Procurement,2025-10-29,2027-10-29,Active,1620,Not started,Yes
+HDYN-SC-10082,HDYN,Summit Steel Service,Materials,Manufacturing,2024-11-01,2027-11-01,Terminated,2190,,No
+HDYN-SC-10075,HDYN,Apex Automation Services,Services,Engineering,2025-11-03,2027-11-03,Active,2860,Not started,No
+HDYN-SC-10080,HDYN,Quantum PLC Systems,Electronics,Engineering,2026-11-11,2027-11-11,Active,2670,Notice to exit,No
+HDYN-SC-10076,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-11-13,2027-11-13,Active,1450,Not started,No
+HDYN-SC-10077,HDYN,Vanguard PLC Systems,Electronics,Engineering,2024-11-29,2027-11-29,Active,2560,Renewal agreed,No
+HDYN-SC-10078,HDYN,Quantum Servo Motors,Components,Manufacturing,2024-12-02,2027-12-02,Active,6460,Not started,No
+HDYN-SC-10079,HDYN,Ironclad Gear Works,Components,Manufacturing,2025-12-24,2027-12-24,Active,3280,Not started,No
+HDYN-SC-10088,HDYN,Orion Circuit Group,Electronics,Engineering,2025-01-14,2028-01-14,Active,3070,Not started,No
+HDYN-SC-10089,HDYN,Ironclad Calibration Labs,Services,Engineering,2026-01-23,2028-01-23,Active,940,Not started,No
+HDYN-SC-10090,HDYN,Vertex Calibration Labs,Services,Quality,2026-02-08,2028-02-08,Active,2000,Not started,No
+HDYN-SC-10091,HDYN,Atlas Industrial Coatings,Materials,Procurement,2026-02-27,2028-02-27,Active,4000,Not started,No
+HDYN-SC-10092,HDYN,Vertex Calibration Labs,Services,Quality,2023-02-28,2028-02-29,Active,330,Not started,No
+HDYN-SC-10085,HDYN,Orion Circuit Group,Electronics,Engineering,2025-03-01,2028-03-01,Active,1930,Not started,Yes
+HDYN-SC-10086,HDYN,Cascade Bearing Co.,Components,Manufacturing,2025-03-04,2028-03-04,Active,4870,Not started,No
+HDYN-SC-10084,HDYN,Forge Bearing Co.,Components,Manufacturing,2026-03-19,2028-03-19,Active,3940,Notice to exit,No
+HDYN-SC-10087,HDYN,Quantum Servo Motors,Components,Manufacturing,2025-03-27,2028-03-27,Active,5280,Not started,No
+HDYN-SC-10095,HDYN,Forge Freight Solutions,Logistics,Supply Chain,2023-04-19,2028-04-19,Active,1380,In negotiation,No
+HDYN-SC-10096,HDYN,Forge Bearing Co.,Components,Manufacturing,2025-04-20,2028-04-20,Active,4680,In negotiation,No
+HDYN-SC-10094,HDYN,Cascade Bearing Co.,Components,Manufacturing,2027-05-15,2028-05-15,Active,3240,Not started,Yes
+HDYN-SC-10098,HDYN,Vertex Calibration Labs,Services,Quality,2023-05-25,2028-05-25,Active,2840,Not started,No
+HDYN-SC-10097,HDYN,Bedrock PLC Systems,Electronics,Engineering,2025-05-27,2028-05-27,Active,2580,Not started,No
+HDYN-SC-10099,HDYN,Quantum Servo Motors,Components,Manufacturing,2025-05-27,2028-05-27,Active,2570,Notice to exit,No
+HDYN-SC-10093,HDYN,Orion Circuit Group,Electronics,Engineering,2027-06-26,2028-06-26,Active,3930,Not started,No
+HDYN-SC-10102,HDYN,Forge Freight Solutions,Logistics,Supply Chain,2023-08-02,2028-08-02,Active,1010,In negotiation,No
+HDYN-SC-10101,HDYN,Bedrock PLC Systems,Electronics,Engineering,2026-08-13,2028-08-13,Active,3350,Not started,Yes
+HDYN-SC-10104,HDYN,Pioneer Automation Services,Services,Engineering,2023-09-09,2028-09-09,Active,500,Not started,Yes
+HDYN-SC-10103,HDYN,Vertex Calibration Labs,Services,Engineering,2025-09-10,2028-09-10,Terminated,1640,,No
+HDYN-SC-10105,HDYN,Quantum Servo Motors,Components,Manufacturing,2025-09-12,2028-09-12,Active,6250,Not started,Yes
+HDYN-SC-10107,HDYN,Summit Steel Service,Materials,Manufacturing,2023-09-14,2028-09-14,Active,2100,Not started,No
+HDYN-SC-10106,HDYN,Summit Steel Service,Materials,Manufacturing,2026-09-16,2028-09-16,Active,3520,Not started,No
+HDYN-SC-10100,HDYN,Forge Bearing Co.,Components,Manufacturing,2027-09-24,2028-09-24,Active,3880,Not started,Yes
+HDYN-SC-10114,HDYN,Vanguard PLC Systems,Electronics,Engineering,2027-10-14,2028-10-14,Active,1730,Not started,No
+HDYN-SC-10112,HDYN,Atlas Industrial Coatings,Materials,Manufacturing,2025-10-24,2028-10-24,Active,2820,Renewal agreed,No
+HDYN-SC-10108,HDYN,Forge Alloys Inc.,Materials,Procurement,2023-11-03,2028-11-03,Active,1640,Not started,No
+HDYN-SC-10115,HDYN,Ironclad Gear Works,Components,Manufacturing,2027-11-04,2028-11-04,Active,4680,Not started,No
+HDYN-SC-10113,HDYN,Forge Bearing Co.,Components,Manufacturing,2023-11-10,2028-11-10,Active,6460,Not started,No
+HDYN-SC-10111,HDYN,Forge Bearing Co.,Components,Manufacturing,2023-11-18,2028-11-18,Active,4220,Not started,No
+HDYN-SC-10110,HDYN,Forge Bearing Co.,Components,Manufacturing,2025-12-24,2028-12-24,Terminated,6040,,No
+HDYN-SC-10109,HDYN,Quantum PLC Systems,Electronics,Engineering,2027-12-31,2028-12-31,Active,2620,Not started,No
+MCLD-SC-10005,MCLD,Stratus Payments Gateway,Software,Finance,2020-01-09,2025-01-09,Expired,3760,,No
+MCLD-SC-10003,MCLD,Beacon Observability Inc.,Software,Engineering,2022-01-11,2025-01-11,Expired,3540,,No
+MCLD-SC-10004,MCLD,Stratus Payments Gateway,Software,Engineering,2020-01-11,2025-01-11,Expired,1520,,No
+MCLD-SC-10008,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2023-02-08,2025-02-08,Expired,4570,,No
+MCLD-SC-10002,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2022-03-19,2025-03-19,Expired,3700,,No
+MCLD-SC-10010,MCLD,Stratus Payments Gateway,Software,Engineering,2020-03-20,2025-03-20,Expired,4030,,No
+MCLD-SC-10009,MCLD,Radian Colocation Group,Data Center,Infrastructure,2020-03-21,2025-03-21,Expired,10120,,No
+MCLD-SC-10007,MCLD,Beacon Observability Inc.,Software,Engineering,2020-03-22,2025-03-22,Renewed,4030,,No
+MCLD-SC-10006,MCLD,Beacon Observability Inc.,Software,Finance,2022-03-27,2025-03-27,Expired,3120,,No
+MCLD-SC-10001,MCLD,Helix Support Outsourcing,Services,Customer Success,2022-03-31,2025-03-31,Expired,1310,,Yes
+MCLD-SC-10015,MCLD,Polaris GPU Capacity,Hardware,Infrastructure,2022-04-07,2025-04-07,Renewed,6320,,No
+MCLD-SC-10017,MCLD,Helix Edge Carriers,Networking,Infrastructure,2020-04-16,2025-04-16,Renewed,4140,,Yes
+MCLD-SC-10019,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2022-04-16,2025-04-16,Renewed,2860,,No
+MCLD-SC-10016,MCLD,Helix Edge Carriers,Networking,Infrastructure,2023-04-22,2025-04-22,Expired,3120,,No
+MCLD-SC-10011,MCLD,Stratus Payments Gateway,Software,Finance,2022-04-30,2025-04-30,Expired,2630,,No
+MCLD-SC-10013,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-05-02,2025-05-02,Expired,10870,,No
+MCLD-SC-10020,MCLD,Beacon Observability Inc.,Software,Engineering,2023-05-03,2025-05-03,Renewed,3450,,No
+MCLD-SC-10018,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2022-06-06,2025-06-06,Expired,9330,,No
+MCLD-SC-10014,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-06-07,2025-06-07,Renewed,5440,,No
+MCLD-SC-10012,MCLD,Radian Colocation Group,Data Center,Infrastructure,2024-06-15,2025-06-15,Renewed,12660,,Yes
+MCLD-SC-10021,MCLD,Helix Edge Carriers,Networking,Infrastructure,2022-06-16,2025-06-16,Renewed,5060,,No
+MCLD-SC-10024,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2022-07-13,2025-07-13,Renewed,9890,,No
+MCLD-SC-10025,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2023-07-15,2025-07-15,Expired,9430,,No
+MCLD-SC-10028,MCLD,Radian Colocation Group,Data Center,Infrastructure,2022-07-30,2025-07-30,Renewed,13280,,No
+MCLD-SC-10029,MCLD,Stratus Payments Gateway,Software,Engineering,2023-08-06,2025-08-06,Renewed,4210,,No
+MCLD-SC-10027,MCLD,Stratus Payments Gateway,Software,Finance,2024-08-19,2025-08-19,Expired,4360,,No
+MCLD-SC-10030,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2022-09-05,2025-09-05,Renewed,5890,,No
+MCLD-SC-10022,MCLD,Polaris SOC Services,Services,Security,2024-09-15,2025-09-15,Renewed,1790,,No
+MCLD-SC-10026,MCLD,Helix Support Outsourcing,Services,Customer Success,2023-09-18,2025-09-18,Renewed,1490,,No
+MCLD-SC-10031,MCLD,Polaris SOC Services,Services,Customer Success,2020-09-18,2025-09-18,Renewed,650,,No
+MCLD-SC-10023,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-09-28,2025-09-28,Renewed,8490,,No
+MCLD-SC-10032,MCLD,Cirrus Database Software,Software,Engineering,2024-10-08,2025-10-08,Renewed,1420,,No
+MCLD-SC-10034,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2020-10-26,2025-10-26,Terminated,6820,,Yes
+MCLD-SC-10033,MCLD,Helix Edge Carriers,Networking,Infrastructure,2022-11-08,2025-11-08,Renewed,5530,,No
+MCLD-SC-10038,MCLD,Stratus Payments Gateway,Software,Engineering,2020-11-22,2025-11-22,Renewed,1690,,No
+MCLD-SC-10035,MCLD,Radian Colocation Group,Data Center,Infrastructure,2022-11-27,2025-11-27,Renewed,8860,,No
+MCLD-SC-10036,MCLD,Helix Edge Carriers,Networking,Infrastructure,2022-12-02,2025-12-02,Expired,6070,,No
+MCLD-SC-10039,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2024-12-09,2025-12-09,Expired,4180,,No
+MCLD-SC-10040,MCLD,Stratus Payments Gateway,Software,Engineering,2022-12-09,2025-12-09,Terminated,2920,,No
+MCLD-SC-10037,MCLD,Radian Colocation Group,Data Center,Infrastructure,2022-12-29,2025-12-29,Renewed,6680,,No
+MCLD-SC-10045,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-01-07,2026-01-07,Renewed,8940,,No
+MCLD-SC-10050,MCLD,Polaris SOC Services,Services,Security,2023-01-10,2026-01-10,Renewed,2040,,No
+MCLD-SC-10042,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2023-02-12,2026-02-12,Renewed,6850,,No
+MCLD-SC-10046,MCLD,Nimbus Observability Inc.,Software,Finance,2023-02-18,2026-02-18,Expired,1680,,No
+MCLD-SC-10048,MCLD,Vector Colocation Partners,Data Center,Infrastructure,2023-02-28,2026-02-28,Expired,8840,,No
+MCLD-SC-10047,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-03-08,2026-03-08,Expired,4400,,Yes
+MCLD-SC-10049,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2023-03-09,2026-03-09,Expired,6860,,No
+MCLD-SC-10041,MCLD,Pivot Server Systems,Hardware,Infrastructure,2024-03-10,2026-03-10,Terminated,9870,,No
+MCLD-SC-10043,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-03-13,2026-03-13,Expired,11320,,No
+MCLD-SC-10044,MCLD,Stratus Payments Gateway,Software,Finance,2023-03-14,2026-03-14,Expired,2770,,Yes
+MCLD-SC-10052,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2024-04-16,2026-04-16,Renewed,3780,,Yes
+MCLD-SC-10053,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2023-04-16,2026-04-16,Expired,6770,,No
+MCLD-SC-10056,MCLD,Radian Colocation Group,Data Center,Infrastructure,2023-05-05,2026-05-05,Renewed,14790,,No
+MCLD-SC-10055,MCLD,Pivot Server Systems,Hardware,Infrastructure,2025-05-12,2026-05-12,Terminated,6430,,No
+MCLD-SC-10057,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2021-05-14,2026-05-14,Terminated,4350,,No
+MCLD-SC-10051,MCLD,Lattice Compliance Advisory,Services,Security,2021-05-20,2026-05-20,Expired,1280,,No
+MCLD-SC-10059,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2023-05-24,2026-05-24,Renewed,4040,,No
+MCLD-SC-10054,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2021-06-04,2026-06-04,Renewed,3500,,No
+MCLD-SC-10058,MCLD,Radian Colocation Group,Data Center,Infrastructure,2024-06-08,2026-06-08,Expired,13770,,No
+MCLD-SC-10060,MCLD,Beacon Observability Inc.,Software,Finance,2025-06-14,2026-06-14,Expired,3200,,Yes
+MCLD-SC-2303,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-07-31,2026-07-31,Renewed,12800,,Yes
+MCLD-SC-2309,MCLD,Quanta Network Transit,Networking,Infrastructure,2023-08-31,2026-08-31,Expired,4600,,No
+MCLD-SC-2317,MCLD,Beacon Security Audits,Services,Security,2025-09-15,2026-09-15,Renewed,720,,No
+MCLD-SC-2315,MCLD,Polaris Analytics Licensing,Software,Engineering,2021-09-30,2026-09-30,Terminated,1850,,No
+MCLD-SC-2404,MCLD,Cobalt Hardware Leasing,Hardware,Infrastructure,2023-10-31,2026-10-31,Expired,5300,,No
+MCLD-SC-2410,MCLD,Meridian Edge Carriers,Networking,Infrastructure,2024-11-15,2026-11-15,Active,6100,Notice to exit,No
+MCLD-SC-2407,MCLD,Stratus Colocation Group,Data Center,Infrastructure,2021-11-30,2026-11-30,Active,14500,In negotiation,No
+MCLD-SC-2422,MCLD,Vector Observability Inc.,Software,Engineering,2024-12-01,2026-12-01,Terminated,940,,Yes
+MCLD-SC-2418,MCLD,Sentinel SOC Services,Services,Security,2023-12-15,2026-12-15,Active,2250,Renewal agreed,No
+MCLD-SC-2413,MCLD,Lattice Database Software,Software,Engineering,2025-12-31,2026-12-31,Active,3900,Renewal agreed,No
+MCLD-SC-2421,MCLD,Ember Support Outsourcing,Services,Customer Success,2025-12-31,2026-12-31,Active,1480,Not started,No
+MCLD-SC-2505,MCLD,Nimbus GPU Capacity,Hardware,Infrastructure,2025-01-31,2027-01-31,Active,9800,In negotiation,No
+MCLD-SC-2508,MCLD,Harbor Payments Gateway,Software,Finance,2026-02-28,2027-02-28,Active,1700,Not started,No
+MCLD-SC-2512,MCLD,Tessera Compliance Advisory,Services,Security,2024-03-31,2027-03-31,Active,830,Not started,No
+MCLD-SC-10063,MCLD,Stratus Payments Gateway,Software,Finance,2024-04-04,2027-04-04,Active,4080,In negotiation,No
+MCLD-SC-10066,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2024-04-11,2027-04-11,Active,5630,Renewal agreed,No
+MCLD-SC-10061,MCLD,Stratus Payments Gateway,Software,Finance,2026-04-15,2027-04-15,Active,1320,Not started,No
+MCLD-SC-10068,MCLD,Cirrus Database Software,Software,Engineering,2025-04-20,2027-04-20,Active,2820,Not started,No
+MCLD-SC-10070,MCLD,Polaris SOC Services,Services,Security,2026-05-09,2027-05-09,Active,880,Not started,No
+MCLD-SC-10069,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-05-10,2027-05-10,Active,12340,Not started,No
+MCLD-SC-10064,MCLD,Stratus Payments Gateway,Software,Engineering,2025-05-16,2027-05-16,Active,4000,Not started,No
+MCLD-SC-10062,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2024-05-17,2027-05-17,Active,7230,Not started,No
+MCLD-SC-10067,MCLD,Lattice Compliance Advisory,Services,Customer Success,2022-05-28,2027-05-28,Active,2120,Not started,Yes
+MCLD-SC-10065,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2025-06-26,2027-06-26,Active,5500,Renewal agreed,Yes
+MCLD-SC-10074,MCLD,Stratus Payments Gateway,Software,Engineering,2022-07-24,2027-07-24,Active,4070,Not started,No
+MCLD-SC-10076,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-07-28,2027-07-28,Active,13620,Not started,No
+MCLD-SC-10078,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2026-08-07,2027-08-07,Active,5220,Not started,No
+MCLD-SC-10077,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2025-08-10,2027-08-10,Active,4590,Not started,No
+MCLD-SC-10072,MCLD,Radian Colocation Group,Data Center,Infrastructure,2024-09-01,2027-09-01,Active,7980,Not started,No
+MCLD-SC-10073,MCLD,Polaris SOC Services,Services,Security,2024-09-04,2027-09-04,Active,1170,Not started,No
+MCLD-SC-10071,MCLD,Lattice Compliance Advisory,Services,Security,2026-09-08,2027-09-08,Active,610,Not started,No
+MCLD-SC-10075,MCLD,Beacon Observability Inc.,Software,Engineering,2024-09-27,2027-09-27,Active,2850,Not started,Yes
+MCLD-SC-10081,MCLD,Cipher Security Audits,Services,Security,2024-10-14,2027-10-14,Active,2210,In negotiation,No
+MCLD-SC-10079,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2024-10-20,2027-10-20,Active,8670,Not started,No
+MCLD-SC-10085,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2024-10-20,2027-10-20,Active,14390,Not started,No
+MCLD-SC-10083,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2025-11-12,2027-11-12,Active,3690,Not started,No
+MCLD-SC-10084,MCLD,Polaris SOC Services,Services,Customer Success,2024-11-12,2027-11-12,Active,2140,Not started,No
+MCLD-SC-10080,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2024-12-03,2027-12-03,Active,9860,Not started,No
+MCLD-SC-10082,MCLD,Stratus Payments Gateway,Software,Engineering,2025-12-13,2027-12-13,Active,1090,Not started,Yes
+MCLD-SC-10089,MCLD,Cirrus Database Software,Software,Engineering,2025-01-22,2028-01-22,Active,1690,Not started,Yes
+MCLD-SC-10093,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2025-01-22,2028-01-22,Active,3040,Not started,No
+MCLD-SC-10086,MCLD,Cirrus Fiber Networks,Networking,Infrastructure,2025-01-31,2028-01-31,Active,3640,Not started,Yes
+MCLD-SC-10090,MCLD,Beacon Observability Inc.,Software,Finance,2025-02-10,2028-02-10,Active,1270,Not started,No
+MCLD-SC-10088,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2025-02-26,2028-02-26,Active,8910,Not started,Yes
+MCLD-SC-10087,MCLD,Stratus Payments Gateway,Software,Finance,2023-03-05,2028-03-05,Active,1760,Not started,No
+MCLD-SC-10091,MCLD,Pivot Server Systems,Hardware,Infrastructure,2025-03-22,2028-03-22,Active,9440,Not started,No
+MCLD-SC-10092,MCLD,Beacon Observability Inc.,Software,Finance,2025-03-31,2028-03-31,Active,2880,Not started,Yes
+MCLD-SC-10094,MCLD,Stratus Fiber Networks,Networking,Infrastructure,2023-04-07,2028-04-07,Active,6860,Not started,Yes
+MCLD-SC-10098,MCLD,Helix Support Outsourcing,Services,Customer Success,2025-04-27,2028-04-27,Active,830,Not started,No
+MCLD-SC-10099,MCLD,Helix Edge Carriers,Networking,Infrastructure,2023-05-28,2028-05-28,Active,2600,Not started,No
+MCLD-SC-10096,MCLD,Beacon Observability Inc.,Software,Finance,2025-06-04,2028-06-04,Active,1270,Not started,No
+MCLD-SC-10097,MCLD,Radian Colocation Group,Data Center,Infrastructure,2023-06-12,2028-06-12,Active,6370,Notice to exit,No
+MCLD-SC-10100,MCLD,Lattice Compliance Advisory,Services,Customer Success,2025-06-18,2028-06-18,Active,2030,Not started,No
+MCLD-SC-10095,MCLD,Stratus Payments Gateway,Software,Engineering,2025-06-27,2028-06-27,Active,1960,Not started,No
+MCLD-SC-10108,MCLD,Skyline Fiber Networks,Networking,Infrastructure,2025-07-05,2028-07-05,Active,6370,Not started,No
+MCLD-SC-10104,MCLD,Helix Edge Carriers,Networking,Infrastructure,2025-07-12,2028-07-12,Active,3210,Not started,No
+MCLD-SC-10105,MCLD,Polaris SOC Services,Services,Security,2025-07-28,2028-07-28,Active,1400,Not started,No
+MCLD-SC-10106,MCLD,Pivot Server Systems,Hardware,Infrastructure,2027-07-30,2028-07-30,Active,6700,Not started,No
+MCLD-SC-10109,MCLD,Helix Edge Carriers,Networking,Infrastructure,2026-08-07,2028-08-07,Active,3910,Not started,No
+MCLD-SC-10107,MCLD,Beacon Observability Inc.,Software,Finance,2025-08-19,2028-08-19,Active,1820,Not started,No
+MCLD-SC-10103,MCLD,Nimbus Observability Inc.,Software,Engineering,2025-08-21,2028-08-21,Active,1130,Not started,No
+MCLD-SC-10101,MCLD,Beacon Observability Inc.,Software,Finance,2025-09-10,2028-09-10,Active,1060,Not started,No
+MCLD-SC-10102,MCLD,Aurora Hardware Leasing,Hardware,Infrastructure,2025-09-25,2028-09-25,Active,9950,Not started,No
+MCLD-SC-10118,MCLD,Helix Edge Carriers,Networking,Infrastructure,2023-10-02,2028-10-02,Active,3810,Not started,No
+MCLD-SC-10116,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2026-10-18,2028-10-18,Active,6930,Not started,No
+MCLD-SC-10110,MCLD,Polaris GPU Capacity,Hardware,Infrastructure,2023-10-19,2028-10-19,Active,5310,Not started,Yes
+MCLD-SC-10117,MCLD,Nimbus Observability Inc.,Software,Finance,2026-10-23,2028-10-23,Active,2910,Not started,No
+MCLD-SC-10119,MCLD,Lattice Compliance Advisory,Services,Customer Success,2025-10-31,2028-10-31,Active,2450,In negotiation,Yes
+MCLD-SC-10112,MCLD,Zenith Colocation Partners,Data Center,Infrastructure,2023-11-14,2028-11-14,Active,6690,Not started,No
+MCLD-SC-10115,MCLD,Skyline Colocation Partners,Data Center,Infrastructure,2025-11-17,2028-11-17,Active,14620,Not started,Yes
+MCLD-SC-10113,MCLD,Vector GPU Capacity,Hardware,Infrastructure,2025-11-23,2028-11-23,Active,9320,In negotiation,No
+MCLD-SC-10111,MCLD,Skyline Fiber Networks,Networking,Infrastructure,2023-12-15,2028-12-15,Active,6110,Not started,No
+MCLD-SC-10114,MCLD,Pivot Server Systems,Hardware,Infrastructure,2026-12-21,2028-12-21,Active,3110,Not started,Yes
