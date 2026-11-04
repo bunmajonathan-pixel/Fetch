@@ -33,7 +33,7 @@ from retrieval.auth import issue_token
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
-from retrieval import contracts, db_users, financials
+from retrieval import behavior, contracts, db_users, financials
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -92,6 +92,9 @@ contracts.init_contracts(INSTANCE_DIR / "contracts.db", CONTRACTS_CSV)
 # Quarterly financial trends, read from the CSVs that tools/extract_financials.py builds from the PDFs
 financials.init_financials(DATA_ROOT / "individual" / "financials.csv",
                            DATA_ROOT / "individual" / "segments.csv")
+
+# Year-over-year customer-behavior metrics, read from the CSV that tools/extract_behavior.py builds from the PDFs
+behavior.init_behavior(DATA_ROOT / "behavior" / "behavior.csv")
 
 # The contract-register PDFs list EVERY department's contracts. A user limited to
 # certain departments (user.owners is not None) must not see them, or the record-level
@@ -485,6 +488,52 @@ def api_analyze_financials():
                        "periods": financials.scope_periods(tickers)}
     _audit("analyze", username, ip=request.remote_addr,
            detail={"kind": "financials", "filters": result["filters"],
+                   "companies": [c["ticker"] for c in result["companies"]]})
+    return jsonify(result)
+
+
+@app.post("/api/analyze/behavior")
+def api_analyze_behavior():
+    """
+    Year-over-year customer-behavior scorecard from the customer-behavior reports.
+
+    Body (all optional): ticker, year (2024 | 2025, default latest), assessment
+    (all | improved | worsened | flat).
+
+    Scope is the caller's tickers, the same rule that governs the behavior-report PDFs.
+    Other companies are neither returned nor used in the peer comparison; asking for
+    one by name is a 403.
+    """
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return jsonify(error=str(e), code="UNAUTHORIZED"), 401
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "analyze_behavior"})
+        return jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429
+
+    user_rec = db_users.get_user(username)
+    if user_rec is None:
+        return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
+
+    try:
+        f = behavior.parse_filters(body)
+    except ValueError as e:
+        return jsonify(error=str(e), code="BAD_REQUEST"), 400
+
+    tickers = set(user_rec.document_ids) & set(COMPANIES)
+    if f.ticker and f.ticker not in tickers:
+        _audit("analyze_denied", username, ip=request.remote_addr, detail={"ticker": f.ticker, "kind": "behavior"})
+        return jsonify(error="You are not authorised to view this company's customer behavior.",
+                       code="FORBIDDEN"), 403
+
+    result = behavior.analyze(tickers, f)
+    result["scope"] = {"companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
+                       "years": behavior.scope_years(tickers)}
+    _audit("analyze", username, ip=request.remote_addr,
+           detail={"kind": "behavior", "filters": result["filters"],
                    "companies": [c["ticker"] for c in result["companies"]]})
     return jsonify(result)
 

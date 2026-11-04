@@ -77,6 +77,9 @@ select{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px sol
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:6px;color:var(--m)}.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
 table.auto{table-layout:auto;width:100%}.auto td,.auto th{white-space:nowrap;overflow:visible;text-overflow:clip;padding-left:8px;padding-right:8px}table.num{table-layout:auto;min-width:640px}.num td,.num th{white-space:normal;overflow:visible;text-overflow:clip;vertical-align:top}.num td:not(:first-child),.num th:not(:first-child){text-align:right}.pos{color:var(--ok)}.neg{color:var(--d)}.fn{font-size:11px;color:var(--m);margin:8px 0 0;line-height:1.5}
 .rk{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}.rk span{white-space:nowrap}
+.st.m{background:var(--bs);color:var(--m)}.co{margin:22px 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.co h2{font-size:20px;margin:0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;margin-bottom:12px}.li{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--l)}.li:last-child{border:0}.li span:first-child{min-width:0}.li small{color:var(--m)}
+.flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.flow b{font-size:18px}.flow .op{color:var(--m)}.flow>div{background:var(--bs);border-radius:8px;padding:8px 12px}.flow small{display:block;color:var(--m);font-size:11px}
 </style></head>
 <body>
 <div id="hdr"></div><div id="app"></div>
@@ -112,6 +115,14 @@ const DataService={
     if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
     return d
   },
+  async analyzeBeh(filters){
+    const body={token:this._token};
+    for(const k of ["ticker","year","assessment"])if(filters[k]&&filters[k]!=="all"&&filters[k]!=="latest")body[k]=filters[k];
+    const r=await fetch("/api/analyze/behavior",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
   async analyzeFin(filters){
     const body={token:this._token};
     for(const k of ["ticker","from","to","metric"])if(filters[k]&&filters[k]!=="all")body[k]=filters[k];
@@ -141,9 +152,9 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 /* Render **bold** markers from server as <mark> highlights */
 const hlSnippet=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<mark class="hl">$1</mark>');
 const $=(s,r=document)=>r.querySelector(s);
-const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false,analysis:null,af:null,apage:0,aerr:null,fin:null,ff:null,ferr:null};
+const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false,analysis:null,af:null,apage:0,aerr:null,fin:null,ff:null,ferr:null,beh:null,bf:null,berr:null};
 const PAGE_SIZE=10;
-const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3};
+const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3,banalyzing:2,behavior:3};
 const SESSION_MIN=15;
 
 /* ===== Dark / light mode ===== */
@@ -180,7 +191,8 @@ login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focu
 request:()=>`<div class="wrap narrow" style="padding-top:40px"><span class="pill" style="background:var(--oks);color:var(--ok)">Signed in · ${esc(S.user.id)}</span><h1 style="font-size:30px">What data would you like pulled?</h1><p>Hi ${esc(S.user.name.split(" ")[0])}. Describe the records you need. Results open in a temporary, read-only view for this session.</p>
  <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}
  <div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Contract expiry analytics</b><p class="hint" style="margin-top:2px">Totals and charts for the supplier contracts you are cleared to see. Filter by status, expiry quarter, category and department.</p></div><button class="btn primary" id="to-an">▥ Open analytics</button></div>
- <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Financial trends</b><p class="hint" style="margin-top:2px">Growth, margins, trend and peer comparison from the quarterly reports for the companies you are cleared to see.</p></div><button class="btn primary" id="to-fin">↗ Open financials</button></div></div>`,
+ <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Financial trends</b><p class="hint" style="margin-top:2px">Growth, margins, trend and peer comparison from the quarterly reports for the companies you are cleared to see.</p></div><button class="btn primary" id="to-fin">↗ Open financials</button></div></div>
+ <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Customer behavior</b><p class="hint" style="margin-top:2px">What improved and what got worse year over year, where growth came from, and how the customer mix moved, from the customer-behavior reports.</p></div><button class="btn primary" id="to-beh">◔ Open behavior</button></div></div>`,
 retrieving:()=>`<div class="wrap narrow" style="padding-top:24px"><h2>Your request</h2><div class="bubble u" style="margin-top:12px"><small>You · ${esc(S.user.name)}</small>${esc(S.query)}</div>
  <div class="bubble sys"><small>Data pull</small><b><span class="spin" style="color:var(--b)"></span> Pulling your data…</b><div class="hint">Finding records that match your request.</div><div class="prog"><i></i></div><div class="sk" style="width:60%"></div><div class="sk" style="width:85%"></div><div class="hint">Preparing a temporary view · This may take a few moments</div></div><div style="margin-top:40px">${bar(true)}</div></div>`,
 notfound:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Data not found</h2><p>We couldn't find records matching your request. Try a broader date range or a different category.</p>
@@ -194,7 +206,7 @@ results:()=>{
  <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
  <div id="warn-slot"></div>
  <div class="top"><div><h2>${esc(R.title)}</h2><p>${esc(R.subtitle)}</p><p class="hint">${total} records · Sample dataset</p></div>
- <div class="top-actions"><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="tw"><table><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
    if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
    if(c.type==="pdf_link")return`<td><button class="btn sec" style="padding:4px 10px;font-size:11px" onclick="openPdf('${esc(r[c.key])}','${esc(r.report)}')">↗ View</button></td>`;
@@ -227,7 +239,7 @@ analytics:()=>{
  <div id="warn-slot"></div>
  ${S.aerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the analytics</b><span>${esc(S.aerr)}</span></div>`:""}
  <div class="top"><div><h2>Contract expiry analytics</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Department limited: "+sc.owners.map(esc).join(", "):"All departments"}</span><span class="pill">Status as of ${esc(A.as_of)}</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="export-c" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="export-c" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  ${limited?`<p class="hint">Totals below cover only your department's contracts. Company-wide contract register PDFs are not available on department-limited accounts.</p>`:""}
  <div class="filters">
   ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
@@ -317,7 +329,7 @@ financials:()=>{
  <div id="warn-slot"></div>
  ${S.ferr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the financials</b><span>${esc(S.ferr)}</span></div>`:""}
  <div class="top"><div><h2>Financial trends</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">Quarterly reports through ${esc(pl(A.as_of||"—"))}</span><span class="pill">$ millions</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="filters">
   ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
   ${sel("from","From",[["all","Earliest"],...pOpts])}
@@ -339,6 +351,53 @@ financials:()=>{
  <div class="top" style="margin-top:6px"><div><h2 style="font-size:18px">${single?esc(single.ticker)+" · quarter by quarter":esc(M.label)+" by quarter"}</h2><p class="hint">Figures come from the quarterly report PDFs · $ millions except EPS</p></div></div>
  ${tbl}`}
  </div></div>`},
+banalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing customer behavior…</b><div class="prog"><i></i></div><div class="hint">Only the companies your account is cleared to see are included.</div></div></div>`,
+behavior:()=>{
+  const A=S.beh,F=S.bf;
+  const msg=(h,t)=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>${h}</h2><p>${esc(t)}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  if(!A)return msg("Customer behavior unavailable",S.berr||"Something went wrong.");
+  const sc=A.scope,cos=A.companies,multi=sc.companies.length>1;
+  if(!sc.companies.length)return msg("No customer behavior data","Your account is not cleared for any company's customer-behavior reports.");
+  const sel=(k,label,opts)=>`<div><label for="h-${k}">${label}</label><select id="h-${k}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(F[k])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
+  const num=v=>v.toLocaleString(undefined,{maximumFractionDigits:1});
+  const fv=(v,u)=>v==null?"—":u==="%"?v.toFixed(1)+"%":u==="$"?"$"+num(v):u==="$K"?"$"+num(v)+"K":u==="$M"?"$"+num(v)+"M":num(v);
+  const sg=(v,d=1)=>(v>=0?"+":"−")+Math.abs(v).toFixed(d);
+  const chg=r=>r.change==null?"—":r.change_kind==="pts"?sg(r.change)+" pts":sg(r.change)+"%";
+  const gr=v=>v==null?'<span class="hint">—</span>':`<span class="${v>=0?"pos":"neg"}">${sg(v)}%</span>`;
+  const tag=a=>a==="improved"?'<span class="st">Improved</span>':a==="worsened"?'<span class="st x">Worse</span>':a==="flat"?'<span class="st m">Flat</span>':"";
+  const pcls=(r)=>r.assessment==="improved"?"pos":r.assessment==="worsened"?"neg":"";
+  const li=(r)=>`<div class="li"><span>${esc(r.label)}<br><small>${esc(r.section)} · ${fv(r.prior,r.unit)} → ${fv(r.value,r.unit)}</small></span><span class="${pcls(r)}">${chg(r)}</span></div>`;
+  const Y=A.year,P=Y-1;
+  const cmp=A.comparison.length?`<div class="chart wide" style="margin-bottom:12px"><h3>Comparison · ${Y} vs. ${P}</h3><div class="tw"><table class="num"><thead><tr><th>Measure</th>${cos.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${A.comparison.map(m=>`<tr><td>${esc(m.measure)}</td>${cos.map(c=>{const v=m.values[c.ticker];return`<td>${v==null?'<span class="hint">not reported</span>':(m.unit==="%"?fv(v,"%"):num(v)+m.unit)}${m.best===c.ticker?' <span class="st">best</span>':""}</td>`}).join("")}</tr>`).join("")}</tbody></table></div><p class="fn">Only measures that mean the same thing for every company are compared. Households (BrightLeaf) and customer accounts (Halcyon, Meridian) are different units, so each is judged against its own history below. “Best” is the better value among the companies shown.</p></div>`:"";
+  const body=cos.map(c=>{
+    const nm=(sc.companies.find(x=>x.ticker===c.ticker)||{}).name||c.ticker,g=c.growth,s=c.scorecard,R=c.rollforward;
+    const kp=`<div class="kpis">
+     <div class="kpi"><div class="l">Revenue · ${c.year}</div><div class="v">${fv(c.revenue.value,"$M")}</div><div class="s">${c.revenue.growth_pct==null?"":gr(c.revenue.growth_pct)+" vs. "+c.prior_year}</div></div>
+     <div class="kpi"><div class="l">${esc(c.customers.label)}</div><div class="v">${fv(c.customers.value,c.customers.unit)}</div><div class="s">${c.customers.growth_pct==null?"":gr(c.customers.growth_pct)+" vs. "+c.prior_year}</div></div>
+     <div class="kpi"><div class="l">Revenue per customer</div><div class="v">${g?gr(g.per_customer_pct):"—"}</div><div class="s">${g?"change vs. "+c.prior_year:"first year, nothing to compare"}</div></div>
+     <div class="kpi"><div class="l">Scorecard</div><div class="v">${s?'<span class="pos">'+s.improved+'</span> / <span class="neg">'+s.worsened+'</span>':"—"}</div><div class="s">${s?"improved / worse, "+s.flat+" flat, of "+s.tracked+" measures":"needs two years"}</div></div></div>`;
+    const mx=g?Math.max(1,Math.abs(g.revenue_pct),Math.abs(g.customers_pct),Math.abs(g.per_customer_pct)):1;
+    const bar=(l,v,sub)=>`<div class="hb"><span>${l}</span><span class="tr"><i style="width:${Math.max(2,Math.round(100*Math.abs(v)/mx))}%"></i></span><span>${sg(v)}%</span></div>`;
+    const split=g?`<div class="chart"><h3>Where revenue growth came from</h3>${bar("Revenue",g.revenue_pct)}${bar("Customers",g.customers_pct)}${bar("Per customer",g.per_customer_pct)}<p class="fn">Revenue growth is customer growth combined with growth in revenue per customer: (1 + customers) × (1 + per customer) = (1 + revenue).</p></div>`:"";
+    const flow=R?`<div class="chart"><h3>Customer base roll-forward · ${c.year}</h3><div class="flow"><div><small>Start of year</small><b>${num(R.start)}</b></div><span class="op">+</span><div><small>${esc(R.gained_label)}</small><b class="pos">${num(R.gained)}</b></div><span class="op">−</span><div><small>${esc(R.lost_label)}</small><b class="neg">${num(R.lost)}</b></div><span class="op">=</span><div><small>End of year</small><b>${num(R.end)}</b></div></div><p class="fn">Churn is ${R.lost>0?num(R.lost)+" lost of "+num(R.start)+" at the start = ":""}<b>${R.churn_pct}%</b>.</p></div>`:"";
+    const imp=s?`<div class="chart"><h3>Improved most</h3>${c.improved.map(li).join("")||'<p class="hint">Nothing moved enough to count.</p>'}</div><div class="chart"><h3>Needs attention</h3>${c.concerns.map(li).join("")||'<p class="hint">Nothing got meaningfully worse.</p>'}<p class="fn">${esc(A.rule.text)}</p></div>`:"";
+    const mix=c.mix_moves.length?`<div class="chart"><h3>Biggest shifts in the customer mix</h3>${c.mix_moves.map(r=>`<div class="li"><span>${esc(r.label)}<br><small>${esc(r.section)} · ${fv(r.prior,"%")} → ${fv(r.value,"%")}</small></span><span>${sg(r.change)} pts</span></div>`).join("")}</div>`:"";
+    const tabs=c.sections.map(sec=>`<div class="chart wide" style="margin-bottom:12px"><h3>${esc(sec.name)}</h3><div class="tw"><table class="num"><thead><tr><th>Measure</th><th>${c.year}</th><th>${s?P:""}</th><th>Change</th><th></th></tr></thead><tbody>${sec.rows.map(r=>`<tr><td>${esc(r.label)}</td><td>${fv(r.value,r.unit)}</td><td>${r.prior==null?"—":fv(r.prior,r.unit)}</td><td class="${pcls(r)}">${chg(r)}</td><td>${tag(r.assessment)}</td></tr>`).join("")}</tbody></table></div></div>`).join("")||(F.assessment!=="all"?'<p class="hint">No measures in this group.</p>':"");
+    return`<div class="co"><h2>${esc(nm)}</h2><span class="pill">${esc(c.ticker)}</span></div>${kp}<div class="two">${split}${flow}${imp}${mix}</div>${tabs}`}).join("");
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.berr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update customer behavior</b><span>${esc(S.berr)}</span></div>`:""}
+ <div class="top"><div><h2>Customer behavior</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">${Y} vs. ${P} · year-end or full-year figures</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="export-b" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="filters">
+  ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
+  ${sel("year","Year",sc.years.map(y=>[y,y]))}
+  ${sel("assessment","Show",[["all","All measures"],["improved","Improved only"],["worsened","Worse only"],["flat","Flat only"]])}
+ </div>
+ <div id="an-body">
+ ${cmp}${body}
+ </div></div>`},
 loggedout:()=>`<div class="wrap" style="max-width:440px;padding-top:50px"><div class="card center"><div class="ico" style="background:var(--oks);color:var(--ok)">✓</div><span class="pill" style="background:var(--oks);color:var(--ok)">Session ended</span><h2 style="margin-top:12px">You've been logged out</h2><p>Your session has ended and your temporary data has been cleared.</p><button class="btn primary block" id="back">→ Return to login</button></div></div>`
 };
 function bar(dis){return`<div class="bar ${dis?"dis":""}"><input id="q" placeholder="${dis?"Retrieving data. Please wait…":"Describe the data you need…"}" ${dis?"disabled":""} aria-label="Data request"><button id="send" ${dis?"disabled":""} aria-label="Send">↑</button></div><div class="hint">Include a date range or a status to help narrow your request.</div>`}
@@ -356,21 +415,28 @@ request(){
   const send=t=>{t=(t||$("#q").value).trim();if(t)run(t)};
   $("#send").onclick=()=>send();$("#q").onkeydown=e=>{if(e.key==="Enter")send()};$("#q").focus();
   document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
-  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;
+  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
 },
 retrieving(){},
-analyzing(){},finalyzing(){},
+analyzing(){},finalyzing(){},banalyzing(){},
+behavior(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-b",exportBehCsv);on("#to-an",openAnalytics);on("#to-fin",openFin);
+  ["ticker","year","assessment"].forEach(k=>{const el=$("#h-"+k);if(el)el.onchange=async()=>{const prev={...S.bf};S.bf[k]=el.value;await refreshBeh(prev)}});
+  if(S.beh){tick();S.timer=setInterval(tick,1000)}
+},
 financials(){
   clearInterval(S.timer);
   const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
-  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-f",exportFinCsv);on("#to-an",openAnalytics);
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-f",exportFinCsv);on("#to-an",openAnalytics);on("#to-beh",openBeh);
   ["ticker","from","to","metric"].forEach(k=>{const el=$("#g-"+k);if(el)el.onchange=async()=>{const prev={...S.ff};S.ff[k]=el.value;await refreshFin(prev)}});
   if(S.fin){tick();S.timer=setInterval(tick,1000)}
 },
 analytics(){
   clearInterval(S.timer);
   const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
-  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-c",exportContractsCsv);on("#to-fin",openFin);
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-c",exportContractsCsv);on("#to-fin",openFin);on("#to-beh",openBeh);
   ["ticker","status","quarter","category","owner","renewal","sole_source"].forEach(k=>{const el=$("#f-"+k);if(el)el.onchange=async()=>{const prev={...S.af};S.af[k]=el.value;await refreshAnalysis(prev)}});
   const page=d=>()=>{const y=window.scrollY;S.apage+=d;go("analytics");window.scrollTo(0,y)};
   on("#ap-next",page(1));on("#ap-prev",page(-1));
@@ -382,7 +448,7 @@ results(){
   clearInterval(S.timer);
   $("#close").onclick=confirmClose;
   $("#export").onclick=exportCsv;
-  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;
+  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
   const pn=$("#pg-next"),pp=$("#pg-prev");
   if(pn)pn.onclick=()=>{S.page++;go("results")};
   if(pp)pp.onclick=()=>{S.page--;go("results")};
@@ -475,6 +541,33 @@ function exportFinCsv(){
   downloadCsv("financials",cols,A.companies.flatMap(c=>c.series.map(r=>({ticker:c.ticker,...r}))));
 }
 
+/* ===== Customer behavior ===== */
+async function loadBeh(prevBf){
+  try{
+    const A=await DataService.analyzeBeh(S.bf);
+    S.beh=A;S.berr=null;S.bf.year=String(A.year);
+    S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+  }catch(e){
+    if(e.code==="UNAUTHORIZED"){S.beh=null;endSession();return false}
+    S.berr=e.message;if(prevBf)S.bf=prevBf;
+  }
+  return true
+}
+async function openBeh(){
+  S.bf={ticker:"",year:"latest",assessment:"all"};S.beh=null;S.berr=null;
+  go("banalyzing");
+  if(await loadBeh()&&S.screen==="banalyzing")go("behavior");
+}
+async function refreshBeh(prevBf){
+  const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
+  if(await loadBeh(prevBf)&&S.screen==="behavior"){go("behavior");window.scrollTo(0,y)}
+}
+function exportBehCsv(){
+  const A=S.beh;if(!A)return;
+  const cols=[["ticker","Company"],["year","Year"],["section","Group"],["label","Measure"],["value","Value"],["unit","Unit"],["prior","Prior year"],["change","Change"],["change_kind","Change unit (pct or pts)"],["assessment","Assessment"]];
+  downloadCsv("customer-behavior",cols,A.companies.flatMap(c=>c.sections.flatMap(s=>s.rows.map(r=>({ticker:c.ticker,year:c.year,...r})))));
+}
+
 /* ===== Session countdown + expiry warning ===== */
 function tick(){
   const el=$("#tm");if(!el)return;
@@ -503,7 +596,7 @@ function confirmClose(){
   $("#yes",o).onclick=()=>{o.remove();endSession()};
 }
 async function endSession(){
-  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.query="";S.err=null;S.warnShown=false;
+  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.beh=null;S.bf=null;S.berr=null;S.query="";S.err=null;S.warnShown=false;
   try{await DataService.signOut()}catch(e){}
   S.user=null;go("loggedout");
 }

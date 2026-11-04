@@ -60,10 +60,11 @@ Bob follows a minimal-change discipline: every edit traces directly to the reque
 3. [Walkthrough: supplier contracts expiring in Q4 2026](#3-walkthrough-supplier-contracts-expiring-in-q4-2026)
 4. [Analyze supplier contracts](#4-analyze-supplier-contracts)
 5. [Analyze financial trends](#5-analyze-financial-trends)
-6. [Manage users and permissions](#6-manage-users-and-permissions)
-7. [Add or regenerate data](#7-add-or-regenerate-data)
-8. [Run the tests](#8-run-the-tests)
-9. [Troubleshooting](#9-troubleshooting)
+6. [Analyze customer behavior](#6-analyze-customer-behavior)
+7. [Manage users and permissions](#7-manage-users-and-permissions)
+8. [Add or regenerate data](#8-add-or-regenerate-data)
+9. [Run the tests](#9-run-the-tests)
+10. [Troubleshooting](#10-troubleshooting)
 
 ### 1. Install and start the app
 
@@ -247,9 +248,33 @@ Filters: company, first and last quarter, and the chart measure. Growth rates ar
 
 **Permissions.** Access follows the quarterly-report PDFs: a user sees the companies in their `document_ids`, and asking for another company returns `403` and an `analyze_denied` audit entry. Other companies are not used in any ranking or comparison either. The department limit (`owners`) covers the contract register only, so `BLFD-LOG` sees BrightLeaf's financials just as it can open BrightLeaf's quarterly reports.
 
-**Accuracy.** The numbers come from CSVs extracted from the PDFs by `tools/extract_financials.py` (see [guide 7](#7-add-or-regenerate-data)), not from text parsed at request time. Growth rates are calculated from figures printed to $0.1M, so they can differ from the percentage printed in a report by about a tenth of a point (BLFD Q2 2026 revenue: 2.15% here, "+2.2%" in the PDF).
+**Accuracy.** The numbers come from CSVs extracted from the PDFs by `tools/extract_financials.py` (see [guide 8](#8-add-or-regenerate-data)), not from text parsed at request time. Growth rates are calculated from figures printed to $0.1M, so they can differ from the percentage printed in a report by about a tenth of a point (BLFD Q2 2026 revenue: 2.15% here, "+2.2%" in the PDF).
 
-### 6. Manage users and permissions
+### 6. Analyze customer behavior
+
+Choose **Customer behavior** from the request, results, contract or financial screens. It turns the annual customer-behavior reports (2024 and 2025) into a year-over-year scorecard for each company you are cleared to see.
+
+| Section | What it shows |
+|---------|---------------|
+| Header | Revenue and customers for the year, with growth vs. the year before |
+| Where growth came from | Revenue growth split into *more customers* and *more revenue per customer*, so you can tell volume from pricing or mix |
+| Scorecard | How many of the reported measures improved, worsened or stayed flat, plus the biggest improvements and the concerns |
+| Customer roll-forward | Customers at the start of the year, plus those won, minus those lost, equals the end (Halcyon and Meridian), with the churn rate |
+| Customer mix | The mix tables (for example by segment or region) and the biggest shifts in points |
+| Every measure | All reported measures by section, with last year's value, the change, and whether it is better or worse. **Export CSV** downloads them |
+| Compared with peers | Measures that mean the same thing for every company, with the best one marked (only when you can see two or more companies) |
+
+Filters: company, year and *Improved / Worsened / Flat*.
+
+**Reading the assessment.** Each measure knows which direction is good (more customers is good, more churn is not). A change counts when a rate moves by 1 percentage point or more, or any other measure by 2% or more; smaller moves are shown as *flat* so noise is not reported as progress. Mix shares, such as the share of revenue from one segment, are shown but not judged.
+
+**Reading the comparison.** The three companies measure different things: BrightLeaf counts households, Halcyon and Meridian count accounts or logos. For that reason only like-for-like measures are compared: revenue growth, customer base growth, change in revenue per customer, Net Promoter Score (level and change in points) and logo churn (BrightLeaf does not report it, so it shows a dash).
+
+**Permissions.** Access follows the ticker list in `document_ids`, as for financials: asking for another company returns `403` and an `analyze_denied` audit entry, and other companies are left out of the comparison. The department limit (`owners`) covers the contract register only, so `BLFD-LOG` sees BrightLeaf's behavior data.
+
+**Accuracy.** The numbers come from `data/behavior/behavior.csv`, extracted from the PDFs by `tools/extract_behavior.py` (see [guide 8](#8-add-or-regenerate-data)). Changes are the ones printed in the 2025 report, which the extractor has already checked against both years. BrightLeaf's 2024 text says 31.4% household penetration but its table says 31.5%; the tables are used.
+
+### 7. Manage users and permissions
 
 Accounts live in the `users` table of `instance/users.db`:
 
@@ -286,7 +311,7 @@ python -c "import sqlite3; c=sqlite3.connect('instance/users.db'); c.execute('DE
 
 If the account is one of the defaults, also remove it from `DEFAULT_ACCOUNTS`, otherwise it comes back when the database is recreated.
 
-### 7. Add or regenerate data
+### 8. Add or regenerate data
 
 PDFs are read from the `data/` folder, recursively. The sub-folder name becomes the report **category**, and the filename decides the ticker and period:
 
@@ -324,6 +349,15 @@ python tools/extract_financials.py --check    # only check that the PDFs reconci
 
 This reads every `data/individual/<TICKER>/*_Quarterly_Report.pdf` and writes `data/individual/financials.csv` (one row per company per quarter) and `data/individual/segments.csv`. It refuses to write anything unless the numbers agree: each statement adds up, segments sum to total revenue, the "prior quarter" and "prior-year" columns match the reports they refer to, and the three-year summary PDFs match the individual reports. Run it after adding or replacing a quarterly report, and restart the server (the CSVs are re-read when they change).
 
+**Extract the customer behavior** from the report PDFs:
+
+```bash
+python tools/extract_behavior.py            # rebuild data/behavior/behavior.csv
+python tools/extract_behavior.py --check    # only check that the PDFs reconcile
+```
+
+This reads every `data/behavior/*_Customer_Behavior_<year>.pdf` and writes `data/behavior/behavior.csv`. It refuses to write anything unless the reports agree: both years report the same measures, the changes printed in 2025 match the two years' values, each mix table adds up to 100%, revenue matches the quarterly financials, and the customer roll-forward, churn, seat activation and revenue per customer calculations hold. Run it after adding or replacing a behavior report.
+
 **Data on disk**
 
 | Ticker | Company | Industry |
@@ -332,9 +366,9 @@ This reads every `data/individual/<TICKER>/*_Quarterly_Report.pdf` and writes `d
 | HDYN | Halcyon Dynamics Inc. | Industrial Automation |
 | MCLD | Meridian Cloudworks Corp. | Enterprise Software |
 
-All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv`, which feeds the analytics.
+All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv` and `behavior/behavior.csv`, which feed the analytics.
 
-### 8. Run the tests
+### 9. Run the tests
 
 ```bash
 pip install pytest
@@ -343,7 +377,7 @@ pytest
 
 Run it from the project root. `pyproject.toml` already sets the test folder and import path. The suite writes its user database and audit log to a throw-away temp folder (via `FETCH_INSTANCE_DIR`), so it never touches your real `instance/` data.
 
-### 9. Troubleshooting
+### 10. Troubleshooting
 
 **Sign-in says "ID or password is incorrect".**
 If only a newer account such as `BLFD-LOG` fails, your `instance/users.db` was created before that account existed. Stop the server, delete `instance/users.db` and start again; it is re-created with all demo accounts.
@@ -408,12 +442,13 @@ retrieval/                The library
   users.py                UserRecord, DEFAULT_ACCOUNTS, in-memory fallback store
   contracts.py            Supplier-contract store (SQLite) and expiry analytics, permission-scoped
   financials.py           Quarterly growth, margin, trend and peer statistics (from the extracted CSVs)
+  behavior.py             Customer-behavior scorecard, growth split, roll-forward and peer comparison
   audit.py                Append-only access log
   pull_request.py         PullRequestAgent — ownership-aware retrieval helper
 
 ui/index.html             Single-page front-end
 data/                     PDF reports, one sub-folder per category
-tools/                    generate_supplier_contracts.py (CSV + PDFs), extract_financials.py (PDFs → CSVs), check_login.py
+tools/                    generate_supplier_contracts.py (CSV + PDFs), extract_financials.py and extract_behavior.py (PDFs → CSVs), check_login.py
 examples/demo.py          Auth + retrieval demo (PYTHONPATH=. python examples/demo.py)
 tests/                    pytest suite
 instance/                 Runtime files: users.db, contracts.db, audit.log (git-ignored, created on first run)
@@ -442,6 +477,7 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
 | `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, renewal, sole_source, token }` → statistics (`kpis` incl. `at_risk` and `sole_source`, `risk_rule`, `renewal_pipeline`, `concentration`, `outlook`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
 | `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, token }` (periods like `Q2-2026`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
+| `POST` | `/api/analyze/behavior` | Optional `{ ticker, year, assessment, token }` (`assessment`: `all`, `improved`, `worsened`, `flat`) → `companies` (revenue, customers, `growth`, `scorecard`, `improved`, `concerns`, `mix_moves`, `rollforward`, `sections`), `comparison`, `years`, `rule`, `scope`. `403` for a company outside the user's scope; `400` for an unknown year or assessment. |
 | `POST` | `/api/signout` | `{ token }` → `{ ok: true }` |
 | `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. Department-limited accounts get `403` for `Supplier_Contracts/` files. |
 | `GET` | `/api/audit` | Recent audit entries. Requires the `X-Audit-Token` header; disabled unless the `AUDIT_TOKEN` environment variable is set. |
