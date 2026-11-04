@@ -18,7 +18,7 @@ from pathlib import Path
 # The filter keys each screen accepts.  Anything else is dropped before saving.
 SCREENS: dict[str, tuple[str, ...]] = {
     "contracts":  ("ticker", "status", "quarter", "category", "owner", "renewal", "sole_source"),
-    "financials": ("ticker", "from", "to", "metric"),
+    "financials": ("ticker", "from", "to", "metric", "assessment", "basis"),
     "behavior":   ("ticker", "year", "assessment"),
     "company":    ("ticker",),
 }

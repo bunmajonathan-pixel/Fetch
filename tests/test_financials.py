@@ -282,3 +282,104 @@ def test_department_limited_user_matches_their_pdf_access(client):
     d = _post(client, *DEPT).get_json()
     assert [c["ticker"] for c in d["companies"]] == ["BLFD"]
     assert _post(client, *DEPT, ticker="MCLD").status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Improved / worse / flat flags
+# ---------------------------------------------------------------------------
+
+def _score(tiny, revenues, **filters):
+    tiny(revenues)
+    c = financials.analyze({"AAA"}, financials.parse_filters(filters))["companies"][0]
+    return c["scorecard"], {m["key"]: m for m in c["scorecard"]["measures"]}
+
+
+def test_growing_company_is_flagged_improved_and_ratios_are_flat(tiny):
+    sc, by = _score(tiny, [100 + 10 * i for i in range(12)])
+    assert sc["period"] == "Q2-2026" and sc["prior_period"] == "Q2-2025" and sc["basis"] == "yoy"
+    assert by["revenue"]["assessment"] == "improved" and by["net_income"]["assessment"] == "improved"
+    assert by["gross_margin"]["assessment"] == "flat"          # fixed cost ratios: 0 pts of movement
+    assert sc["tracked"] == sc["improved"] + sc["worsened"] + sc["flat"]
+    assert [m["key"] for m in sc["measures"] if m["assessment"] == "worsened"] == ["segment:Edge"]   # Edge shrank 85 -> 52.5
+    assert "flat" in by["gross_margin"]["why"]
+
+
+def test_shrinking_company_is_flagged_worse_and_says_why(tiny):
+    sc, by = _score(tiny, [200 - 5 * i for i in range(12)])
+    assert by["revenue"]["assessment"] == "worsened" and by["free_cash_flow"]["assessment"] == "worsened"
+    assert "Higher is better" in by["revenue"]["why"] and "worsened" in by["revenue"]["why"]
+    assert [m["key"] for m in sc["concerns"]] and all(m["assessment"] == "worsened" for m in sc["concerns"])
+
+
+def test_a_small_move_is_flat_not_improved(tiny):
+    sc, by = _score(tiny, [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 101])   # +1% year on year
+    assert by["revenue"]["assessment"] == "flat"
+
+
+def test_qoq_basis_compares_with_the_previous_quarter(tiny):
+    revs = [100] * 10 + [120, 90]
+    yoy, _ = _score(tiny, revs)
+    qoq, by = _score(tiny, revs, basis="qoq")
+    assert qoq["prior_period"] == "Q1-2026" and qoq["basis"] == "qoq"
+    assert by["revenue"]["assessment"] == "worsened"            # 120 -> 90
+    assert yoy["prior_period"] == "Q2-2025"
+
+
+def test_segments_are_flagged_only_when_present_in_both_quarters(tiny):
+    _, by = _score(tiny, [100 + 10 * i for i in range(12)])
+    assert by["segment:Core"]["assessment"] == "improved"        # 75% share now, 50% share a year ago
+    assert by["segment:Edge"]["assessment"] == "worsened"        # 85.0 a year ago, 52.5 now
+    assert by["segment:Core"]["group"] == "Segments"
+
+
+def test_debt_and_sga_share_count_a_fall_as_better():
+    keys = {k: d for k, _, _, _, d, _ in financials.SCORED}
+    assert keys["total_debt"] == "down" and keys["sga_pct"] == "down" and keys["revenue"] == "up"
+
+
+def test_assessment_filter_narrows_the_list_but_not_the_tally(tiny):
+    all_ = _score(tiny, [100 + 10 * i for i in range(12)])[0]
+    only = _score(tiny, [100 + 10 * i for i in range(12)], assessment="flat")[0]
+    assert only["measures"] and all(m["assessment"] == "flat" for m in only["measures"])
+    assert len(only["measures"]) == all_["flat"] < len(all_["measures"])
+    assert (only["improved"], only["worsened"], only["flat"]) == (all_["improved"], all_["worsened"], all_["flat"])
+
+
+def test_history_has_a_tally_for_each_quarter_with_a_comparison(tiny):
+    sc, _ = _score(tiny, [100 + 10 * i for i in range(12)])
+    assert [h["period"] for h in sc["history"]][0] == "Q3-2024"      # first quarter with a year-earlier quarter
+    assert len(sc["history"]) == 8
+    qoq = _score(tiny, [100 + 10 * i for i in range(12)], basis="qoq")[0]
+    assert len(qoq["history"]) == 11
+
+
+def test_no_scorecard_without_a_comparison_quarter(tiny):
+    tiny([100 + 10 * i for i in range(12)])
+    c = financials.analyze({"AAA"}, financials.parse_filters({"to": "Q3-2023"}))["companies"][0]    # the very first quarter
+    assert c["scorecard"] is None
+
+
+def test_bad_flag_filters_are_rejected():
+    with pytest.raises(ValueError):
+        financials.parse_filters({"assessment": "great"})
+    with pytest.raises(ValueError):
+        financials.parse_filters({"basis": "weekly"})
+
+
+def test_real_data_has_worse_and_flat_flags(client):
+    d = _post(client, *ALL3).get_json()
+    cards = {c["ticker"]: c["scorecard"] for c in d["companies"]}
+    assert cards["HDYN"]["worsened"] >= 1                          # free cash flow slipped for HDYN
+    assert all(c["flat"] >= 1 for c in cards.values())
+    assert sum(c["worsened"] + c["flat"] for c in cards.values()) >= 8
+    assert d["filters"]["basis"] == "yoy" and d["filters"]["assessment"] == "all"
+
+
+def test_api_flag_filters_and_scope(client):
+    d = _post(client, *ALL3, ticker="HDYN", assessment="worsened", basis="qoq").get_json()
+    sc = d["companies"][0]["scorecard"]
+    assert sc["basis"] == "qoq" and sc["measures"] and all(m["assessment"] == "worsened" for m in sc["measures"])
+    assert _post(client, *ALL3, assessment="bogus").status_code == 400
+    assert _post(client, *ALL3, basis="bogus").status_code == 400
+    one = _post(client, *BLFD).get_json()
+    assert [c["ticker"] for c in one["companies"]] == ["BLFD"]       # no other company's flags leak into scope

@@ -128,3 +128,12 @@ def test_save_and_delete_are_audited(client):
     client.delete(f"/api/views/{vid}")
     events = [e["event"] for e in srv._audit_recent(20)]
     assert "view_saved" in events and "view_deleted" in events
+
+
+def test_financial_flag_filters_are_saved_and_validated(client):
+    _in(client, ALL3)
+    r = _save(client, name="Slipping", screen="financials", filters={"ticker": "HDYN", "assessment": "worsened", "basis": "qoq"})
+    assert r.status_code == 201
+    assert r.get_json()["filters"] == {"ticker": "HDYN", "assessment": "worsened", "basis": "qoq"}
+    assert _save(client, name="Bad", screen="financials", filters={"assessment": "great"}).status_code == 400
+    assert _save(client, name="Bad2", screen="financials", filters={"basis": "weekly"}).status_code == 400

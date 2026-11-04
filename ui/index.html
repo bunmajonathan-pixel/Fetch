@@ -158,7 +158,7 @@ const DataService={
   },
   async analyzeFin(filters){
     const body={token:this._token};
-    for(const k of ["ticker","from","to","metric"])if(filters[k]&&filters[k]!=="all")body[k]=filters[k];
+    for(const k of ["ticker","from","to","metric","assessment","basis"])if(filters[k]&&filters[k]!=="all")body[k]=filters[k];
     const r=await fetch("/api/analyze/financials",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
@@ -358,6 +358,19 @@ financials:()=>{
   const rk=A.ranking.length?`<div class="chart wide"><h3>Who leads · ${esc(pl(A.as_of))}</h3><div class="tw"><table class="rkt"><tbody>${A.ranking.map(r=>`<tr><td style="width:30%">${esc(r.measure)}</td><td><div class="rk">${r.order.map((o,i)=>`<span><b>${i+1}. ${esc(o.ticker)}</b> ${o.value>=0&&/growth/i.test(r.measure)?"+":""}${o.value.toFixed(1)}%</span>`).join("")}</div></td></tr>`).join("")}</tbody></table></div></div>`:"";
   const seg=cos.map(c=>`<div class="chart"><h3>${esc(c.ticker)} · revenue by segment</h3>${c.segments.map(g=>`<div class="hb" title="${esc(g.name)}: ${fv(g.revenue)} · ${g.share_pct}% of revenue"><span>${esc(g.name)}</span><span class="tr"><i style="width:${Math.max(2,Math.round(g.share_pct||0))}%"></i></span><span>${fv(g.revenue)} · ${g.yoy_pct==null?"—":(g.yoy_pct>=0?"+":"")+g.yoy_pct.toFixed(1)+"%"}</span></div>`).join("")}<p class="fn">Bar = share of revenue. Right column = revenue and growth vs. last year.</p></div>`).join("");
   const ST=cos.map(c=>{const s=c.stats,z=s.seasonality;return`<tr><td><b>${esc(c.ticker)}</b></td><td>${s.revenue_cagr_2y_pct==null?"—":s.revenue_cagr_2y_pct.toFixed(1)+"%"}</td><td>${s.qoq_mean_pct==null?"—":s.qoq_mean_pct.toFixed(1)+"%"}</td><td>${s.qoq_stdev_pct==null?"—":s.qoq_stdev_pct.toFixed(1)+" pts"}</td><td>${s.trend_slope_per_qtr>=0?"+":""}${s.trend_slope_per_qtr.toFixed(1)}</td><td>${s.trend_r2.toFixed(2)}</td><td>${z?["Q1","Q2","Q3","Q4"].map(q=>z[q]==null?"":`${q} ${z[q].toFixed(2)}`).filter(Boolean).join(" · "):"—"}</td></tr>`}).join("");
+  const ftag=(a,w)=>a==="improved"?`<span class="st" title="${esc(w||"")}">Improved</span>`:a==="worsened"?`<span class="st x" title="${esc(w||"")}">Worse</span>`:a==="flat"?`<span class="st m" title="${esc(w||"")}">Flat</span>`:"";
+  const fchg=m=>m.change==null?"—":m.kind==="pts"?(m.change>=0?"+":"−")+Math.abs(m.change).toFixed(1)+" pts":(m.change>=0?"+":"−")+Math.abs(m.change).toFixed(1)+"%";
+  const fcls=m=>m.assessment==="improved"?"pos":m.assessment==="worsened"?"neg":"";
+  const withFlags=cos.filter(c=>c.scorecard);
+  const flagsFor=c=>{const s=c.scorecard;
+    return`<div class="chart wide" style="margin-bottom:12px"><h3>${esc(c.ticker)} · what changed, ${esc(pl(s.period))} vs. ${esc(pl(s.prior_period))}</h3>
+    <div class="kpis"><div class="kpi"><div class="l">Improved</div><div class="v pos">${s.improved}</div><div class="s">of ${s.tracked} measures</div></div>
+    <div class="kpi"><div class="l">Worse</div><div class="v ${s.worsened?"neg":""}">${s.worsened}</div><div class="s">${s.concerns.length?esc(s.concerns.map(m=>m.label).join(", ")):"nothing slipped"}</div></div>
+    <div class="kpi"><div class="l">Flat</div><div class="v">${s.flat}</div><div class="s">moved less than the threshold</div></div></div>
+    ${s.measures.length?`<div class="tw"><table class="num"><thead><tr><th>Measure</th><th>${esc(pl(s.period))}</th><th>${esc(pl(s.prior_period))}</th><th>Change</th><th></th></tr></thead><tbody>${s.measures.map(m=>`<tr><td>${esc(m.label)} <small class="hint">${esc(m.group)}</small>${m.assessment!=="improved"&&m.why?`<br><small class="hint">${esc(m.why)}</small>`:""}</td><td>${fv(m.value,m.unit)}</td><td>${m.prior==null?"—":fv(m.prior,m.unit)}</td><td class="${fcls(m)}">${fchg(m)}</td><td>${ftag(m.assessment,m.why)}</td></tr>`).join("")}</tbody></table></div>`:'<p class="hint">No measures in this group.</p>'}</div>`};
+  const flagPeriods=[...new Set(withFlags.flatMap(c=>c.scorecard.history.map(h=>h.period)))].sort((a,b)=>A.periods.indexOf(a)-A.periods.indexOf(b));
+  const flagHist=withFlags.length?`<div class="chart wide" style="margin-bottom:12px"><h3>Flags by quarter · improved / worse / flat</h3><div class="tw"><table class="num"><thead><tr><th>Quarter</th>${withFlags.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${[...flagPeriods].reverse().map(p=>`<tr><td>${esc(pl(p))}</td>${withFlags.map(c=>{const h=c.scorecard.history.find(x=>x.period===p);return`<td>${h?`<span class="pos">${h.improved}</span> / <span class="${h.worsened?"neg":""}">${h.worsened}</span> / ${h.flat}`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div><p class="fn">Each quarter is compared with ${esc(withFlags[0].scorecard.basis_label)}. A measure is flat when it moved less than ${withFlags[0].scorecard.rule.rate_pts} percentage point (or ${withFlags[0].scorecard.rule.rate_rel_pct}% of its own level) for a ratio, or ${withFlags[0].scorecard.rule.other_pct}% for an amount. Debt and SG&amp;A as a share of revenue count as better when they fall. Quarter-on-quarter flags are noisier because of seasonality.</p></div>`:"";
+  const flagsHtml=withFlags.length?withFlags.map(flagsFor).join("")+flagHist:"";
   const single=cos.length===1?cos[0]:null;
   const tbl=single?`<div class="tw"><table class="num"><thead><tr>${["Quarter","Revenue","QoQ","YoY","Gross margin","Op. margin","Net income","EPS","Free cash flow"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${[...single.series].reverse().map(r=>`<tr><td>${esc(pl(r.period))}</td><td>${fv(r.revenue)}</td><td>${gr(r.revenue_qoq)}</td><td>${gr(r.revenue_yoy)}</td><td>${fv(r.gross_margin,"%")}</td><td>${fv(r.operating_margin,"%")}</td><td>${fv(r.net_income)}</td><td>$${r.eps.toFixed(2)}</td><td>${fv(r.free_cash_flow)}</td></tr>`).join("")}</tbody></table></div>`
    :`<div class="tw"><table class="num"><thead><tr><th>Quarter</th>${cos.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${[...A.periods].reverse().map(p=>`<tr><td>${esc(pl(p))}</td>${cos.map(c=>{const r=c.series.find(s=>s.period===p);return`<td>${r?fv(r[M.key],M.unit):"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
@@ -366,17 +379,20 @@ financials:()=>{
  <div id="warn-slot"></div>
  ${S.ferr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the financials</b><span>${esc(S.ferr)}</span></div>`:""}
  <div class="top"><div><h2>Financial trends</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">Quarterly reports through ${esc(pl(A.as_of||"—"))}</span><span class="pill">$ millions</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="export-fl" style="padding:7px 12px;font-size:12px">↓ Export flags</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="filters">
   ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
   ${sel("from","From",[["all","Earliest"],...pOpts])}
   ${sel("to","To",[["all","Latest"],...pOpts])}
   ${sel("metric","Chart measure",Object.entries(A.metrics).map(([k,v])=>[k,v.label]))}
+  ${sel("basis","Flag against",[["yoy","Same quarter last year"],["qoq","Previous quarter"]])}
+  ${sel("assessment","Show",[["all","All measures"],["improved","Improved only"],["worsened","Worse only"],["flat","Flat only"]])}
  </div>
  <div id="an-body">
  ${!cos.length?'<p class="hint">No quarters fall inside this window.</p>':`
  ${kc}
  <div class="chart wide" style="margin-bottom:12px"><h3>Latest quarter</h3><div class="tw"><table class="num"><thead><tr>${["Company","Revenue","YoY","Gross margin","Op. margin","Net income","EPS (YoY)","Free cash flow","12-mo revenue"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${L1}</tbody></table></div></div>
+ ${flagsHtml}
  <div class="charts">
   <div class="chart wide"><h3>${esc(M.label)} by quarter</h3>${trend}${legend}</div>
   ${idx?`<div class="chart wide"><h3>Revenue growth since ${esc(pl(A.periods[0]))} · first quarter = 100</h3>${idx}${legend}<p class="fn">Indexing removes company size, so you can compare how fast each business has grown.</p></div>`:""}
@@ -572,8 +588,8 @@ behavior(){
 financials(){
   clearInterval(S.timer);
   const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
-  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-f",exportFinCsv);on("#to-an",openAnalytics);on("#to-beh",openBeh);
-  ["ticker","from","to","metric"].forEach(k=>{const el=$("#g-"+k);if(el)el.onchange=async()=>{const prev={...S.ff};S.ff[k]=el.value;await refreshFin(prev)}});
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-f",exportFinCsv);on("#export-fl",exportFlagsCsv);on("#to-an",openAnalytics);on("#to-beh",openBeh);
+  ["ticker","from","to","metric","assessment","basis"].forEach(k=>{const el=$("#g-"+k);if(el)el.onchange=async()=>{const prev={...S.ff};S.ff[k]=el.value;await refreshFin(prev)}});
   if(S.fin){tick();S.timer=setInterval(tick,1000)}
 },
 analytics(){
@@ -671,13 +687,18 @@ async function loadFin(prevFf){
   return true
 }
 async function openFin(t){
-  S.ff={ticker:"",from:"all",to:"all",metric:"revenue",...argOf(t)};S.fin=null;S.ferr=null;
+  S.ff={ticker:"",from:"all",to:"all",metric:"revenue",assessment:"all",basis:"yoy",...argOf(t)};S.fin=null;S.ferr=null;
   go("finalyzing");
   if(await loadFin()&&S.screen==="finalyzing")go("financials");
 }
 async function refreshFin(prevFf){
   const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
   if(await loadFin(prevFf)&&S.screen==="financials"){go("financials");window.scrollTo(0,y)}
+}
+function exportFlagsCsv(){
+  const A=S.fin;if(!A)return;
+  const cols=[["ticker","Company"],["period","Quarter"],["prior_period","Compared with"],["group","Group"],["label","Measure"],["value","Value"],["prior","Earlier value"],["change","Change"],["change_unit","Change unit"],["assessment","Flag"],["why","Why"]];
+  downloadCsv("financial-flags",cols,A.companies.filter(c=>c.scorecard).flatMap(c=>c.scorecard.measures.map(m=>({ticker:c.ticker,period:c.scorecard.period,prior_period:c.scorecard.prior_period,group:m.group,label:m.label,value:m.value,prior:m.prior,change:m.change,change_unit:m.kind==="pts"?"pts":"%",assessment:m.assessment,why:m.why}))));
 }
 function exportFinCsv(){
   const A=S.fin;if(!A)return;

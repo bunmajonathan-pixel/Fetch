@@ -40,6 +40,14 @@ def _fin(gm_bps=50, yoy=5.0):
             "margin_change_bps_yoy": {"gross_margin": gm_bps, "operating_margin": 10, "net_margin": 5}}
 
 
+def _fin_flags(worse=(), improved=12, flat=3):
+    f = _fin()
+    f["scorecard"] = {"period": "Q2-2026", "prior_period": "Q2-2025", "improved": improved, "worsened": len(worse),
+                      "flat": flat, "tracked": improved + len(worse) + flat,
+                      "concerns": [{"label": w, "prior": 50.8, "value": 49.3} for w in worse]}
+    return f
+
+
 def _beh(worse=(), improved=10, flat=1, rev=8.0):
     return {"year": 2025, "customers": {"label": "Customers"}, "growth": {"revenue_pct": rev, "customers_pct": 5.0, "per_customer_pct": 2.9},
             "scorecard": {"improved": improved, "worsened": len(worse), "flat": flat, "tracked": improved + len(worse) + flat},
@@ -174,3 +182,18 @@ def test_company_view_is_audited(client):
     _post(client, BLFD)
     ev = [e for e in srv._audit_recent(20) if e.get("event") == "analyze" and e.get("detail", {}).get("kind") == "company"]
     assert ev and ev[-1]["detail"]["companies"] == ["BLFD"]
+
+
+def test_financial_flags_raise_a_watch_item_naming_the_measures():
+    sigs = {s["id"]: s for s in company.signals(_fin_flags(["Free cash flow", "Cash balance"]), _beh(), _con(), partial=False)}
+    s = sigs["financial_flags"]
+    assert s["level"] == "watch" and "Free cash flow" in s["detail"] and "Cash balance" in s["detail"]
+    assert s["sources"] == ["Financials"] and "2 measures" in s["detail"]
+
+
+def test_no_worse_financial_measure_is_a_good_signal_and_flat_heavy_is_silent():
+    good = {s["id"]: s for s in company.signals(_fin_flags(), _beh(), _con(), partial=False)}
+    assert good["financial_flags"]["level"] == "good"
+    quiet = {s["id"] for s in company.signals(_fin_flags(improved=2, flat=10), _beh(), _con(), partial=False)}
+    assert "financial_flags" not in quiet
+    assert "financial_flags" not in {s["id"] for s in company.signals(_fin(), _beh(), _con(), partial=False)}   # no scorecard

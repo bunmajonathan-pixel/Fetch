@@ -477,7 +477,9 @@ def api_analyze_financials():
     Growth, margin, trend and peer-comparison statistics from the quarterly reports.
 
     Body (all optional): ticker, from / to (Q2-2026 style), metric (revenue | gross_margin |
-    operating_margin | net_margin | net_income | eps | free_cash_flow | fcf_margin).
+    operating_margin | net_margin | net_income | eps | free_cash_flow | fcf_margin),
+    assessment (all | improved | worsened | flat) and basis (yoy | qoq), which choose the
+    improved / worse / flat flags returned in each company's ``scorecard``.
 
     Scope is the caller's tickers, the same rule that governs the quarterly-report PDFs.
     Other companies are neither returned nor used in any comparison or ranking; asking

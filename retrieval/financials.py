@@ -18,6 +18,8 @@ import statistics
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import behavior as _beh      # the improved / worse / flat rule is shared with customer behavior
+
 _FIN_PATH: Path | None = None
 _SEG_PATH: Path | None = None
 _STAMP: tuple | None = None
@@ -39,6 +41,31 @@ METRICS = {          # key -> (label, unit)  — what the trend chart can plot
     "free_cash_flow":   ("Free cash flow", "$M"),
     "fcf_margin":       ("FCF margin", "%"),
 }
+
+ASSESSMENTS = ("all", "improved", "worsened", "flat")
+BASES = {"yoy": "the same quarter last year", "qoq": "the previous quarter"}
+LAG = {"yoy": 4, "qoq": 1}          # rows back from the latest quarter
+
+# Measures given an improved / worse / flat flag.  kind "pts" = a ratio compared in percentage
+# points; "pct" = an amount compared by percentage change.  The thresholds are the ones the
+# customer-behavior screen uses (behavior.RATE_PTS / RATE_REL_PCT / OTHER_PCT).
+SCORED = (   # key, label, group, kind, direction, unit
+    ("revenue",             "Revenue",                  "Growth",        "pct", "up",   "$M"),
+    ("gross_profit",        "Gross profit",             "Growth",        "pct", "up",   "$M"),
+    ("operating_income",    "Operating income",         "Growth",        "pct", "up",   "$M"),
+    ("net_income",          "Net income",               "Growth",        "pct", "up",   "$M"),
+    ("eps",                 "Diluted EPS",              "Growth",        "pct", "up",   "$"),
+    ("gross_margin",        "Gross margin",             "Margins",       "pts", "up",   "%"),
+    ("operating_margin",    "Operating margin",         "Margins",       "pts", "up",   "%"),
+    ("net_margin",          "Net margin",               "Margins",       "pts", "up",   "%"),
+    ("sga_pct",             "SG&A as % of revenue",     "Costs",         "pts", "down", "%"),
+    ("operating_cash_flow", "Operating cash flow",      "Cash",          "pct", "up",   "$M"),
+    ("free_cash_flow",      "Free cash flow",           "Cash",          "pct", "up",   "$M"),
+    ("fcf_margin",          "FCF margin",               "Cash",          "pts", "up",   "%"),
+    ("cash",                "Cash balance",             "Balance sheet", "pct", "up",   "$M"),
+    ("total_debt",          "Total debt",               "Balance sheet", "pct", "down", "$M"),
+    ("equity",              "Equity",                   "Balance sheet", "pct", "up",   "$M"),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +118,8 @@ class Filters:
     from_period: str | None = None     # "Q3-2024"
     to_period: str | None = None
     metric: str = "revenue"
+    assessment: str = "all"            # all | improved | worsened | flat  (narrows the flagged measures)
+    basis: str = "yoy"                 # yoy | qoq  (what the flags compare the latest quarter with)
 
 
 def _pkey(period: str) -> tuple[int, int]:
@@ -119,6 +148,14 @@ def parse_filters(body: dict) -> Filters:
     if metric not in METRICS:
         raise ValueError(f"Unknown metric. Choose one of: {', '.join(METRICS)}.")
     f.metric = metric
+    a = (body.get("assessment") or "all").strip().lower()
+    if a not in ASSESSMENTS:
+        raise ValueError(f"assessment must be one of {', '.join(ASSESSMENTS)}.")
+    f.assessment = a
+    b = (body.get("basis") or "yoy").strip().lower()
+    if b not in BASES:
+        raise ValueError(f"basis must be one of {', '.join(BASES)}.")
+    f.basis = b
     return f
 
 
@@ -164,6 +201,7 @@ def _derive(rows: list[dict]) -> list[dict]:
         d["operating_margin"] = _ratio(r["operating_income"], r["revenue"])
         d["net_margin"]       = _ratio(r["net_income"], r["revenue"])
         d["fcf_margin"]       = _ratio(r["free_cash_flow"], r["revenue"])
+        d["sga_pct"]          = _ratio(abs(r["sga"]), r["revenue"]) if r["sga"] is not None else None
         prev = rows[i - 1] if i >= 1 else None
         year = rows[i - 4] if i >= 4 else None
         for key in ("revenue", "operating_income", "net_income", "eps", "free_cash_flow"):
@@ -217,6 +255,68 @@ def _company_stats(rows: list[dict]) -> dict:
         "quarters": len(rows),
         "latest_period": last["period"],
     }
+
+
+# ---------------------------------------------------------------------------
+# Improved / worse / flat flags
+# ---------------------------------------------------------------------------
+
+def _flag(key, label, group, kind, direction, unit, new, old) -> dict:
+    """One measure compared with an earlier quarter, with its improved / worsened / flat verdict."""
+    if kind == "pts":
+        change = round(new - old, 2) if new is not None and old is not None else None
+        rel = _pct(new, old)
+    else:
+        change = rel = _pct(new, old)
+    verdict = _beh._assess(direction, change, kind, rel)
+    return {"key": key, "label": label, "group": group, "unit": unit, "kind": kind, "direction": direction,
+            "value": new, "prior": old, "change": change, "rel_pct": rel, "assessment": verdict,
+            "why": _beh._why(direction, change, kind, rel, verdict) if verdict else None}
+
+
+def _flags(ticker: str, full: list[dict], i: int, basis: str) -> list[dict]:
+    """Flags for quarter ``full[i]`` against ``LAG[basis]`` quarters earlier; [] when there is no such quarter."""
+    j = i - LAG[basis]
+    if j < 0:
+        return []
+    cur, old = full[i], full[j]
+    out = [_flag(k, lab, grp, kind, dr, unit, cur.get(k), old.get(k)) for k, lab, grp, kind, dr, unit in SCORED]
+    seg_now, seg_old = _SEG.get((ticker, cur["period"]), {}), _SEG.get((ticker, old["period"]), {})
+    for name in seg_now:                      # a segment is only compared when it existed in both quarters
+        if name in seg_old:
+            out.append(_flag("segment:" + name, f"{name} revenue", "Segments", "pct", "up", "$M", seg_now[name], seg_old[name]))
+    return [m for m in out if m["assessment"]]
+
+
+def _tally(measures: list[dict]) -> dict:
+    t = {a: sum(m["assessment"] == a for m in measures) for a in ("improved", "worsened", "flat")}
+    t["tracked"] = sum(t.values())
+    return t
+
+
+def _scorecard(ticker: str, full: list[dict], window: list[dict], f: Filters) -> dict | None:
+    """Flags for the latest quarter in the window, plus how the tally has moved quarter by quarter."""
+    pos = {d["period"]: n for n, d in enumerate(full)}
+    i = pos[window[-1]["period"]]
+    measures = _flags(ticker, full, i, f.basis)
+    if not measures:
+        return None
+    history = []
+    for d in window:
+        m = _flags(ticker, full, pos[d["period"]], f.basis)
+        if m:
+            history.append({"period": d["period"], **_tally(m)})
+
+    def top(which: str) -> list[dict]:
+        pool = [m for m in measures if m["assessment"] == which and m["rel_pct"] is not None]
+        return sorted(pool, key=lambda m: -abs(m["rel_pct"]))[:3]
+
+    shown = [m for m in measures if f.assessment in ("all", m["assessment"])]
+    return {"basis": f.basis, "basis_label": BASES[f.basis], "period": full[i]["period"],
+            "prior_period": full[i - LAG[f.basis]]["period"], **_tally(measures),
+            "concerns": top("worsened"), "improved_top": top("improved"),
+            "measures": shown, "history": history,
+            "rule": {"rate_pts": _beh.RATE_PTS, "rate_rel_pct": _beh.RATE_REL_PCT, "other_pct": _beh.OTHER_PCT}}
 
 
 # ---------------------------------------------------------------------------
@@ -282,11 +382,13 @@ def analyze(tickers: set[str], f: Filters) -> dict:
             "indexed": [{"period": d["period"],
                          "value": round(100.0 * d["revenue"] / first["revenue"], 1)} for d in window],
             "segments": segments,
+            "scorecard": _scorecard(tk, full, window, f),
         })
 
     periods = sorted({r["period"] for c in companies for r in c["series"]}, key=_pkey)
     return {
-        "filters": {"ticker": f.ticker, "from": f.from_period, "to": f.to_period, "metric": f.metric},
+        "filters": {"ticker": f.ticker, "from": f.from_period, "to": f.to_period, "metric": f.metric,
+                    "assessment": f.assessment, "basis": f.basis},
         "metric": {"key": f.metric, "label": METRICS[f.metric][0], "unit": METRICS[f.metric][1]},
         "metrics": {k: {"label": v[0], "unit": v[1]} for k, v in METRICS.items()},
         "periods": periods,
