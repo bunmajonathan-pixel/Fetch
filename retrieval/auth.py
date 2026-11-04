@@ -11,7 +11,6 @@ Default session lifetime: 3600 seconds (1 hour).
 from __future__ import annotations
 import secrets
 import time
-from typing import Optional
 
 from .db_users import get_user
 
@@ -36,6 +35,11 @@ def login(username: str, password: str, ttl: float = SESSION_TTL) -> str:
     if user is None or not user.check_password(password):
         raise AuthError("Invalid username or password.")
 
+    return issue_token(username, ttl)
+
+
+def issue_token(username: str, ttl: float = SESSION_TTL) -> str:
+    """Create a session for an already-authenticated user and return its token."""
     token = secrets.token_hex(32)
     _SESSIONS[token] = (username, time.monotonic() + ttl)
     return token
@@ -68,3 +72,11 @@ def active_sessions() -> dict[str, str]:
     """Return {token: username} for all non-expired sessions (diagnostic use)."""
     now = time.monotonic()
     return {t: u for t, (u, exp) in _SESSIONS.items() if exp > now}
+
+
+def revoke_user(username: str, keep: str | None = None) -> int:
+    """End every session of *username* (except the token *keep*).  Returns how many were ended."""
+    gone = [t for t, (u, _) in _SESSIONS.items() if u == username and t != keep]
+    for t in gone:
+        del _SESSIONS[t]
+    return len(gone)

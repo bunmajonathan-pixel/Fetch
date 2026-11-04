@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from .auth import AuthError, validate_token
 from .retriever import Retriever
 from .types import Document, Query
-from .users import get_user
+from .db_users import get_user
 
 
 @dataclass

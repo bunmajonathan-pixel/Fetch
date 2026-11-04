@@ -1,0 +1,10 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Runtime files written by server.py (users.db, audit.log)
+instance/
+
+# Virtual environments / test caches
+.venv/
+.pytest_cache/

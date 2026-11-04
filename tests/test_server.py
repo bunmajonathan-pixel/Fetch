@@ -112,11 +112,15 @@ def test_rate_limit(client):
 # ---------------------------------------------------------------------------
 
 def test_pdf_traversal_blocked(client):
+    _signin(client)
     r = client.get("/api/pdf/BLFD/../../../etc/passwd")
+    assert r.status_code in (400, 404)
+    r = client.get("/api/pdf/BLFD/Supplier_Contracts/..%2F..%2Fserver.py")
     assert r.status_code in (400, 404)
 
 
 def test_pdf_unknown_ticker(client):
+    _signin(client)
     r = client.get("/api/pdf/XXXX/somefile.pdf")
     assert r.status_code == 404
 
@@ -161,3 +165,117 @@ def test_signout_invalidates_token(client):
 def test_signout_no_token_ok(client):
     r = client.post("/api/signout", json={})
     assert r.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Supplier-contracts demo: "active supplier contracts expiring in Q4 2026"
+# ---------------------------------------------------------------------------
+
+DEMO_QUERY = "Show active supplier contracts expiring in Q4 2026"
+
+
+def _rows_for(client, uid, password, query=DEMO_QUERY):
+    token = _signin(client, uid, password).get_json()["token"]
+    r = client.post("/api/retrieve", json={"query": query, "token": token})
+    assert r.status_code == 200
+    return r.get_json()["rows"]
+
+
+@pytest.mark.parametrize("uid,password,ticker", [
+    ("BLFD-01", "blfd2024", "BLFD"),
+    ("HDYN-01", "hdyn2024", "HDYN"),
+    ("MCLD-01", "mcld2024", "MCLD"),
+])
+def test_supplier_contracts_demo_scoped_to_user(client, uid, password, ticker):
+    """Each user gets only their own company's Q4-2026 contract register."""
+    rows = _rows_for(client, uid, password)
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["ticker"] == ticker
+    assert row["period"] == "Q4-2026"
+    assert row["category"] == "Supplier Contracts"
+    assert row["file"] == (
+        f"/api/pdf/{ticker}/Supplier_Contracts/{ticker}_Q4-2026_Supplier_Contracts.pdf"
+    )
+
+
+def test_supplier_contracts_period_filter(client):
+    """The quarter in the query selects the matching expiry-quarter file."""
+    rows = _rows_for(client, "BLFD-01", "blfd2024",
+                     "supplier contracts expiring in Q1 2027")
+    assert [r["period"] for r in rows] == ["Q1-2027"]
+
+
+def test_supplier_contract_pdf_is_servable(client):
+    rows = _rows_for(client, "HDYN-01", "hdyn2024")
+    r = client.get(rows[0]["file"])
+    assert r.status_code == 200
+    assert r.mimetype == "application/pdf"
+
+
+def test_supplier_contract_pdf_wrong_ticker_rejected(client):
+    """Even a user cleared for BLFD cannot fetch HDYN's file through a BLFD URL."""
+    _signin(client)   # NL-2048 holds all three tickers, so only the filename rule applies
+    r = client.get("/api/pdf/BLFD/Supplier_Contracts/HDYN_Q4-2026_Supplier_Contracts.pdf")
+    assert r.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# PDF endpoint — authentication and per-user authorisation
+# ---------------------------------------------------------------------------
+
+BLFD_PDF = "/api/pdf/BLFD/Supplier_Contracts/BLFD_Q4-2026_Supplier_Contracts.pdf"
+HDYN_PDF = "/api/pdf/HDYN/Supplier_Contracts/HDYN_Q4-2026_Supplier_Contracts.pdf"
+
+
+def test_pdf_requires_signin(client):
+    r = client.get(BLFD_PDF)
+    assert r.status_code == 401
+    assert r.get_json()["code"] == "UNAUTHORIZED"
+
+
+def test_pdf_rejected_after_signout(client):
+    _signin(client, "BLFD-01", "blfd2024")
+    assert client.get(BLFD_PDF).status_code == 200
+    client.post("/api/signout", json={})
+    assert client.get(BLFD_PDF).status_code == 401
+
+
+def test_pdf_token_in_url_not_accepted(client):
+    token = _signin(client, "BLFD-01", "blfd2024").get_json()["token"]
+    client.delete_cookie("session_token")
+    assert client.get(f"{BLFD_PDF}?token={token}").status_code == 401
+
+
+def test_pdf_own_company_allowed(client):
+    _signin(client, "BLFD-01", "blfd2024")
+    r = client.get(BLFD_PDF)
+    assert r.status_code == 200
+    assert r.mimetype == "application/pdf"
+    assert "no-store" in r.headers["Cache-Control"]
+
+
+def test_pdf_other_company_forbidden(client):
+    """BLFD-01 knows HDYN's exact URL, and the file exists — still refused."""
+    _signin(client, "BLFD-01", "blfd2024")
+    r = client.get(HDYN_PDF)
+    assert r.status_code == 403
+    assert r.get_json()["code"] == "FORBIDDEN"
+    assert r.mimetype != "application/pdf"
+
+
+def test_pdf_multi_company_user_allowed_for_each(client):
+    _signin(client)   # NL-2048
+    assert client.get(BLFD_PDF).status_code == 200
+    assert client.get(HDYN_PDF).status_code == 200
+
+
+def test_pdf_access_is_audited(client):
+    from retrieval.audit import recent
+    _signin(client, "BLFD-01", "blfd2024")
+    client.get(BLFD_PDF)
+    client.get(HDYN_PDF)
+    events = [(e["event"], e["detail"].get("ticker")) for e in recent(50)
+              if e["username"] == "BLFD-01"]
+    assert ("pdf_view", "BLFD") in events
+    assert ("pdf_denied", "HDYN") in events

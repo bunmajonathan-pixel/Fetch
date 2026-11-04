@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fetch</title>
+<style>
+:root{--bg:#f5f7fb;--s:#fff;--t:#0f172a;--m:#64748b;--l:#e2e8f0;--b:#2356d6;--bs:#eaf0ff;--d:#c53030;--ds:#fdecec;--ok:#15803d;--oks:#e6f6ec;--ov:rgba(15,23,42,.45);--warn:#b45309;--warns:#fef3c7;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--s:#121a2b;--t:#e6ebf5;--m:#8b98b0;--l:#25314a;--b:#5b8cff;--bs:#16244a;--d:#ff7b7b;--ds:#3a1a1f;--ok:#4ade80;--oks:#12301f;--ov:rgba(0,0,0,.6);--warn:#fbbf24;--warns:#292100;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--s:#121a2b;--t:#e6ebf5;--m:#8b98b0;--l:#25314a;--b:#5b8cff;--bs:#16244a;--d:#ff7b7b;--ds:#3a1a1f;--ok:#4ade80;--oks:#12301f;--ov:rgba(0,0,0,.6);--warn:#fbbf24;--warns:#292100;color-scheme:dark}
+:root[data-theme="light"]{--bg:#f5f7fb;--s:#fff;--t:#0f172a;--m:#64748b;--l:#e2e8f0;--b:#2356d6;--bs:#eaf0ff;--d:#c53030;--ds:#fdecec;--ok:#15803d;--oks:#e6f6ec;--ov:rgba(15,23,42,.45);--warn:#b45309;--warns:#fef3c7;color-scheme:light}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--t);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--s);border-bottom:1px solid var(--l);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:32px;height:32px;border-radius:8px;background:var(--b);color:#fff;display:grid;place-items:center;font-weight:700}
+.brand{font-size:17px;font-weight:600}.sub{color:var(--m);font-size:12px;border-left:1px solid var(--l);padding-left:12px}
+.sp{flex:1}.pill{background:var(--bs);color:var(--m);font-size:11px;padding:3px 10px;border-radius:99px}
+.user{display:flex;gap:8px;align-items:center;font-size:12px}.av{width:26px;height:26px;border-radius:50%;background:var(--bs);color:var(--b);display:grid;place-items:center;font-size:10px;font-weight:600}
+.theme-btn{background:none;border:1px solid var(--l);border-radius:6px;color:var(--m);cursor:pointer;font-size:14px;padding:4px 8px;line-height:1}
+.crumb{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;font-size:11px;color:var(--m);gap:12px;flex-wrap:wrap}
+.steps{display:flex;gap:14px}.steps b{color:var(--b);font-weight:600}.steps span:not(:last-child)::after{content:"›";margin-left:14px}
+main{flex:1;padding:8px 24px 32px;display:flex;justify-content:center;align-items:flex-start}
+.wrap{width:100%;max-width:960px}.narrow{max-width:640px}
+footer{display:flex;justify-content:space-between;padding:14px 24px;font-size:11px;color:var(--m);flex-wrap:wrap;gap:6px}
+h1{font-size:32px;line-height:1.15;margin:8px 0 12px;font-weight:500}h2{font-size:24px;margin:0 0 6px;font-weight:500}
+p{margin:0;color:var(--m)}.eyebrow{display:inline-block;background:var(--bs);color:var(--b);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;font-weight:600}
+.card{background:var(--s);border:1px solid var(--l);border-radius:12px;padding:24px}
+.hero{display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:center;padding-top:20px}
+.feat{display:flex;gap:12px;margin-top:16px}.feat i{width:28px;height:28px;border-radius:6px;background:var(--bs);color:var(--b);display:grid;place-items:center;font-style:normal;flex:none}.feat b{display:block;font-size:13px}.feat span{font-size:12px;color:var(--m)}
+label{display:block;font-weight:600;font-size:12px;margin:14px 0 6px}
+input{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px solid var(--l);border-radius:6px;padding:10px 12px}
+input:focus{outline:2px solid var(--b);outline-offset:-1px}input.err{border-color:var(--d)}input:disabled{background:var(--bg);color:var(--m)}
+.pw{position:relative}.pw button{position:absolute;right:6px;top:4px;background:none;border:0;color:var(--m);cursor:pointer;padding:6px}
+.hint{font-size:11px;color:var(--m);margin-top:6px}
+.btn{font:inherit;font-weight:600;border-radius:6px;padding:9px 16px;cursor:pointer;border:1px solid transparent;display:inline-flex;gap:8px;align-items:center;justify-content:center}
+.btn.primary{background:var(--b);color:#fff}.btn.sec{background:var(--s);border-color:var(--l);color:var(--t)}.btn.ghost{background:none;color:var(--t)}.btn.danger{background:var(--d);color:#fff}
+.btn.block{width:100%;margin-top:18px}.btn:disabled{opacity:.6;cursor:default}
+.alert{border-radius:8px;padding:10px 12px;margin-top:14px;font-size:12px;background:var(--ds);color:var(--d)}.alert b{display:block}.alert span{color:var(--t);opacity:.8}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 40px}.chip{font:inherit;font-size:12px;background:var(--s);border:1px solid var(--l);color:var(--t);border-radius:99px;padding:5px 12px;cursor:pointer}
+.bar{display:flex;gap:8px;align-items:center;background:var(--s);border:1px solid var(--l);border-radius:10px;padding:6px}.bar input{border:0;background:none}.bar input:focus{outline:0}
+.bar button{width:34px;height:34px;border-radius:8px;border:0;background:var(--b);color:#fff;cursor:pointer;font-size:16px}.bar.dis{background:var(--bg)}.bar.dis button{background:var(--l);color:var(--m)}
+.bubble{border-radius:10px;padding:12px 16px;margin-bottom:12px}.bubble small{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--m);margin-bottom:2px}.bubble.u{background:var(--bs)}.bubble.sys{background:var(--s);border:1px solid var(--l)}
+.prog{height:3px;background:var(--l);border-radius:3px;margin:12px 0;overflow:hidden}.prog i{display:block;height:100%;width:35%;background:var(--b);animation:slide 1.4s ease-in-out infinite}
+@keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+.sk{height:10px;border-radius:4px;background:var(--l);margin:8px 0}
+.spin{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:r .8s linear infinite;display:inline-block}@keyframes r{to{transform:rotate(360deg)}}
+.banner{display:flex;justify-content:space-between;background:var(--bs);color:var(--b);border-radius:8px;padding:8px 14px;font-size:12px;margin-bottom:8px;align-items:center;gap:8px;flex-wrap:wrap}
+.warn-banner{background:var(--warns);color:var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.tw{overflow-x:auto;border:1px solid var(--l);border-radius:10px;background:var(--s)}
+table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:760px}th{font-size:11px;color:var(--m);text-align:left;font-weight:600;padding:10px 14px;border-bottom:1px solid var(--l)}
+td{padding:11px 14px;border-bottom:1px solid var(--l);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}tr:last-child td{border:0}
+.st{background:var(--oks);color:var(--ok);font-size:11px;padding:2px 8px;border-radius:99px}
+.hl{background:var(--warns);color:var(--warn);border-radius:2px;padding:0 2px;font-weight:600}
+.note{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:14px;font-size:12px}.note .card{padding:16px}.note b{font-size:13px}
+.tag{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--m)}
+.pager{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:10px;font-size:12px;color:var(--m)}
+.pager button{font:inherit;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--l);background:var(--s);color:var(--t);cursor:pointer}.pager button:disabled{opacity:.4;cursor:default}
+.ov{position:fixed;inset:0;background:var(--ov);display:grid;place-items:center;padding:16px;z-index:20}
+.dlg{background:var(--s);border-radius:12px;padding:24px;max-width:400px;width:100%}.row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.center{text-align:center}.ico{width:44px;height:44px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:20px}
+.pdf-ov{position:fixed;inset:0;background:var(--ov);display:flex;flex-direction:column;z-index:30;padding:16px;gap:10px}
+.pdf-bar{display:flex;align-items:center;gap:10px;background:var(--s);border-radius:8px;padding:8px 12px;border:1px solid var(--l)}
+.pdf-bar span{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-frame{flex:1;border:0;border-radius:8px;background:#fff;width:100%;min-height:0}
+select{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px solid var(--l);border-radius:6px;padding:8px 10px}select:focus{outline:2px solid var(--b);outline-offset:-1px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}.filters label{margin:0 0 4px;font-size:11px;color:var(--m)}
+.scope{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}.scope .pill{background:var(--bs);color:var(--b);border-radius:12px}.scope .pill.lim{background:var(--warns);color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}
+.kpi{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px 16px;min-width:0}.kpi .l{font-size:11px;color:var(--m)}.kpi .v{font-size:24px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kpi .v.sm{font-size:16px;line-height:1.9}.kpi .s{font-size:11px;color:var(--m);margin-top:2px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:12px;margin-bottom:14px}.chart{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px 16px;min-width:0}.chart.wide{grid-column:1/-1}.chart h3{font-size:13px;margin:0 0 10px;font-weight:600}
+.cols{display:flex;align-items:flex-end;gap:6px;height:190px}.col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:10px}.col i{display:block;width:100%;background:var(--b);border-radius:4px 4px 0 0}.col b{font-weight:600;margin-bottom:3px;white-space:nowrap}.col span,.col small{color:var(--m);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.col span{margin-top:4px;color:var(--t)}
+.hb{display:grid;grid-template-columns:150px 1fr 120px;gap:8px;align-items:center;font-size:12px;margin:7px 0}.hb>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hb .tr{display:block;background:var(--bs);border-radius:4px;height:10px}.hb .tr i{display:block;height:100%;background:var(--b);border-radius:4px}.hb>span:last-child{text-align:right;color:var(--m);white-space:nowrap}
+.st.x{background:var(--warns);color:var(--warn)}
+#an-body{transition:opacity .15s}
+@media(max-width:800px){.hero{grid-template-columns:1fr;gap:24px}.note{grid-template-columns:1fr}h1{font-size:26px}}
+.lc{width:100%;height:auto;display:block}.lc text{fill:var(--m);font-size:10px}.lc .gl{stroke:var(--l);stroke-width:1}.lc .ln{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}.lc .lb{font-weight:600;font-size:11px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:6px;color:var(--m)}.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+table.auto{table-layout:auto;width:100%}.auto td,.auto th{white-space:nowrap;overflow:visible;text-overflow:clip;padding-left:8px;padding-right:8px}table.num{table-layout:auto;min-width:640px}.num td,.num th{white-space:normal;overflow:visible;text-overflow:clip;vertical-align:top}.num td:not(:first-child),.num th:not(:first-child){text-align:right}.pos{color:var(--ok)}.neg{color:var(--d)}.fn{font-size:11px;color:var(--m);margin:8px 0 0;line-height:1.5}
+.rk{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}.rk span{white-space:nowrap}
+.st.m{background:var(--bs);color:var(--m)}.print-only{display:none}
+@media print{#hdr,footer,.banner,.top-actions,.filters,#sv-form,#warn-slot,.theme-btn{display:none!important}body{background:#fff!important}.print-only{display:block;font-size:11px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid #999}.chart,.kpi,.sig,.card,tr{break-inside:avoid}.wrap{max-width:none!important;padding:0!important}#an-body{opacity:1!important}}
+.sig{border:1px solid var(--l);border-left-width:4px;border-radius:8px;padding:10px 14px;margin:8px 0;background:var(--s)}.sig.watch{border-left-color:var(--d)}.sig.good{border-left-color:var(--ok)}.sig.info{border-left-color:var(--m)}.sig .sh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sig p{margin:6px 0;font-size:13px}.sig .ev{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;margin:4px 0}.sig .ev small{color:var(--m);margin-right:4px}.sig .src{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.co .sp{flex:1}
+.co{margin:22px 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.co h2{font-size:20px;margin:0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;margin-bottom:12px}.li{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--l)}.li:last-child{border:0}.li span:first-child{min-width:0}.li small{color:var(--m)}
+.flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.flow b{font-size:18px}.flow .op{color:var(--m)}.flow>div{background:var(--bs);border-radius:8px;padding:8px 12px}.flow small{display:block;color:var(--m);font-size:11px}
+</style></head>
+<body>
+<div id="hdr"></div><div id="app"></div>
+<footer><span>Illustrative workspace · Sample data only</span><span>Read-only · Session-based access</span></footer>
+<script>
+/* ===== Live DataService — calls the Flask backend at /api/* ===== */
+const DataService={
+  _token:null,
+  _refreshTimer:null,
+  async signIn({company,id,password}){
+    let r,d;
+    try{
+      r=await fetch("/api/signin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company,id,password})});
+      d=await r.json();
+    }catch(err){
+      console.error("signin failed:",err,r&&r.status);
+      const e=new Error(r?("Unexpected server response (HTTP "+r.status+"). Check the server terminal for errors."):"Cannot reach the server.");
+      e.code="NETWORK";throw e}
+    if(!r.ok){const e=new Error(d.error||"Sign-in failed");e.code=d.code||"BAD_CREDENTIALS";throw e}
+    this._token=d.token;this._scheduleRefresh();return{name:d.name,id:d.id,company:d.company,admin:!!d.admin}
+  },
+  async retrieve(text){
+    const r=await fetch("/api/retrieve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:text,token:this._token})});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Retrieve failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async analyze(filters){
+    const body={token:this._token};
+    for(const k of ["ticker","status","quarter","category","owner","renewal","sole_source"])if(filters[k])body[k]=filters[k];
+    const r=await fetch("/api/analyze/contracts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async analyzeBeh(filters){
+    const body={token:this._token};
+    for(const k of ["ticker","year","assessment"])if(filters[k]&&filters[k]!=="all"&&filters[k]!=="latest")body[k]=filters[k];
+    const r=await fetch("/api/analyze/behavior",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async admin(method,path,body){
+    const r=await fetch("/api/admin"+path,{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Request failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async views(method,path,body){
+    const r=await fetch("/api/views"+(path||""),{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Request failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async analyzeCo(filters){
+    const body={token:this._token};
+    if(filters.ticker)body.ticker=filters.ticker;
+    const r=await fetch("/api/analyze/company",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async analyzeFin(filters){
+    const body={token:this._token};
+    for(const k of ["ticker","from","to","metric"])if(filters[k]&&filters[k]!=="all")body[k]=filters[k];
+    const r=await fetch("/api/analyze/financials",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async refresh(){
+    try{
+      const r=await fetch("/api/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:this._token})});
+      const d=await r.json();
+      if(r.ok&&d.token){this._token=d.token;this._scheduleRefresh()}
+    }catch(e){}
+  },
+  _scheduleRefresh(){
+    clearTimeout(this._refreshTimer);
+    this._refreshTimer=setTimeout(()=>this.refresh(),55*60*1000);
+  },
+  async signOut(){
+    clearTimeout(this._refreshTimer);
+    await fetch("/api/signout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:this._token})});
+    this._token=null
+  }
+};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* Render **bold** markers from server as <mark> highlights */
+const hlSnippet=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<mark class="hl">$1</mark>');
+const $=(s,r=document)=>r.querySelector(s);
+const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false,analysis:null,af:null,apage:0,aerr:null,fin:null,ff:null,ferr:null,beh:null,bf:null,berr:null};
+const PAGE_SIZE=10;
+const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3,banalyzing:2,behavior:3,canalyzing:2,company:3,adminloading:2,admin:3};
+const SESSION_MIN=15;
+
+/* ===== Dark / light mode ===== */
+function getTheme(){return localStorage.getItem("theme")||"auto"}
+function applyTheme(t){
+  if(t==="auto")document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme",t);
+  localStorage.setItem("theme",t);
+}
+applyTheme(getTheme());
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute("data-theme");
+  applyTheme(cur==="dark"?"light":cur==="light"?"auto":"dark");
+  header();
+}
+function themeIcon(){const t=document.documentElement.getAttribute("data-theme");return t==="dark"?"☀️":t==="light"?"🌙":"🌓"}
+
+function header(){
+  const st=STEP[S.screen];
+  $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Fetch</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
+  <div class="crumb"><span>${S.user?esc(S.user.company?S.user.company.toUpperCase():S.user.id):"WORKSPACE"} / DATA WORKSPACE</span><div class="steps">${["Sign in","Request","Retrieve","Review"].map((n,i)=>i===st?`<span><b>${n}</b></span>`:`<span>${n}</span>`).join("")}</div></div>`;
+}
+function go(screen){S.screen=screen;if(screen==="results")S.page=0;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
+
+const VIEWS={
+login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focused session.</span><h1>The data you need.<br>Nothing left behind.</h1><p>Ask for a specific dataset, review it in a temporary view, and close your session when you're done.</p>
+ ${[["💬","Ask in plain language","Describe the records you want to review."],["▦","Review a temporary view","Read-only results, scoped to this session."],["⇥","Close and sign out","Closing clears the data and ends your session."]].map(f=>`<div class="feat"><i>${f[0]}</i><div><b>${f[1]}</b><span>${f[2]}</span></div></div>`).join("")}</div>
+ <form class="card" id="lf" novalidate><h2>Sign in to your workspace</h2><p>Enter your ID and password to start a new session.</p>
+ <label for="id">ID</label><input id="id" value="" placeholder="Enter your ID" autocomplete="username">
+ <label for="pw">Password</label><div class="pw"><input id="pw" type="password" value="" placeholder="Enter your password" autocomplete="current-password"><button type="button" id="eye" aria-label="Show or hide password">👁</button></div>
+ <div class="hint">Use the eye icon to show or hide your password. Demo: password "wrong" triggers errors.</div>
+ <div id="fb">${S.err?S.err:'<div class="hint">ⓘ Sign-in feedback will appear here.</div>'}</div>
+ <button class="btn primary block" id="go">→ Sign in</button><p class="hint" style="margin-top:16px;border-top:1px solid var(--l);padding-top:12px">Trouble signing in? Contact your company's workspace administrator.</p></form></div>`,
+request:()=>`<div class="wrap narrow" style="padding-top:40px"><span class="pill" style="background:var(--oks);color:var(--ok)">Signed in · ${esc(S.user.id)}</span><h1 style="font-size:30px">What data would you like pulled?</h1><p>Hi ${esc(S.user.name.split(" ")[0])}. Describe the records you need. Results open in a temporary, read-only view for this session.</p>
+ <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}
+ ${S.user.admin?`<div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-color:var(--b)"><div style="flex:1;min-width:220px"><b>Administration</b><p class="hint" style="margin-top:2px">Create accounts, set which companies and departments each person can see, reset passwords, unlock accounts and review the audit log.</p></div><button class="btn primary" id="to-adm">⚙ Open administration</button></div>`:""}
+ <div id="sv-list"></div>
+ <div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Company overview</b><p class="hint" style="margin-top:2px">One page per company that joins financials, customer behavior and supplier contracts, and flags what needs attention across them.</p></div><button class="btn primary" id="to-co">▦ Open overview</button></div>
+ <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Contract expiry analytics</b><p class="hint" style="margin-top:2px">Totals and charts for the supplier contracts you are cleared to see. Filter by status, expiry quarter, category and department.</p></div><button class="btn primary" id="to-an">▥ Open analytics</button></div>
+ <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Financial trends</b><p class="hint" style="margin-top:2px">Growth, margins, trend and peer comparison from the quarterly reports for the companies you are cleared to see.</p></div><button class="btn primary" id="to-fin">↗ Open financials</button></div></div>
+ <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Customer behavior</b><p class="hint" style="margin-top:2px">What improved and what got worse year over year, where growth came from, and how the customer mix moved, from the customer-behavior reports.</p></div><button class="btn primary" id="to-beh">◔ Open behavior</button></div></div>`,
+retrieving:()=>`<div class="wrap narrow" style="padding-top:24px"><h2>Your request</h2><div class="bubble u" style="margin-top:12px"><small>You · ${esc(S.user.name)}</small>${esc(S.query)}</div>
+ <div class="bubble sys"><small>Data pull</small><b><span class="spin" style="color:var(--b)"></span> Pulling your data…</b><div class="hint">Finding records that match your request.</div><div class="prog"><i></i></div><div class="sk" style="width:60%"></div><div class="sk" style="width:85%"></div><div class="hint">Preparing a temporary view · This may take a few moments</div></div><div style="margin-top:40px">${bar(true)}</div></div>`,
+notfound:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Data not found</h2><p>We couldn't find records matching your request. Try a broader date range or a different category.</p>
+ <div class="bubble" style="background:var(--bg);margin:16px 0"><small>Your request</small>${esc(S.query)}</div><div style="display:flex;gap:8px"><button class="btn primary" id="again">← Try another request</button><button class="btn sec" id="close">Close</button></div><div class="hint" style="margin-top:14px">Your session is still active. Closing will sign you out.</div></div></div>`,
+results:()=>{
+  const R=S.result;
+  const total=R.rows.length;
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+  const pageRows=R.rows.slice(S.page*PAGE_SIZE,(S.page+1)*PAGE_SIZE);
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ <div class="top"><div><h2>${esc(R.title)}</h2><p>${esc(R.subtitle)}</p><p class="hint">${total} records · Sample dataset</p></div>
+ <div class="top-actions"><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="tw"><table><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
+   if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
+   if(c.type==="pdf_link")return`<td><button class="btn sec" style="padding:4px 10px;font-size:11px" onclick="openPdf('${esc(r[c.key])}','${esc(r.report)}')">↗ View</button></td>`;
+   if(c.key==="snippet")return`<td title="${esc(r[c.key])}">${hlSnippet(r[c.key]||"")}</td>`;
+   return`<td title="${esc(r[c.key])}">${esc(r[c.key])}</td>`;
+ }).join("")}</tr>`).join("")}</tbody></table></div>
+ ${totalPages>1?`<div class="pager"><button id="pg-prev" ${S.page===0?"disabled":""}>← Prev</button><span>Page ${S.page+1} of ${totalPages}</span><button id="pg-next" ${S.page>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
+ ${R.note?`<div class="note"><div class="card"><span class="tag">${esc(R.note.tag)}</span><br><b>${esc(R.note.title)}</b><p style="margin-top:6px">${hlSnippet(R.note.body||"")}</p></div><div><b>Available for this session only</b><p style="margin-top:4px">Matched terms are highlighted in the Matched text column. Hover a cell to see its full value.</p></div></div>`:""}
+ </div>`},
+analyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing contract analytics…</b><div class="prog"><i></i></div><div class="hint">Totals are limited to the contracts your account is cleared to see.</div></div></div>`,
+analytics:()=>{
+  const A=S.analysis,F=S.af;
+  if(!A)return`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Analytics unavailable</h2><p>${esc(S.aerr||"Something went wrong.")}</p><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  const K=A.kpis,sc=A.scope,O=A.options,multi=sc.companies.length>1,limited=sc.owners!==null;
+  if(!sc.companies.length)return`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><h2>No contract data</h2><p>Your account is not cleared for any company's supplier contracts.</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  const sel=(k,label,opts)=>`<div><label for="f-${k}">${label}</label><select id="f-${k}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(F[k])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
+  const win=A.filters.quarter?A.filters.quarter.replace("-"," "):(A.filters.expiry_from?A.filters.expiry_from+" → "+(A.filters.expiry_to||"…"):"all expiry dates");
+  const fmtK=k=>k>=1000?"$"+(k/1000).toFixed(1)+"M":"$"+k+"K";
+  const hbars=(items,key,showShare)=>{const mx=Math.max(1,...items.map(i=>i.value_k));return items.map(i=>`<div class="hb" title="${esc(i[key])}: ${i.contracts} contract${i.contracts===1?"":"s"}, $${i.value_k.toLocaleString()}K"><span>${esc(i[key])}</span><span class="tr"><i style="width:${i.value_k?Math.max(2,Math.round(100*i.value_k/mx)):0}%"></i></span><span>${fmtK(i.value_k)}${showShare&&i.share_pct!=null?" · "+i.share_pct+"%":""}</span></div>`).join("")||'<p class="hint">No contracts match these filters.</p>'};
+  const pts=A.timeline.points,tmx=Math.max(1,...pts.map(p=>p.value_k));
+  const cols=pts.length?`<div class="cols">${pts.map(p=>`<div class="col" title="${esc(p.label)}: ${p.contracts} contract${p.contracts===1?"":"s"}, $${p.value_k.toLocaleString()}K"><b>${p.contracts?fmtK(p.value_k):""}</b><i style="height:${p.contracts?Math.max(3,Math.round(120*p.value_k/tmx)):1}px"></i><span>${esc(p.label)}</span><small>${p.contracts} contract${p.contracts===1?"":"s"}</small></div>`).join("")}</div>`:'<p class="hint">No contracts match these filters.</p>';
+  const total=A.rows.length,totalPages=Math.ceil(total/PAGE_SIZE),pageRows=A.rows.slice(S.apage*PAGE_SIZE,(S.apage+1)*PAGE_SIZE);
+  const ts=K.top_supplier;
+  const omx=Math.max(1,...A.outlook.map(o=>o.value_k));
+  const outlook=A.outlook.length?`<div class="cols">${A.outlook.map(o=>`<div class="col" title="${esc(o.label)}: ${o.contracts} contract${o.contracts===1?"":"s"}, $${o.value_k.toLocaleString()}K, ${o.not_started.contracts} with renewal not started"><b>${o.contracts?fmtK(o.value_k):""}</b><i style="height:${o.contracts?Math.max(3,Math.round(120*o.value_k/omx)):1}px"></i><span>${esc(o.label)}</span><small>${o.contracts} contract${o.contracts===1?"":"s"}${o.not_started.contracts?` · <span class="neg">${o.not_started.contracts} not started</span>`:""}</small></div>`).join("")}</div>`:'<p class="hint">No active contracts expire in this period.</p>';
+  const lv=l=>`<span class="st ${l==="Low"?"":"x"}">${esc(l)}</span>`;
+  const conc=A.concentration.length?`<div class="chart wide" style="margin-bottom:12px"><h3>Supplier concentration by category · active contracts</h3><div class="tw"><table class="num"><thead><tr>${["Category","Suppliers","Contracts","Value","Concentration (HHI)","Largest supplier","Sole-source"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${A.concentration.map(c=>`<tr><td>${esc(c.category)}</td><td>${c.suppliers}</td><td>${c.contracts}</td><td>${fmtK(c.value_k)}</td><td>${c.hhi.toLocaleString()} ${lv(c.level)}</td><td>${esc(c.top_supplier)} · <span class="${c.top_flagged?"neg":""}">${c.top_share_pct}%</span></td><td>${c.sole_source.contracts?c.sole_source.contracts+" · "+fmtK(c.sole_source.value_k):"—"}</td></tr>`).join("")}</tbody></table></div><p class="fn">HHI is the sum of squared supplier shares of annual value: under 1,500 low, 1,500–2,499 moderate, 2,500 or more high. A supplier above 40% of a category is flagged in red.</p></div>`:"";
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.aerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the analytics</b><span>${esc(S.aerr)}</span></div>`:""}
+ <div class="top"><div><h2>Contract expiry analytics</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Department limited: "+sc.owners.map(esc).join(", "):"All departments"}</span><span class="pill">Status as of ${esc(A.as_of)}</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-c" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ ${limited?`<p class="hint">Totals below cover only your department's contracts. Company-wide contract register PDFs are not available on department-limited accounts.</p>`:""}
+ <div class="filters">
+  ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
+  ${sel("status","Status",[["Active","Active"],["all","All statuses"],["Expired","Expired"],["Renewed","Renewed"],["Terminated","Terminated"]])}
+  ${sel("quarter","Expiry period",[["all","All expiry dates"],...O.quarters.map(q=>[q.value,q.label])])}
+  ${sel("category","Category",[["","All categories"],...O.categories.map(c=>[c,c])])}
+  ${(!limited||O.owners.length>1)?sel("owner",limited?"My departments":"Department",[["",limited?"All my departments":"All departments"],...O.owners.map(o=>[o,o])]):""}
+  ${sel("renewal","Renewal",[["","All stages"],...O.renewal_states.map(r=>[r,r])])}
+  ${sel("sole_source","Supplier options",[["","All contracts"],["yes","Sole-source only"]])}
+ </div>
+ <div id="an-body">
+ <div class="kpis">
+  <div class="kpi"><div class="l">Contracts · ${esc(F.status==="all"?"all statuses":F.status.toLowerCase())}</div><div class="v">${K.contracts}</div><div class="s">expiring ${esc(win)}</div></div>
+  <div class="kpi"><div class="l">Annual value</div><div class="v">${fmtK(K.value_k)}</div><div class="s">${K.exposure_pct!=null?K.exposure_pct+"% of "+fmtK(K.active_spend_k)+" active spend":"share of active spend shown for Active status"}</div></div>
+  <div class="kpi"><div class="l">Expiring in the next 30 days</div><div class="v">${K.expiring_30d.contracts}</div><div class="s">${fmtK(K.expiring_30d.value_k)}${K.avg_days_to_expiry!=null?" · average "+K.avg_days_to_expiry+" days to expiry":""}</div></div>
+  <div class="kpi"><div class="l">Largest supplier</div><div class="v sm" title="${ts?esc(ts.name):""}">${ts?esc(ts.name):"—"}</div><div class="s">${ts?fmtK(ts.value_k)+" · "+ts.share_pct+"% of value · top 3 = "+K.top3_share_pct+"%":"No contracts match"}</div></div>
+  <div class="kpi" title="${esc(A.risk_rule.text)}"><div class="l">Needs attention</div><div class="v ${K.at_risk.contracts?"neg":""}">${K.at_risk.contracts}</div><div class="s">${fmtK(K.at_risk.value_k)} · ${esc(A.risk_rule.text.toLowerCase())}</div></div>
+  <div class="kpi"><div class="l">Sole-source contracts</div><div class="v">${K.sole_source.contracts}</div><div class="s">${fmtK(K.sole_source.value_k)} with no alternative supplier</div></div>
+ </div>
+ <div class="charts">
+  <div class="chart wide"><h3>Expiries by ${A.timeline.unit} · annual value</h3>${cols}</div>
+  <div class="chart"><h3>By category</h3>${hbars(A.by_category,"name",true)}</div>
+  <div class="chart"><h3>Time until expiry</h3>${hbars(A.buckets,"label",false)}</div>
+  <div class="chart"><h3>Top suppliers</h3>${hbars(A.top_suppliers,"name",true)}</div>
+  <div class="chart"><h3>Renewal pipeline · annual value</h3>${hbars(A.renewal_pipeline,"name",true)}<p class="fn">Where each contract stands in the renewal process. “Not started” close to expiry is the main risk.</p></div>
+  <div class="chart"><h3>Next four quarters · expiring value</h3>${outlook}<p class="fn">Red figure = contracts in the quarter whose renewal has not started.</p></div>
+  ${(!limited&&A.by_owner.length>1)?`<div class="chart"><h3>By department</h3>${hbars(A.by_owner,"name",true)}</div>`:""}
+  ${multi&&A.by_ticker.length>1?`<div class="chart"><h3>By company</h3>${hbars(A.by_ticker,"name",true)}</div>`:""}
+ </div>
+ ${conc}
+ <div class="top" style="margin-top:6px"><div><h2 style="font-size:18px">Contracts</h2><p class="hint">${total} contract${total===1?"":"s"}${A.truncated?" (first "+total+" shown)":""} · annual value in $K</p></div></div>
+ <div class="tw"><table class="auto"><thead><tr>${[["Contract","14%"],["Supplier","15%"],["Category","10%"],["Department","11%"],["Expiry","10%"],["Days","5%"],["Status","7%"],["Renewal","15%"],["Value ($K)","8%"],...(multi?[["Co.","5%"]]:[])].map(c=>`<th>${esc(c[0])}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr><td title="${esc(r.contract_id)}">${esc(r.contract_id)}</td><td title="${esc(r.supplier)}">${esc(r.supplier)}</td><td>${esc(r.category)}</td><td>${esc(r.owner)}</td><td>${esc(r.expiry_date)}</td><td>${r.days_to_expiry}</td><td><span class="st ${r.status==="Active"?"":"x"}">${esc(r.status)}</span></td><td title="${r.sole_source==="Yes"?"Sole-source supplier":""}">${esc(r.renewal_status||"—")}${r.sole_source==="Yes"?' <span class="tag">sole</span>':""}</td><td>${r.annual_value_k.toLocaleString()}</td>${multi?`<td>${esc(r.ticker)}</td>`:""}</tr>`).join("")||`<tr><td colspan="${multi?10:9}">No contracts match these filters.</td></tr>`}</tbody></table></div>
+ ${totalPages>1?`<div class="pager"><button id="ap-prev" ${S.apage===0?"disabled":""}>← Prev</button><span>Page ${S.apage+1} of ${totalPages}</span><button id="ap-next" ${S.apage>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
+ </div></div>`},
+finalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing financial trends…</b><div class="prog"><i></i></div><div class="hint">Only the companies your account is cleared to see are included.</div></div></div>`,
+financials:()=>{
+  const A=S.fin,F=S.ff;
+  const msg=(h,t)=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>${h}</h2><p>${esc(t)}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  if(!A)return msg("Financial trends unavailable",S.ferr||"Something went wrong.");
+  const sc=A.scope,cos=A.companies,multi=sc.companies.length>1,M=A.metric;
+  if(!sc.companies.length)return msg("No financial data","Your account is not cleared for any company's quarterly reports.");
+  const pk=q=>q.replace(/^Q(\d)-(\d{2})(\d{2})$/,"Q$1 '$3"),pl=q=>q.replace("-"," ");
+  const sel=(k,label,opts)=>`<div><label for="g-${k}">${label}</label><select id="g-${k}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(F[k])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
+  const pOpts=sc.periods.map(p=>[p,pl(p)]);
+  const fv=(v,u)=>v==null?"—":u==="idx"?v.toFixed(0):u==="%"?v.toFixed(1)+"%":u==="$"?"$"+v.toFixed(2):Math.abs(v)>=1000?"$"+(v/1000).toFixed(2)+"B":"$"+v.toFixed(1)+"M";
+  const gr=v=>v==null?'<span class="hint">—</span>':`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v.toFixed(1)}%</span>`;
+  const bp=v=>v==null?"":` <span class="${v>=0?"pos":"neg"}" title="change vs. same quarter last year">${v>=0?"+":"−"}${Math.abs(v)} bp</span>`;
+  const COL=["#2f6fed","#e8890c","#13a38a"];
+  const colorOf=t=>COL[sc.companies.findIndex(c=>c.ticker===t)%COL.length];
+  const line=(rows,unit,label)=>{      // rows: [{ticker,vals:[...]}] aligned with A.periods
+    const W=640,H=230,L=52,R=44,T=14,B=28,P=A.periods;
+    const all=rows.flatMap(r=>r.vals).filter(v=>v!=null);
+    if(!all.length||P.length<2)return'<p class="hint">Not enough quarters to draw a trend.</p>';
+    let lo=Math.min(...all),hi=Math.max(...all);if(hi===lo){hi+=1;lo-=1}
+    const pad=(hi-lo)*.12;lo-=pad;hi+=pad;
+    const x=i=>L+(W-L-R)*i/(P.length-1),y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+    const rs=(hi-lo)/4,pw=Math.pow(10,Math.floor(Math.log10(rs))),fr=rs/pw,stp=(fr<=1?1:fr<=2?2:fr<=5?5:10)*pw,ticks=[];
+    for(let v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp)ticks.push(+v.toFixed(6));
+    const grid=ticks.map(v=>{return`<line class="gl" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${esc(unit==="$M"?"$"+Math.round(v).toLocaleString()+"M":fv(v,unit))}</text>`}).join("");
+    const step=P.length>8?2:1;
+    const xl=P.map((q,i)=>(P.length-1-i)%step===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(pk(q))}</text>`:"").join("");
+    const lines=rows.map(r=>{const c=colorOf(r.ticker);
+      const pts=r.vals.map((v,i)=>v==null?null:[x(i),y(v)]);
+      const d=pts.map((p,i)=>p?(pts[i-1]?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1):"").join(" ");
+      const dots=pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="${P.length>14?2:3}" fill="${c}"><title>${esc(r.ticker)} · ${esc(pl(P[i]))}: ${esc(fv(r.vals[i],unit))}</title></circle>`:"").join("");
+      const last=pts.filter(Boolean).pop();
+      return`<path class="ln" d="${d}" stroke="${c}"/>${dots}${last?`<text class="lb" x="${last[0]+6}" y="${last[1]+4}" style="fill:${c}">${esc(r.ticker)}</text>`:""}`}).join("");
+    return`<svg class="lc" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} by quarter">${grid}${xl}${lines}</svg>`};
+  const at=(c,key)=>A.periods.map(p=>{const r=c.series.find(s=>s.period===p);return r?r[key]:null});
+  const trend=line(cos.map(c=>({ticker:c.ticker,vals:at(c,M.key)})),M.unit,M.label);
+  const idx=multi&&cos.length>1?line(cos.map(c=>({ticker:c.ticker,vals:A.periods.map(p=>{const r=c.indexed.find(s=>s.period===p);return r?r.value:null})})),"idx","Revenue indexed"):"";
+  const legend=cos.length>1?`<div class="legend">${cos.map(c=>`<span><i style="background:${colorOf(c.ticker)}"></i>${esc(c.ticker)}</span>`).join("")}</div>`:"";
+  const L1=cos.map(c=>{const l=c.latest,m=c.margin_change_bps_yoy;return`<tr><td><b>${esc(c.ticker)}</b> <span class="hint">${esc(pl(l.period))}</span></td><td>${fv(l.revenue)}</td><td>${gr(l.revenue_yoy)}</td><td>${fv(l.gross_margin,"%")}${bp(m.gross_margin)}</td><td>${fv(l.operating_margin,"%")}${bp(m.operating_margin)}</td><td>${fv(l.net_income)}</td><td>$${l.eps.toFixed(2)} ${gr(l.eps_yoy)}</td><td>${fv(l.free_cash_flow)}</td><td>${fv(l.ttm_revenue)}</td></tr>`}).join("");
+  const kc=cos.length===1?(c=>{const l=c.latest;return`<div class="kpis">
+   <div class="kpi"><div class="l">Revenue · ${esc(pl(l.period))}</div><div class="v">${fv(l.revenue)}</div><div class="s">${gr(l.revenue_yoy)} YoY · ${gr(l.revenue_qoq)} QoQ</div></div>
+   <div class="kpi"><div class="l">Gross margin</div><div class="v">${fv(l.gross_margin,"%")}</div><div class="s">${c.margin_change_bps_yoy.gross_margin==null?"":(c.margin_change_bps_yoy.gross_margin>=0?"+":"−")+Math.abs(c.margin_change_bps_yoy.gross_margin)+" bp vs. last year"}</div></div>
+   <div class="kpi"><div class="l">Operating margin</div><div class="v">${fv(l.operating_margin,"%")}</div><div class="s">${c.margin_change_bps_yoy.operating_margin==null?"":(c.margin_change_bps_yoy.operating_margin>=0?"+":"−")+Math.abs(c.margin_change_bps_yoy.operating_margin)+" bp vs. last year"}</div></div>
+   <div class="kpi"><div class="l">Trailing 12-month revenue</div><div class="v">${fv(l.ttm_revenue)}</div><div class="s">${c.stats.revenue_cagr_2y_pct==null?"":c.stats.revenue_cagr_2y_pct+"% a year over two years"}</div></div></div>`})(cos[0]):"";
+  const rk=A.ranking.length?`<div class="chart wide"><h3>Who leads · ${esc(pl(A.as_of))}</h3><div class="tw"><table class="rkt"><tbody>${A.ranking.map(r=>`<tr><td style="width:30%">${esc(r.measure)}</td><td><div class="rk">${r.order.map((o,i)=>`<span><b>${i+1}. ${esc(o.ticker)}</b> ${o.value>=0&&/growth/i.test(r.measure)?"+":""}${o.value.toFixed(1)}%</span>`).join("")}</div></td></tr>`).join("")}</tbody></table></div></div>`:"";
+  const seg=cos.map(c=>`<div class="chart"><h3>${esc(c.ticker)} · revenue by segment</h3>${c.segments.map(g=>`<div class="hb" title="${esc(g.name)}: ${fv(g.revenue)} · ${g.share_pct}% of revenue"><span>${esc(g.name)}</span><span class="tr"><i style="width:${Math.max(2,Math.round(g.share_pct||0))}%"></i></span><span>${fv(g.revenue)} · ${g.yoy_pct==null?"—":(g.yoy_pct>=0?"+":"")+g.yoy_pct.toFixed(1)+"%"}</span></div>`).join("")}<p class="fn">Bar = share of revenue. Right column = revenue and growth vs. last year.</p></div>`).join("");
+  const ST=cos.map(c=>{const s=c.stats,z=s.seasonality;return`<tr><td><b>${esc(c.ticker)}</b></td><td>${s.revenue_cagr_2y_pct==null?"—":s.revenue_cagr_2y_pct.toFixed(1)+"%"}</td><td>${s.qoq_mean_pct==null?"—":s.qoq_mean_pct.toFixed(1)+"%"}</td><td>${s.qoq_stdev_pct==null?"—":s.qoq_stdev_pct.toFixed(1)+" pts"}</td><td>${s.trend_slope_per_qtr>=0?"+":""}${s.trend_slope_per_qtr.toFixed(1)}</td><td>${s.trend_r2.toFixed(2)}</td><td>${z?["Q1","Q2","Q3","Q4"].map(q=>z[q]==null?"":`${q} ${z[q].toFixed(2)}`).filter(Boolean).join(" · "):"—"}</td></tr>`}).join("");
+  const single=cos.length===1?cos[0]:null;
+  const tbl=single?`<div class="tw"><table class="num"><thead><tr>${["Quarter","Revenue","QoQ","YoY","Gross margin","Op. margin","Net income","EPS","Free cash flow"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${[...single.series].reverse().map(r=>`<tr><td>${esc(pl(r.period))}</td><td>${fv(r.revenue)}</td><td>${gr(r.revenue_qoq)}</td><td>${gr(r.revenue_yoy)}</td><td>${fv(r.gross_margin,"%")}</td><td>${fv(r.operating_margin,"%")}</td><td>${fv(r.net_income)}</td><td>$${r.eps.toFixed(2)}</td><td>${fv(r.free_cash_flow)}</td></tr>`).join("")}</tbody></table></div>`
+   :`<div class="tw"><table class="num"><thead><tr><th>Quarter</th>${cos.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${[...A.periods].reverse().map(p=>`<tr><td>${esc(pl(p))}</td>${cos.map(c=>{const r=c.series.find(s=>s.period===p);return`<td>${r?fv(r[M.key],M.unit):"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.ferr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the financials</b><span>${esc(S.ferr)}</span></div>`:""}
+ <div class="top"><div><h2>Financial trends</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">Quarterly reports through ${esc(pl(A.as_of||"—"))}</span><span class="pill">$ millions</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="filters">
+  ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
+  ${sel("from","From",[["all","Earliest"],...pOpts])}
+  ${sel("to","To",[["all","Latest"],...pOpts])}
+  ${sel("metric","Chart measure",Object.entries(A.metrics).map(([k,v])=>[k,v.label]))}
+ </div>
+ <div id="an-body">
+ ${!cos.length?'<p class="hint">No quarters fall inside this window.</p>':`
+ ${kc}
+ <div class="chart wide" style="margin-bottom:12px"><h3>Latest quarter</h3><div class="tw"><table class="num"><thead><tr>${["Company","Revenue","YoY","Gross margin","Op. margin","Net income","EPS (YoY)","Free cash flow","12-mo revenue"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${L1}</tbody></table></div></div>
+ <div class="charts">
+  <div class="chart wide"><h3>${esc(M.label)} by quarter</h3>${trend}${legend}</div>
+  ${idx?`<div class="chart wide"><h3>Revenue growth since ${esc(pl(A.periods[0]))} · first quarter = 100</h3>${idx}${legend}<p class="fn">Indexing removes company size, so you can compare how fast each business has grown.</p></div>`:""}
+  ${rk}
+  ${seg}
+ </div>
+ <div class="chart wide" style="margin-bottom:12px"><h3>Trend statistics</h3><div class="tw"><table class="num"><thead><tr>${["Company","2-yr revenue CAGR","Avg QoQ growth","QoQ volatility (σ)","Trend ($M / qtr)","Fit (R²)","Seasonality (1.00 = year average)"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${ST}</tbody></table></div>
+  <p class="fn">CAGR compares trailing-12-month revenue now with two years earlier. Trend is the least-squares slope of revenue per quarter; R² near 1 means growth has been steady. Volatility is the standard deviation of quarter-on-quarter growth, so seasonal businesses read high. Seasonality uses complete calendar years only.</p></div>
+ <div class="top" style="margin-top:6px"><div><h2 style="font-size:18px">${single?esc(single.ticker)+" · quarter by quarter":esc(M.label)+" by quarter"}</h2><p class="hint">Figures come from the quarterly report PDFs · $ millions except EPS</p></div></div>
+ ${tbl}`}
+ </div></div>`},
+banalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing customer behavior…</b><div class="prog"><i></i></div><div class="hint">Only the companies your account is cleared to see are included.</div></div></div>`,
+adminloading:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Loading administration…</b><div class="prog"><i></i></div></div></div>`,
+admin:()=>{
+  const A=S.adm;
+  if(!A)return`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Administration unavailable</h2><p>${esc(S.admErr||"Something went wrong.")}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  const O=A.options,F=A.form;
+  const dept=ids=>[...new Set(ids.flatMap(t=>O.departments[t]||[]))].sort();
+  const form=!F?"":(()=>{
+    const ds=dept(F.document_ids),edit=F.mode==="edit";
+    return`<div class="card" id="a-form" style="padding:14px 16px;margin-bottom:12px"><b>${edit?"Edit "+esc(F.username):"New account"}</b>
+     ${S.admErr?`<div class="alert" style="margin:8px 0"><b>Couldn't save</b><span>${esc(S.admErr)}</span></div>`:""}
+     <div class="two" style="margin:10px 0 0">
+      <div><label for="a-user">Username</label><input id="a-user" value="${esc(F.username)}" ${edit?"disabled":""} maxlength="32" autocomplete="off"></div>
+      <div><label for="a-pw">${edit?"New password (leave blank to keep)":"Password"}</label><input id="a-pw" type="password" value="${esc(F.password)}" autocomplete="new-password" placeholder="at least ${O.min_password} characters"></div></div>
+     <div style="margin-top:10px"><label>Companies they can see</label><div class="chips" style="margin:4px 0">${O.companies.map(c=>`<label class="chip"><input type="checkbox" class="a-co" value="${c.ticker}" ${F.document_ids.includes(c.ticker)?"checked":""} style="width:auto;margin-right:6px">${esc(c.name)}</label>`).join("")}</div></div>
+     <div><label>Contract departments</label><div class="chips" style="margin:4px 0"><label class="chip"><input type="radio" name="a-all" id="a-all" ${F.owners==null?"checked":""} style="width:auto;margin-right:6px">All departments</label><label class="chip"><input type="radio" name="a-all" id="a-some" ${F.owners!=null?"checked":""} ${ds.length?"":"disabled"} style="width:auto;margin-right:6px">Only these:</label>${ds.map(d=>`<label class="chip"><input type="checkbox" class="a-dp" value="${esc(d)}" ${(F.owners||[]).includes(d)?"checked":""} ${F.owners==null?"disabled":""} style="width:auto;margin-right:6px">${esc(d)}</label>`).join("")}</div><p class="hint">A department limit applies to supplier contracts only. Financials and customer behavior follow the company list.</p></div>
+     <div><label class="chip"><input type="checkbox" id="a-adm" ${F.is_admin?"checked":""} style="width:auto;margin-right:6px">Administrator (manage accounts and read the audit log)</label></div>
+     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn primary" id="a-save">${edit?"Save changes":"Create account"}</button><button class="btn sec" id="a-cancel">Cancel</button></div></div>`})();
+  const tag=(t,c)=>`<span class="st ${c||""}">${esc(t)}</span>`;
+  const users=`<div class="chart wide"><h3>Accounts · ${A.users.length}</h3><div class="tw"><table class="num auto"><thead><tr><th>Username</th><th>Companies</th><th>Contract departments</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>${A.users.map(u=>`<tr><td><b>${esc(u.username)}</b>${u.username===S.user.id?' <span class="hint">(you)</span>':""}</td><td>${u.document_ids.length?u.document_ids.map(esc).join(", "):'<span class="hint">none</span>'}</td><td>${u.owners==null?"All":u.owners.length?u.owners.map(esc).join(", "):'<span class="hint">none</span>'}</td><td>${u.is_admin?tag("Admin","m"):"Analyst"}</td><td>${u.locked?tag("Locked","x"):u.sessions?tag("Signed in"):'<span class="hint">—</span>'}</td><td style="white-space:nowrap"><button class="btn sec a-edit" data-u="${esc(u.username)}" style="padding:3px 9px;font-size:11px">Edit</button> ${u.locked?`<button class="btn sec a-unlock" data-u="${esc(u.username)}" style="padding:3px 9px;font-size:11px">Unlock</button> `:""}${u.username===S.user.id?"":`<button class="btn sec a-del" data-u="${esc(u.username)}" style="padding:3px 9px;font-size:11px" title="Delete this account">✕</button>`}</td></tr>`).join("")}</tbody></table></div></div>`;
+  const AU=A.audit,fmt=d=>new Date(d).toLocaleString();
+  const audit=!AU?"":`${AU.flagged.length?`<div class="alert" style="margin:0 0 12px"><b>Accounts with repeated refusals or failed sign-ins</b><span>${AU.flagged.map(f=>`${esc(f.username)}: ${f.denied} denied, ${f.failed_signins} failed sign-ins, ${f.rate_limited} rate-limited`).join(" · ")}</span></div>`:""}
+    <div class="filters"><div><label for="au-user">Account</label><input id="au-user" value="${esc(A.af.user)}" placeholder="any account"></div><div><label for="au-event">Event</label><select id="au-event">${[["","All events"],...AU.events.map(e=>[e,e])].map(o=>`<option value="${esc(o[0])}" ${o[0]===A.af.event?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div></div>
+    <div class="chart wide"><h3>Audit log · newest first · ${AU.entries.length} shown of ${AU.total} kept</h3><div class="tw"><table class="num auto"><thead><tr><th>Time</th><th>Account</th><th>Event</th><th>Detail</th><th>From</th></tr></thead><tbody>${AU.entries.map(e=>`<tr><td>${esc(fmt(e.ts))}</td><td>${esc(e.username||"—")}</td><td>${esc(e.event)}</td><td style="white-space:normal;max-width:420px"><small>${esc(JSON.stringify(e.detail))}</small></td><td>${esc(e.ip||"")}</td></tr>`).join("")||'<tr><td colspan="5" class="hint">No entries match.</td></tr>'}</tbody></table></div></div>`;
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ <div class="top"><div><h2>Administration</h2><div class="scope"><span class="pill">Administrator: ${esc(S.user.id)}</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button>${A.tab==="users"?'<button class="btn primary" id="a-new" style="padding:7px 12px;font-size:12px">＋ New account</button>':'<button class="btn sec" id="export-au" style="padding:7px 12px;font-size:12px">↓ Export CSV</button>'}<button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="chips" style="margin:6px 0 12px"><button class="chip" id="tab-users" ${A.tab==="users"?'style="border-color:var(--b);color:var(--b)"':""}>Accounts</button><button class="chip" id="tab-audit" ${A.tab==="audit"?'style="border-color:var(--b);color:var(--b)"':""}>Audit log</button></div>
+ ${A.msg?`<div class="alert" style="margin:0 0 12px;background:var(--oks)"><b style="color:var(--ok)">${esc(A.msg)}</b></div>`:""}
+ <div id="an-body">${A.tab==="users"?form+users:audit}</div></div>`},
+canalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing company overview…</b><div class="prog"><i></i></div><div class="hint">Only the companies and contracts your account is cleared to see are included.</div></div></div>`,
+company:()=>{
+  const A=S.co,F=S.cf;
+  const msg=(h,t)=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>${h}</h2><p>${esc(t)}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  if(!A)return msg("Company overview unavailable",S.cerr||"Something went wrong.");
+  const sc=A.scope,multi=sc.companies.length>1,limited=sc.owners!=null;
+  if(!sc.companies.length||!A.companies.length)return msg("No company data","Your account is not cleared for any company.");
+  const num=v=>v.toLocaleString(undefined,{maximumFractionDigits:1});
+  const sg=(v,d=1)=>(v>=0?"+":"−")+Math.abs(v).toFixed(d);
+  const gr=v=>v==null?'<span class="hint">—</span>':`<span class="${v>=0?"pos":"neg"}">${sg(v)}%</span>`;
+  const lv={watch:["st x","Watch"],good:["st","Good"],info:["st m","Note"]};
+  const sel=`<div><label for="c-ticker">Company</label><select id="c-ticker">${[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])].map(o=>`<option value="${esc(o[0])}" ${o[0]===F.ticker?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
+  const body=A.companies.map(p=>{
+    const f=p.financials,b=p.behavior,k=p.contracts.kpis,w=p.weight,g=b.growth;
+    const bp=f.margin_change_bps_yoy.gross_margin;
+    const kp=`<div class="kpis">
+     <div class="kpi"><div class="l">Revenue · ${esc(f.period.replace("-"," "))}</div><div class="v">$${num(f.revenue)}M</div><div class="s">${gr(f.revenue_yoy)} vs. a year earlier</div></div>
+     <div class="kpi"><div class="l">Gross margin</div><div class="v">${f.gross_margin.toFixed(1)}%</div><div class="s"><span class="${bp>=0?"pos":"neg"}">${bp>=0?"+":"−"}${Math.abs(bp)} bp</span> vs. a year earlier</div></div>
+     <div class="kpi"><div class="l">${esc(b.customers.label)} · ${b.year}</div><div class="v">${gr(b.customers.growth_pct)}</div><div class="s">${b.scorecard?b.scorecard.improved+" improved, "+b.scorecard.worsened+" worse, "+b.scorecard.flat+" flat":"first year"}</div></div>
+     <div class="kpi"><div class="l">${p.partial_contracts?"Your departments' contracts":"Active supplier contracts"}</div><div class="v">${k.contracts}</div><div class="s">$${num(k.value_k/1000)}M a year${w?" · "+w.pct+"% of trailing revenue":""}</div></div></div>`;
+    const sig=p.signals.length?p.signals.map(x=>`<div class="sig ${x.level}"><div class="sh"><span class="${lv[x.level][0]}">${lv[x.level][1]}</span><b>${esc(x.title)}</b></div><p>${esc(x.detail)}</p><div class="ev">${x.evidence.map(e=>`<span><small>${esc(e.label)}</small> ${esc(e.value)}</span>`).join("")}</div><div class="src">${x.sources.map(n=>`<span class="pill">${esc(n)}</span>`).join("")}</div></div>`).join(""):'<p class="hint">Nothing stands out across the sources.</p>';
+    const open=`<div class="top-actions" style="margin:0"><button class="btn sec" data-open="fin" data-t="${esc(p.ticker)}" style="padding:5px 10px;font-size:11px">↗ Financials</button><button class="btn sec" data-open="beh" data-t="${esc(p.ticker)}" style="padding:5px 10px;font-size:11px">◔ Customer behavior</button><button class="btn sec" data-open="an" data-t="${esc(p.ticker)}" style="padding:5px 10px;font-size:11px">▥ Contracts</button></div>`;
+    return`<div class="co"><h2>${esc(p.name)}</h2><span class="pill">${esc(p.ticker)}</span><span class="sp"></span>${open}</div>${kp}
+     <div class="chart wide" style="margin-bottom:12px"><h3>Across the sources · ${p.counts.watch} to watch</h3>${sig}${p.partial_contracts?'<p class="fn">Contract figures cover only your departments, so signals that compare contract totals with the whole company are not shown.</p>':""}</div>`}).join("");
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.cerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the overview</b><span>${esc(S.cerr)}</span></div>`:""}
+ <div class="top"><div><h2>Company overview</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Contracts: "+sc.owners.map(esc).join(", ")+" only":"All departments"}</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-o" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ ${multi?`<div class="filters">${sel}</div>`:""}
+ <div id="an-body">${body}</div></div>`},
+behavior:()=>{
+  const A=S.beh,F=S.bf;
+  const msg=(h,t)=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>${h}</h2><p>${esc(t)}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  if(!A)return msg("Customer behavior unavailable",S.berr||"Something went wrong.");
+  const sc=A.scope,cos=A.companies,multi=sc.companies.length>1;
+  if(!sc.companies.length)return msg("No customer behavior data","Your account is not cleared for any company's customer-behavior reports.");
+  const sel=(k,label,opts)=>`<div><label for="h-${k}">${label}</label><select id="h-${k}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(F[k])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
+  const num=v=>v.toLocaleString(undefined,{maximumFractionDigits:1});
+  const fv=(v,u)=>v==null?"—":u==="%"?v.toFixed(1)+"%":u==="$"?"$"+num(v):u==="$K"?"$"+num(v)+"K":u==="$M"?"$"+num(v)+"M":num(v);
+  const sg=(v,d=1)=>(v>=0?"+":"−")+Math.abs(v).toFixed(d);
+  const chg=r=>r.change==null?"—":r.change_kind==="pts"?sg(r.change)+" pts":sg(r.change)+"%";
+  const gr=v=>v==null?'<span class="hint">—</span>':`<span class="${v>=0?"pos":"neg"}">${sg(v)}%</span>`;
+  const tag=(a,w)=>a==="improved"?`<span class="st" title="${esc(w||"")}">Improved</span>`:a==="worsened"?`<span class="st x" title="${esc(w||"")}">Worse</span>`:a==="flat"?`<span class="st m" title="${esc(w||"")}">Flat</span>`:"";
+  const pcls=(r)=>r.assessment==="improved"?"pos":r.assessment==="worsened"?"neg":"";
+  const li=(r)=>`<div class="li"><span>${esc(r.label)}<br><small>${esc(r.section)} · ${fv(r.prior,r.unit)} → ${fv(r.value,r.unit)}</small>${r.context?`<br><small>${esc(r.context)}</small>`:""}${r.why?`<br><small>${esc(r.why)}</small>`:""}</span><span class="${pcls(r)}">${chg(r)}</span></div>`;
+  const Y=A.year,P=Y-1;
+  const cmp=A.comparison.length?`<div class="chart wide" style="margin-bottom:12px"><h3>Comparison · ${Y} vs. ${P}</h3><div class="tw"><table class="num"><thead><tr><th>Measure</th>${cos.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${A.comparison.map(m=>`<tr><td>${esc(m.measure)}</td>${cos.map(c=>{const v=m.values[c.ticker];return`<td>${v==null?'<span class="hint">not reported</span>':(m.unit==="%"?fv(v,"%"):num(v)+m.unit)}${m.best===c.ticker?' <span class="st">best</span>':""}</td>`}).join("")}</tr>`).join("")}</tbody></table></div><p class="fn">Only measures that mean the same thing for every company are compared. Households (BrightLeaf) and customer accounts (Halcyon, Meridian) are different units, so each is judged against its own history below. “Best” is the better value among the companies shown.</p></div>`:"";
+  const body=cos.map(c=>{
+    const nm=(sc.companies.find(x=>x.ticker===c.ticker)||{}).name||c.ticker,g=c.growth,s=c.scorecard,R=c.rollforward;
+    const kp=`<div class="kpis">
+     <div class="kpi"><div class="l">Revenue · ${c.year}</div><div class="v">${fv(c.revenue.value,"$M")}</div><div class="s">${c.revenue.growth_pct==null?"":gr(c.revenue.growth_pct)+" vs. "+c.prior_year}</div></div>
+     <div class="kpi"><div class="l">${esc(c.customers.label)}</div><div class="v">${fv(c.customers.value,c.customers.unit)}</div><div class="s">${c.customers.growth_pct==null?"":gr(c.customers.growth_pct)+" vs. "+c.prior_year}</div></div>
+     <div class="kpi"><div class="l">Revenue per customer</div><div class="v">${g?gr(g.per_customer_pct):"—"}</div><div class="s">${g?"change vs. "+c.prior_year:"first year, nothing to compare"}</div></div>
+     <div class="kpi"><div class="l">Scorecard</div><div class="v">${s?'<span class="pos">'+s.improved+'</span> / <span class="neg">'+s.worsened+'</span>':"—"}</div><div class="s">${s?"improved / worse, "+s.flat+" flat, of "+s.tracked+" measures":"needs two years"}</div></div></div>`;
+    const mx=g?Math.max(1,Math.abs(g.revenue_pct),Math.abs(g.customers_pct),Math.abs(g.per_customer_pct)):1;
+    const bar=(l,v,sub)=>`<div class="hb"><span>${l}</span><span class="tr"><i style="width:${Math.max(2,Math.round(100*Math.abs(v)/mx))}%"></i></span><span>${sg(v)}%</span></div>`;
+    const split=g?`<div class="chart"><h3>Where revenue growth came from</h3>${bar("Revenue",g.revenue_pct)}${bar("Customers",g.customers_pct)}${bar("Per customer",g.per_customer_pct)}<p class="fn">Revenue growth is customer growth combined with growth in revenue per customer: (1 + customers) × (1 + per customer) = (1 + revenue).</p></div>`:"";
+    const flow=R?`<div class="chart"><h3>Customer base roll-forward · ${c.year}</h3><div class="flow"><div><small>Start of year</small><b>${num(R.start)}</b></div><span class="op">+</span><div><small>${esc(R.gained_label)}</small><b class="pos">${num(R.gained)}</b></div><span class="op">−</span><div><small>${esc(R.lost_label)}</small><b class="neg">${num(R.lost)}</b></div><span class="op">=</span><div><small>End of year</small><b>${num(R.end)}</b></div></div><p class="fn">Churn is ${R.lost>0?num(R.lost)+" lost of "+num(R.start)+" at the start = ":""}<b>${R.churn_pct}%</b>.</p></div>`:"";
+    const imp=s?`<div class="chart"><h3>Improved most</h3>${c.improved.map(li).join("")||'<p class="hint">Nothing moved enough to count.</p>'}</div><div class="chart"><h3>Needs attention</h3>${c.concerns.map(li).join("")||'<p class="hint">Nothing got meaningfully worse.</p>'}<p class="fn">${esc(A.rule.text)}</p></div>`:"";
+    const mix=c.mix_moves.length?`<div class="chart"><h3>Biggest shifts in the customer mix</h3>${c.mix_moves.map(r=>`<div class="li"><span>${esc(r.label)}<br><small>${esc(r.section)} · ${fv(r.prior,"%")} → ${fv(r.value,"%")}</small></span><span>${sg(r.change)} pts</span></div>`).join("")}</div>`:"";
+    const tabs=c.sections.map(sec=>`<div class="chart wide" style="margin-bottom:12px"><h3>${esc(sec.name)}</h3><div class="tw"><table class="num"><thead><tr><th>Measure</th><th>${c.year}</th><th>${s?P:""}</th><th>Change</th><th></th></tr></thead><tbody>${sec.rows.map(r=>`<tr><td>${esc(r.label)}${(r.assessment==="flat"||r.assessment==="worsened")&&r.why?`<br><small class="hint">${esc(r.why)}</small>`:""}</td><td>${fv(r.value,r.unit)}</td><td>${r.prior==null?"—":fv(r.prior,r.unit)}</td><td class="${pcls(r)}">${chg(r)}</td><td>${tag(r.assessment,r.why)}</td></tr>`).join("")}</tbody></table></div></div>`).join("")||(F.assessment!=="all"?'<p class="hint">No measures in this group.</p>':"");
+    return`<div class="co"><h2>${esc(nm)}</h2><span class="pill">${esc(c.ticker)}</span></div>${kp}<div class="two">${split}${flow}${imp}${mix}</div>${tabs}`}).join("");
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.berr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update customer behavior</b><span>${esc(S.berr)}</span></div>`:""}
+ <div class="top"><div><h2>Customer behavior</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">${Y} vs. ${P} · year-end or full-year figures</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-b" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="filters">
+  ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
+  ${sel("year","Year",sc.years.map(y=>[y,y]))}
+  ${sel("assessment","Show",[["all","All measures"],["improved","Improved only"],["worsened","Worse only"],["flat","Flat only"]])}
+ </div>
+ <div id="an-body">
+ ${cmp}${body}
+ </div></div>`},
+loggedout:()=>`<div class="wrap" style="max-width:440px;padding-top:50px"><div class="card center"><div class="ico" style="background:var(--oks);color:var(--ok)">✓</div><span class="pill" style="background:var(--oks);color:var(--ok)">Session ended</span><h2 style="margin-top:12px">You've been logged out</h2><p>Your session has ended and your temporary data has been cleared.</p><button class="btn primary block" id="back">→ Return to login</button></div></div>`
+};
+function bar(dis){return`<div class="bar ${dis?"dis":""}"><input id="q" placeholder="${dis?"Retrieving data. Please wait…":"Describe the data you need…"}" ${dis?"disabled":""} aria-label="Data request"><button id="send" ${dis?"disabled":""} aria-label="Send">↑</button></div><div class="hint">Include a date range or a status to help narrow your request.</div>`}
+
+const BIND={
+login(){
+  $("#eye").onclick=()=>{const p=$("#pw");p.type=p.type==="password"?"text":"password"};
+  $("#lf").onsubmit=async e=>{e.preventDefault();const b=$("#go");b.disabled=true;b.innerHTML='<span class="spin"></span> Signing in…';
+    const v={company:"",id:$("#id").value.trim(),password:$("#pw").value};
+    if(!v.id||!v.password){b.disabled=false;b.textContent="→ Sign in";["id","pw"].forEach(k=>$("#"+k).classList.toggle("err",!$("#"+k).value.trim()));$("#fb").innerHTML='<div class="alert"><b>Missing details</b><span>Enter your ID and password.</span></div>';return}
+    try{S.user=await DataService.signIn(v);S.err=null;go("request")}
+    catch(x){console.warn("sign-in error:",x.code,x.message);S.err=x.code==="NETWORK"?'<div class="alert"><b>Can\'t reach the server</b><span>'+esc(x.message)+' Open this page at http://localhost:5000 (not as a file) and make sure server.py is running.</span></div>':x.code==="LOCKED"?'<div class="alert"><b>🔒 Account locked</b><span>Too many unsuccessful attempts. Contact your workspace administrator to unlock your account.</span></div>':'<div class="alert"><b>Unable to sign in</b><span>Your ID or password is incorrect. Check your details and try again.</span></div>';go("login")}};
+},
+request(){
+  const send=t=>{t=(t||$("#q").value).trim();if(t)run(t)};
+  $("#send").onclick=()=>send();$("#q").onkeydown=e=>{if(e.key==="Enter")send()};$("#q").focus();
+  document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
+  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
+  renderSaved();
+  const ta=$("#to-adm");if(ta)ta.onclick=openAdmin;
+},
+retrieving(){},
+analyzing(){},finalyzing(){},banalyzing(){},
+company(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-o",exportCoCsv);
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>({an:openAnalytics,fin:openFin,beh:openBeh})[b.dataset.open](b.dataset.t));
+  const t=$("#c-ticker");if(t)t.onchange=async()=>{const prev={...S.cf};S.cf.ticker=t.value;await refreshCo(prev)};
+  if(S.co){tick();S.timer=setInterval(tick,1000)}
+},
+canalyzing(){},adminloading(){},
+admin(){
+  clearInterval(S.timer);
+  const A=S.adm,on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});
+  if(!A)return;
+  on("#tab-users",()=>{A.tab="users";A.msg=null;go("admin")});on("#tab-audit",async()=>{A.tab="audit";A.msg=null;await loadAudit();go("admin")});
+  on("#export-au",exportAuditCsv);
+  on("#a-new",()=>{A.form={mode:"create",username:"",password:"",document_ids:[],owners:null,is_admin:false};S.admErr=null;A.msg=null;go("admin");const u=$("#a-user");if(u)u.focus()});
+  document.querySelectorAll(".a-edit").forEach(b=>b.onclick=()=>{const u=A.users.find(x=>x.username===b.dataset.u);A.form={mode:"edit",username:u.username,password:"",document_ids:[...u.document_ids],owners:u.owners==null?null:[...u.owners],is_admin:u.is_admin};S.admErr=null;A.msg=null;go("admin");window.scrollTo(0,0)});
+  document.querySelectorAll(".a-unlock").forEach(b=>b.onclick=()=>admAct(()=>DataService.admin("POST","/users/"+encodeURIComponent(b.dataset.u)+"/unlock",{}),b.dataset.u+" unlocked."));
+  document.querySelectorAll(".a-del").forEach(b=>b.onclick=()=>{if(confirm("Delete the account "+b.dataset.u+"? This ends their sessions and removes their saved views."))admAct(()=>DataService.admin("DELETE","/users/"+encodeURIComponent(b.dataset.u)),b.dataset.u+" deleted.")});
+  const F=A.form;
+  if(F){
+    const read=()=>{const u=$("#a-user");if(u&&F.mode==="create")F.username=u.value.trim();F.password=$("#a-pw").value;F.is_admin=$("#a-adm").checked;
+      F.document_ids=[...document.querySelectorAll(".a-co:checked")].map(x=>x.value);
+      F.owners=$("#a-all").checked?null:[...document.querySelectorAll(".a-dp:checked")].map(x=>x.value)};
+    on("#a-cancel",()=>{A.form=null;S.admErr=null;go("admin")});
+    document.querySelectorAll(".a-co").forEach(c=>c.onchange=()=>{read();if(F.owners){const ok=new Set([...new Set(F.document_ids.flatMap(t=>A.options.departments[t]||[]))]);F.owners=F.owners.filter(o=>ok.has(o))}go("admin")});
+    $("#a-all").onchange=()=>{read();go("admin")};$("#a-some").onchange=()=>{read();if(F.owners==null)F.owners=[];go("admin")};
+    ["#a-user","#a-pw"].forEach(i=>{const el=$(i);if(el)el.oninput=read});
+    on("#a-save",async()=>{read();S.admErr=null;
+      try{
+        if(F.mode==="create")await DataService.admin("POST","/users",{username:F.username,password:F.password,document_ids:F.document_ids,owners:F.owners,is_admin:F.is_admin});
+        else{const b={document_ids:F.document_ids,owners:F.owners,is_admin:F.is_admin};if(F.password)b.password=F.password;await DataService.admin("PATCH","/users/"+encodeURIComponent(F.username),b)}
+        const name=F.username,mode=F.mode;A.form=null;await loadUsers();A.msg=mode==="create"?name+" created.":name+" updated.";go("admin");window.scrollTo(0,0)
+      }catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.admErr=e.message;go("admin")}});
+  }
+  const au=$("#au-user"),ae=$("#au-event");
+  if(au)au.onchange=async()=>{A.af.user=au.value.trim();await loadAudit();go("admin")};
+  if(ae)ae.onchange=async()=>{A.af.event=ae.value;await loadAudit();go("admin")};
+  tick();S.timer=setInterval(tick,1000);
+},
+behavior(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-b",exportBehCsv);on("#to-an",openAnalytics);on("#to-fin",openFin);
+  ["ticker","year","assessment"].forEach(k=>{const el=$("#h-"+k);if(el)el.onchange=async()=>{const prev={...S.bf};S.bf[k]=el.value;await refreshBeh(prev)}});
+  if(S.beh){tick();S.timer=setInterval(tick,1000)}
+},
+financials(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-f",exportFinCsv);on("#to-an",openAnalytics);on("#to-beh",openBeh);
+  ["ticker","from","to","metric"].forEach(k=>{const el=$("#g-"+k);if(el)el.onchange=async()=>{const prev={...S.ff};S.ff[k]=el.value;await refreshFin(prev)}});
+  if(S.fin){tick();S.timer=setInterval(tick,1000)}
+},
+analytics(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-c",exportContractsCsv);on("#to-fin",openFin);on("#to-beh",openBeh);
+  ["ticker","status","quarter","category","owner","renewal","sole_source"].forEach(k=>{const el=$("#f-"+k);if(el)el.onchange=async()=>{const prev={...S.af};S.af[k]=el.value;await refreshAnalysis(prev)}});
+  const page=d=>()=>{const y=window.scrollY;S.apage+=d;go("analytics");window.scrollTo(0,y)};
+  on("#ap-next",page(1));on("#ap-prev",page(-1));
+  if(S.analysis){tick();S.timer=setInterval(tick,1000)}
+},
+notfound(){$("#again").onclick=()=>go("request");$("#close").onclick=confirmClose},
+results(){
+  S.warnShown=false;
+  clearInterval(S.timer);
+  $("#close").onclick=confirmClose;
+  $("#export").onclick=exportCsv;
+  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
+  const pn=$("#pg-next"),pp=$("#pg-prev");
+  if(pn)pn.onclick=()=>{S.page++;go("results")};
+  if(pp)pp.onclick=()=>{S.page--;go("results")};
+  tick();S.timer=setInterval(tick,1000);
+},
+loggedout(){$("#back").onclick=()=>{S.err=null;go("login")}}
+};
+
+/* ===== CSV Export ===== */
+function exportCsv(){
+  const R=S.result;
+  const cols=R.columns.filter(c=>c.type!=="pdf_link");
+  const header=cols.map(c=>JSON.stringify(c.label)).join(",");
+  const rows=R.rows.map(r=>cols.map(c=>JSON.stringify(String(r[c.key]||"").replace(/\*\*/g,""))).join(","));
+  const csv=[header,...rows].join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`data-pull-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function run(text){
+  S.query=text;go("retrieving");
+  try{const r=await DataService.retrieve(text);if(S.screen!=="retrieving")return;
+    if(!r.rows||!r.rows.length){go("notfound");return}
+    S.result=r;S.end=Date.now()+SESSION_MIN*60000;go("results")}
+  catch(e){go("notfound")}
+}
+
+/* ===== Contract analytics ===== */
+async function loadAnalysis(prevAf){
+  try{
+    const A=await DataService.analyze(S.af);
+    S.analysis=A;S.aerr=null;S.apage=0;
+    S.af.quarter=A.filters.quarter||"all";          // "current" resolves to a real quarter
+    S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+  }catch(e){
+    if(e.code==="UNAUTHORIZED"){S.analysis=null;endSession();return false}
+    S.aerr=e.message;if(prevAf)S.af=prevAf;
+  }
+  return true
+}
+async function openAnalytics(t){
+  S.af={ticker:"",status:"Active",quarter:"current",category:"",owner:"",renewal:"",sole_source:"",...argOf(t)};S.analysis=null;S.aerr=null;
+  go("analyzing");
+  if(await loadAnalysis()&&S.screen==="analyzing")go("analytics");
+}
+async function refreshAnalysis(prevAf){
+  const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
+  if(await loadAnalysis(prevAf)&&S.screen==="analytics"){go("analytics");window.scrollTo(0,y)}
+}
+function exportContractsCsv(){
+  const A=S.analysis;if(!A)return;
+  const cols=[["contract_id","Contract ID"],["ticker","Company"],["supplier","Supplier"],["category","Category"],["owner","Department"],["start_date","Start date"],["expiry_date","Expiry date"],["days_to_expiry","Days to expiry"],["status","Status"],["renewal_status","Renewal stage"],["sole_source","Sole source"],["annual_value_k","Annual value ($K)"]];
+  downloadCsv("contracts",cols,A.rows);
+}
+function downloadCsv(name,cols,rows){
+  const cell=v=>JSON.stringify(typeof v==="string"&&/^[=+\-@\t\r]/.test(v)?"'"+v:(v==null?"":String(v)));   // neutralise spreadsheet formulas
+  const csv=[cols.map(c=>JSON.stringify(c[1])).join(","),...rows.map(r=>cols.map(c=>cell(r[c[0]])).join(","))].join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download=`${name}-${Date.now()}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ===== Financial trends ===== */
+async function loadFin(prevFf){
+  try{
+    const A=await DataService.analyzeFin(S.ff);
+    S.fin=A;S.ferr=null;
+    S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+  }catch(e){
+    if(e.code==="UNAUTHORIZED"){S.fin=null;endSession();return false}
+    S.ferr=e.message;if(prevFf)S.ff=prevFf;
+  }
+  return true
+}
+async function openFin(t){
+  S.ff={ticker:"",from:"all",to:"all",metric:"revenue",...argOf(t)};S.fin=null;S.ferr=null;
+  go("finalyzing");
+  if(await loadFin()&&S.screen==="finalyzing")go("financials");
+}
+async function refreshFin(prevFf){
+  const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
+  if(await loadFin(prevFf)&&S.screen==="financials"){go("financials");window.scrollTo(0,y)}
+}
+function exportFinCsv(){
+  const A=S.fin;if(!A)return;
+  const cols=[["ticker","Company"],["period","Quarter"],["revenue","Revenue ($M)"],["revenue_qoq","Revenue QoQ (%)"],["revenue_yoy","Revenue YoY (%)"],["gross_profit","Gross profit ($M)"],["gross_margin","Gross margin (%)"],["operating_income","Operating income ($M)"],["operating_margin","Operating margin (%)"],["net_income","Net income ($M)"],["net_margin","Net margin (%)"],["eps","Diluted EPS ($)"],["free_cash_flow","Free cash flow ($M)"],["fcf_margin","FCF margin (%)"],["ttm_revenue","Trailing 12-month revenue ($M)"]];
+  downloadCsv("financials",cols,A.companies.flatMap(c=>c.series.map(r=>({ticker:c.ticker,...r}))));
+}
+
+/* ===== Administration ===== */
+async function loadUsers(){
+  const d=await DataService.admin("GET","/users");
+  S.adm.users=d.users;S.adm.options=d.options;
+  S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+}
+async function loadAudit(){
+  const q=new URLSearchParams();if(S.adm.af.user)q.set("user",S.adm.af.user);if(S.adm.af.event)q.set("event",S.adm.af.event);
+  try{S.adm.audit=await DataService.admin("GET","/audit?"+q);S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false}
+  catch(e){if(e.code==="UNAUTHORIZED")endSession();else S.admErr=e.message}
+}
+async function openAdmin(){
+  S.adm={tab:"users",users:[],options:null,audit:null,form:null,msg:null,af:{user:"",event:""}};S.admErr=null;
+  go("adminloading");
+  try{await loadUsers();if(S.screen==="adminloading")go("admin")}
+  catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.adm=null;S.admErr=e.message;go("admin")}
+}
+async function admAct(fn,msg){
+  try{await fn();await loadUsers();S.adm.msg=msg;S.admErr=null}
+  catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.adm.msg=null;S.admErr=e.message}
+  go("admin");
+}
+function exportAuditCsv(){
+  const A=S.adm;if(!A||!A.audit)return;
+  downloadCsv("audit-log",[["ts","Time (UTC)"],["username","Account"],["event","Event"],["detail","Detail"],["ip","From"]],A.audit.entries.map(e=>({...e,detail:JSON.stringify(e.detail)})));
+}
+
+/* ===== Saved views and printing ===== */
+const argOf=t=>typeof t==="string"?{ticker:t}:(t&&t.constructor===Object?t:{});
+const VIEW_SCREENS={
+  contracts:{label:"Contract analytics",screen:"analytics",get:()=>S.af,open:f=>openAnalytics(f)},
+  financials:{label:"Financial trends",screen:"financials",get:()=>S.ff,open:f=>openFin(f)},
+  behavior:{label:"Customer behavior",screen:"behavior",get:()=>S.bf,open:f=>openBeh(f)},
+  company:{label:"Company overview",screen:"company",get:()=>S.cf,open:f=>openCo(f)},
+};
+const viewKind=()=>Object.keys(VIEW_SCREENS).find(k=>VIEW_SCREENS[k].screen===S.screen);
+function saveViewForm(){
+  const kind=viewKind();if(!kind||$("#sv-form"))return;
+  const row=document.createElement("div");row.id="sv-form";row.className="card";
+  row.style.cssText="padding:12px 14px;margin:0 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap";
+  row.innerHTML=`<label for="sv-name" style="margin:0">Name this view</label><input id="sv-name" maxlength="60" style="flex:1;min-width:200px" placeholder="e.g. Q4 sole-source contracts"><button class="btn primary" id="sv-ok" style="padding:7px 14px">Save</button><button class="btn sec" id="sv-no" style="padding:7px 14px">Cancel</button><span id="sv-msg" class="hint" style="width:100%"></span>`;
+  $(".top").after(row);$("#sv-name").focus();
+  const done=()=>row.remove();
+  const save=async()=>{
+    const name=$("#sv-name").value.trim();if(!name){$("#sv-msg").textContent="Give the view a name.";return}
+    const f={};for(const [k,v] of Object.entries(VIEW_SCREENS[kind].get()||{}))if(v!==""&&v!=="all"&&v!=="latest"&&v!=null)f[k]=v;
+    try{await DataService.views("POST","",{name,screen:kind,filters:f});$("#sv-msg").innerHTML='<span class="pos">Saved. Find it on the search page under Saved views.</span>';setTimeout(done,1800)}
+    catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}$("#sv-msg").innerHTML='<span class="neg">'+esc(e.message)+'</span>'}
+  };
+  $("#sv-ok").onclick=save;$("#sv-no").onclick=done;$("#sv-name").onkeydown=e=>{if(e.key==="Enter")save();if(e.key==="Escape")done()};
+}
+async function renderSaved(){
+  const slot=$("#sv-list");if(!slot)return;
+  let list;try{list=(await DataService.views("GET")).views}catch(e){if(e.code==="UNAUTHORIZED")endSession();return}
+  if(!$("#sv-list")||!list.length){if($("#sv-list"))$("#sv-list").innerHTML="";return}
+  const nice=v=>Object.entries(v.filters).map(([k,x])=>k.replace("_"," ")+": "+x).join(" · ")||"no filters";
+  $("#sv-list").innerHTML=`<div class="card" style="margin-top:28px;padding:16px"><b>Saved views</b><p class="hint" style="margin:2px 0 8px">Your own filters, saved from the analytics screens. Opening one runs it again with your current access.</p>${list.map(v=>`<div class="li"><span><a href="#" data-vid="${v.id}" class="vopen"><b>${esc(v.name)}</b></a><br><small>${esc(VIEW_SCREENS[v.screen].label)} · ${esc(nice(v))}</small></span><button class="btn sec vdel" data-vid="${v.id}" style="padding:3px 9px;font-size:11px" title="Delete this view">✕</button></div>`).join("")}</div>`;
+  const by=id=>list.find(v=>String(v.id)===String(id));
+  document.querySelectorAll(".vopen").forEach(a=>a.onclick=e=>{e.preventDefault();const v=by(a.dataset.vid);if(v)VIEW_SCREENS[v.screen].open(v.filters)});
+  document.querySelectorAll(".vdel").forEach(b=>b.onclick=async()=>{try{await DataService.views("DELETE","/"+b.dataset.vid)}catch(e){}renderSaved()});
+}
+function printReport(){
+  const wrap=document.querySelector(".wrap");if(!wrap)return;
+  const f=[...document.querySelectorAll(".filters select")].map(s=>{const l=document.querySelector(`label[for="${s.id}"]`);return(l?l.textContent+": ":"")+s.options[s.selectedIndex].text}).join(" · ");
+  const d=document.createElement("div");d.className="print-only";
+  d.innerHTML=`<b>Fetch report</b> · prepared for ${esc(S.user.name)} (${esc(S.user.id)}) · ${new Date().toLocaleString()}${f?"<br>"+esc(f):""}<br>Sample data only. Shows only what this account is cleared to see.`;
+  wrap.prepend(d);
+  const clean=()=>{d.remove();window.removeEventListener("afterprint",clean)};
+  window.addEventListener("afterprint",clean);window.print();
+}
+
+/* ===== Company overview ===== */
+async function loadCo(prev){
+  try{
+    S.co=await DataService.analyzeCo(S.cf);S.cerr=null;
+    S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+  }catch(e){
+    if(e.code==="UNAUTHORIZED"){S.co=null;endSession();return false}
+    S.cerr=e.message;if(prev)S.cf=prev;
+  }
+  return true
+}
+async function openCo(t){
+  S.cf={ticker:"",...argOf(t)};S.co=null;S.cerr=null;
+  go("canalyzing");
+  if(await loadCo()&&S.screen==="canalyzing")go("company");
+}
+async function refreshCo(prev){
+  const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
+  if(await loadCo(prev)&&S.screen==="company"){go("company");window.scrollTo(0,y)}
+}
+function exportCoCsv(){
+  const A=S.co;if(!A)return;
+  const cols=[["ticker","Company"],["level","Level"],["title","Signal"],["detail","Detail"],["sources","Sources"],["evidence","Evidence"]];
+  downloadCsv("company-overview",cols,A.companies.flatMap(c=>c.signals.map(x=>({ticker:c.ticker,level:x.level,title:x.title,detail:x.detail,sources:x.sources.join(" + "),evidence:x.evidence.map(e=>e.label+": "+e.value).join("; ")}))));
+}
+
+/* ===== Customer behavior ===== */
+async function loadBeh(prevBf){
+  try{
+    const A=await DataService.analyzeBeh(S.bf);
+    S.beh=A;S.berr=null;S.bf.year=String(A.year);
+    S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+  }catch(e){
+    if(e.code==="UNAUTHORIZED"){S.beh=null;endSession();return false}
+    S.berr=e.message;if(prevBf)S.bf=prevBf;
+  }
+  return true
+}
+async function openBeh(t){
+  S.bf={ticker:"",year:"latest",assessment:"all",...argOf(t)};S.beh=null;S.berr=null;
+  go("banalyzing");
+  if(await loadBeh()&&S.screen==="banalyzing")go("behavior");
+}
+async function refreshBeh(prevBf){
+  const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
+  if(await loadBeh(prevBf)&&S.screen==="behavior"){go("behavior");window.scrollTo(0,y)}
+}
+function exportBehCsv(){
+  const A=S.beh;if(!A)return;
+  const cols=[["ticker","Company"],["year","Year"],["section","Group"],["label","Measure"],["value","Value"],["unit","Unit"],["prior","Prior year"],["change","Change"],["change_kind","Change unit (pct or pts)"],["assessment","Assessment"],["why","Why"]];
+  downloadCsv("customer-behavior",cols,A.companies.flatMap(c=>c.sections.flatMap(s=>s.rows.map(r=>({ticker:c.ticker,year:c.year,...r})))));
+}
+
+/* ===== Session countdown + expiry warning ===== */
+function tick(){
+  const el=$("#tm");if(!el)return;
+  const s=Math.max(0,Math.round((S.end-Date.now())/1000));
+  el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+  // Show warning at 2 minutes remaining
+  if(s<=120&&!S.warnShown){
+    S.warnShown=true;
+    const slot=$("#warn-slot");
+    if(slot)slot.innerHTML=`<div class="warn-banner">⚠ Your session expires in ${Math.ceil(s/60)} minute${s>60?"s":""}. <button class="btn sec" style="padding:3px 10px;font-size:11px" onclick="extendSession()">Extend session</button></div>`;
+  }
+  if(s===0)endSession();
+}
+async function extendSession(){
+  await DataService.refresh();
+  S.end=Date.now()+SESSION_MIN*60000;
+  S.warnShown=false;
+  const slot=$("#warn-slot");
+  if(slot)slot.innerHTML="";
+}
+
+function confirmClose(){
+  const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><div class="ico" style="background:var(--ds);color:var(--d);margin:0 0 12px">⇥</div><h2 style="font-size:20px">Close this session?</h2><p style="color:var(--t)">Closing will end your session and clear this data. Continue?</p><p class="hint">You'll need to sign in again to make another request.</p><div class="row"><button class="btn sec" id="no">Cancel</button><button class="btn danger" id="yes">Close and log out</button></div></div>`;
+  document.body.appendChild(o);$("#no",o).focus();
+  $("#no",o).onclick=()=>o.remove();o.onclick=e=>{if(e.target===o)o.remove()};
+  $("#yes",o).onclick=()=>{o.remove();endSession()};
+}
+async function endSession(){
+  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.beh=null;S.bf=null;S.berr=null;S.co=null;S.cf=null;S.cerr=null;S.adm=null;S.admErr=null;S.query="";S.err=null;S.warnShown=false;
+  try{await DataService.signOut()}catch(e){}
+  S.user=null;go("loggedout");
+}
+function openPdf(url,title){
+  const o=document.createElement("div");o.className="pdf-ov";
+  o.innerHTML=`<div class="pdf-bar"><span>📄 ${esc(title)}</span><a href="${esc(url)}" target="_blank" rel="noopener" class="btn sec" style="padding:4px 10px;font-size:11px;flex:none">↗ Open in tab</a><button class="btn sec" style="padding:4px 10px;font-size:11px;flex:none" id="pdf-close">✕ Close</button></div><iframe class="pdf-frame" src="${esc(url)}" title="${esc(title)}"></iframe>`;
+  document.body.appendChild(o);
+  $("#pdf-close",o).onclick=()=>o.remove();
+  o.addEventListener("keydown",e=>{if(e.key==="Escape")o.remove()});
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){const p=$(".pdf-ov");if(p){p.remove();return}const o=$(".ov");o&&o.remove()}
+});
+go("login");
+</script></body></html>
