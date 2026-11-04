@@ -44,7 +44,7 @@ input:focus{outline:2px solid var(--b);outline-offset:-1px}input.err{border-colo
 .spin{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:r .8s linear infinite;display:inline-block}@keyframes r{to{transform:rotate(360deg)}}
 .banner{display:flex;justify-content:space-between;background:var(--bs);color:var(--b);border-radius:8px;padding:8px 14px;font-size:12px;margin-bottom:8px;align-items:center;gap:8px;flex-wrap:wrap}
 .warn-banner{background:var(--warns);color:var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .top-actions{display:flex;gap:8px;align-items:center}
 .tw{overflow-x:auto;border:1px solid var(--l);border-radius:10px;background:var(--s)}
 table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:760px}th{font-size:11px;color:var(--m);text-align:left;font-weight:600;padding:10px 14px;border-bottom:1px solid var(--l)}
@@ -62,6 +62,16 @@ td{padding:11px 14px;border-bottom:1px solid var(--l);font-size:13px;overflow:hi
 .pdf-bar{display:flex;align-items:center;gap:10px;background:var(--s);border-radius:8px;padding:8px 12px;border:1px solid var(--l)}
 .pdf-bar span{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdf-frame{flex:1;border:0;border-radius:8px;background:#fff;width:100%;min-height:0}
+select{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px solid var(--l);border-radius:6px;padding:8px 10px}select:focus{outline:2px solid var(--b);outline-offset:-1px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}.filters label{margin:0 0 4px;font-size:11px;color:var(--m)}
+.scope{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}.scope .pill{background:var(--bs);color:var(--b);border-radius:12px}.scope .pill.lim{background:var(--warns);color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}
+.kpi{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px 16px;min-width:0}.kpi .l{font-size:11px;color:var(--m)}.kpi .v{font-size:24px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kpi .v.sm{font-size:16px;line-height:1.9}.kpi .s{font-size:11px;color:var(--m);margin-top:2px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:12px;margin-bottom:14px}.chart{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px 16px;min-width:0}.chart.wide{grid-column:1/-1}.chart h3{font-size:13px;margin:0 0 10px;font-weight:600}
+.cols{display:flex;align-items:flex-end;gap:6px;height:190px}.col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:10px}.col i{display:block;width:100%;background:var(--b);border-radius:4px 4px 0 0}.col b{font-weight:600;margin-bottom:3px;white-space:nowrap}.col span,.col small{color:var(--m);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.col span{margin-top:4px;color:var(--t)}
+.hb{display:grid;grid-template-columns:150px 1fr 120px;gap:8px;align-items:center;font-size:12px;margin:7px 0}.hb>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hb .tr{display:block;background:var(--bs);border-radius:4px;height:10px}.hb .tr i{display:block;height:100%;background:var(--b);border-radius:4px}.hb>span:last-child{text-align:right;color:var(--m);white-space:nowrap}
+.st.x{background:var(--warns);color:var(--warn)}
+#an-body{transition:opacity .15s}
 @media(max-width:800px){.hero{grid-template-columns:1fr;gap:24px}.note{grid-template-columns:1fr}h1{font-size:26px}}
 </style></head>
 <body>
@@ -90,6 +100,14 @@ const DataService={
     if(!r.ok){const e=new Error(d.error||"Retrieve failed");e.code=d.code||"ERROR";throw e}
     return d
   },
+  async analyze(filters){
+    const body={token:this._token};
+    for(const k of ["ticker","status","quarter","category","owner"])if(filters[k])body[k]=filters[k];
+    const r=await fetch("/api/analyze/contracts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
   async refresh(){
     try{
       const r=await fetch("/api/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:this._token})});
@@ -111,9 +129,9 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 /* Render **bold** markers from server as <mark> highlights */
 const hlSnippet=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<mark class="hl">$1</mark>');
 const $=(s,r=document)=>r.querySelector(s);
-const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false};
+const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false,analysis:null,af:null,apage:0,aerr:null};
 const PAGE_SIZE=10;
-const STEP={login:0,request:1,retrieving:2,notfound:2,results:3};
+const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3};
 const SESSION_MIN=15;
 
 /* ===== Dark / light mode ===== */
@@ -148,7 +166,8 @@ login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focu
  <div id="fb">${S.err?S.err:'<div class="hint">ⓘ Sign-in feedback will appear here.</div>'}</div>
  <button class="btn primary block" id="go">→ Sign in</button><p class="hint" style="margin-top:16px;border-top:1px solid var(--l);padding-top:12px">Trouble signing in? Contact your company's workspace administrator.</p></form></div>`,
 request:()=>`<div class="wrap narrow" style="padding-top:40px"><span class="pill" style="background:var(--oks);color:var(--ok)">Signed in · ${esc(S.user.id)}</span><h1 style="font-size:30px">What data would you like pulled?</h1><p>Hi ${esc(S.user.name.split(" ")[0])}. Describe the records you need. Results open in a temporary, read-only view for this session.</p>
- <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}</div>`,
+ <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}
+ <div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Contract expiry analytics</b><p class="hint" style="margin-top:2px">Totals and charts for the supplier contracts you are cleared to see. Filter by status, expiry quarter, category and department.</p></div><button class="btn primary" id="to-an">▥ Open analytics</button></div></div>`,
 retrieving:()=>`<div class="wrap narrow" style="padding-top:24px"><h2>Your request</h2><div class="bubble u" style="margin-top:12px"><small>You · ${esc(S.user.name)}</small>${esc(S.query)}</div>
  <div class="bubble sys"><small>Data pull</small><b><span class="spin" style="color:var(--b)"></span> Pulling your data…</b><div class="hint">Finding records that match your request.</div><div class="prog"><i></i></div><div class="sk" style="width:60%"></div><div class="sk" style="width:85%"></div><div class="hint">Preparing a temporary view · This may take a few moments</div></div><div style="margin-top:40px">${bar(true)}</div></div>`,
 notfound:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Data not found</h2><p>We couldn't find records matching your request. Try a broader date range or a different category.</p>
@@ -162,7 +181,7 @@ results:()=>{
  <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
  <div id="warn-slot"></div>
  <div class="top"><div><h2>${esc(R.title)}</h2><p>${esc(R.subtitle)}</p><p class="hint">${total} records · Sample dataset</p></div>
- <div class="top-actions"><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="tw"><table><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
    if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
    if(c.type==="pdf_link")return`<td><button class="btn sec" style="padding:4px 10px;font-size:11px" onclick="openPdf('${esc(r[c.key])}','${esc(r.report)}')">↗ View</button></td>`;
@@ -172,6 +191,53 @@ results:()=>{
  ${totalPages>1?`<div class="pager"><button id="pg-prev" ${S.page===0?"disabled":""}>← Prev</button><span>Page ${S.page+1} of ${totalPages}</span><button id="pg-next" ${S.page>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
  ${R.note?`<div class="note"><div class="card"><span class="tag">${esc(R.note.tag)}</span><br><b>${esc(R.note.title)}</b><p style="margin-top:6px">${hlSnippet(R.note.body||"")}</p></div><div><b>Available for this session only</b><p style="margin-top:4px">Matched terms are highlighted in the Matched text column. Hover a cell to see its full value.</p></div></div>`:""}
  </div>`},
+analyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing contract analytics…</b><div class="prog"><i></i></div><div class="hint">Totals are limited to the contracts your account is cleared to see.</div></div></div>`,
+analytics:()=>{
+  const A=S.analysis,F=S.af;
+  if(!A)return`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>Analytics unavailable</h2><p>${esc(S.aerr||"Something went wrong.")}</p><div style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  const K=A.kpis,sc=A.scope,O=A.options,multi=sc.companies.length>1,limited=sc.owners!==null;
+  if(!sc.companies.length)return`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><h2>No contract data</h2><p>Your account is not cleared for any company's supplier contracts.</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  const sel=(k,label,opts)=>`<div><label for="f-${k}">${label}</label><select id="f-${k}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(F[k])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`;
+  const win=A.filters.quarter?A.filters.quarter.replace("-"," "):(A.filters.expiry_from?A.filters.expiry_from+" → "+(A.filters.expiry_to||"…"):"all expiry dates");
+  const fmtK=k=>k>=1000?"$"+(k/1000).toFixed(1)+"M":"$"+k+"K";
+  const hbars=(items,key,showShare)=>{const mx=Math.max(1,...items.map(i=>i.value_k));return items.map(i=>`<div class="hb" title="${esc(i[key])}: ${i.contracts} contract${i.contracts===1?"":"s"}, $${i.value_k.toLocaleString()}K"><span>${esc(i[key])}</span><span class="tr"><i style="width:${i.value_k?Math.max(2,Math.round(100*i.value_k/mx)):0}%"></i></span><span>${fmtK(i.value_k)}${showShare&&i.share_pct!=null?" · "+i.share_pct+"%":""}</span></div>`).join("")||'<p class="hint">No contracts match these filters.</p>'};
+  const pts=A.timeline.points,tmx=Math.max(1,...pts.map(p=>p.value_k));
+  const cols=pts.length?`<div class="cols">${pts.map(p=>`<div class="col" title="${esc(p.label)}: ${p.contracts} contract${p.contracts===1?"":"s"}, $${p.value_k.toLocaleString()}K"><b>${p.contracts?fmtK(p.value_k):""}</b><i style="height:${p.contracts?Math.max(3,Math.round(120*p.value_k/tmx)):1}px"></i><span>${esc(p.label)}</span><small>${p.contracts} contract${p.contracts===1?"":"s"}</small></div>`).join("")}</div>`:'<p class="hint">No contracts match these filters.</p>';
+  const total=A.rows.length,totalPages=Math.ceil(total/PAGE_SIZE),pageRows=A.rows.slice(S.apage*PAGE_SIZE,(S.apage+1)*PAGE_SIZE);
+  const ts=K.top_supplier;
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.aerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the analytics</b><span>${esc(S.aerr)}</span></div>`:""}
+ <div class="top"><div><h2>Contract expiry analytics</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Department limited: "+sc.owners.map(esc).join(", "):"All departments"}</span><span class="pill">Status as of ${esc(A.as_of)}</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="export-c" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ ${limited?`<p class="hint">Totals below cover only your department's contracts. Company-wide contract register PDFs are not available on department-limited accounts.</p>`:""}
+ <div class="filters">
+  ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
+  ${sel("status","Status",[["Active","Active"],["all","All statuses"],["Expired","Expired"],["Renewed","Renewed"],["Terminated","Terminated"]])}
+  ${sel("quarter","Expiry period",[["all","All expiry dates"],...O.quarters.map(q=>[q.value,q.label])])}
+  ${sel("category","Category",[["","All categories"],...O.categories.map(c=>[c,c])])}
+  ${(!limited||O.owners.length>1)?sel("owner",limited?"My departments":"Department",[["",limited?"All my departments":"All departments"],...O.owners.map(o=>[o,o])]):""}
+ </div>
+ <div id="an-body">
+ <div class="kpis">
+  <div class="kpi"><div class="l">Contracts · ${esc(F.status==="all"?"all statuses":F.status.toLowerCase())}</div><div class="v">${K.contracts}</div><div class="s">expiring ${esc(win)}</div></div>
+  <div class="kpi"><div class="l">Annual value</div><div class="v">${fmtK(K.value_k)}</div><div class="s">${K.exposure_pct!=null?K.exposure_pct+"% of "+fmtK(K.active_spend_k)+" active spend":"share of active spend shown for Active status"}</div></div>
+  <div class="kpi"><div class="l">Expiring in the next 30 days</div><div class="v">${K.expiring_30d.contracts}</div><div class="s">${fmtK(K.expiring_30d.value_k)}${K.avg_days_to_expiry!=null?" · average "+K.avg_days_to_expiry+" days to expiry":""}</div></div>
+  <div class="kpi"><div class="l">Largest supplier</div><div class="v sm" title="${ts?esc(ts.name):""}">${ts?esc(ts.name):"—"}</div><div class="s">${ts?fmtK(ts.value_k)+" · "+ts.share_pct+"% of value · top 3 = "+K.top3_share_pct+"%":"No contracts match"}</div></div>
+ </div>
+ <div class="charts">
+  <div class="chart wide"><h3>Expiries by ${A.timeline.unit} · annual value</h3>${cols}</div>
+  <div class="chart"><h3>By category</h3>${hbars(A.by_category,"name",true)}</div>
+  <div class="chart"><h3>Time until expiry</h3>${hbars(A.buckets,"label",false)}</div>
+  <div class="chart"><h3>Top suppliers</h3>${hbars(A.top_suppliers,"name",true)}</div>
+  ${(!limited&&A.by_owner.length>1)?`<div class="chart"><h3>By department</h3>${hbars(A.by_owner,"name",true)}</div>`:""}
+  ${multi&&A.by_ticker.length>1?`<div class="chart"><h3>By company</h3>${hbars(A.by_ticker,"name",true)}</div>`:""}
+ </div>
+ <div class="top" style="margin-top:6px"><div><h2 style="font-size:18px">Contracts</h2><p class="hint">${total} contract${total===1?"":"s"}${A.truncated?" (first "+total+" shown)":""} · annual value in $K</p></div></div>
+ <div class="tw"><table><thead><tr>${[["Contract","14%"],["Supplier","19%"],["Category","11%"],["Department","12%"],["Expiry","11%"],["Days","6%"],["Status","9%"],["Value ($K)","10%"],...(multi?[["Co.","6%"]]:[])].map(c=>`<th style="width:${c[1]}">${esc(c[0])}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr><td title="${esc(r.contract_id)}">${esc(r.contract_id)}</td><td title="${esc(r.supplier)}">${esc(r.supplier)}</td><td>${esc(r.category)}</td><td>${esc(r.owner)}</td><td>${esc(r.expiry_date)}</td><td>${r.days_to_expiry}</td><td><span class="st ${r.status==="Active"?"":"x"}">${esc(r.status)}</span></td><td>${r.annual_value_k.toLocaleString()}</td>${multi?`<td>${esc(r.ticker)}</td>`:""}</tr>`).join("")||`<tr><td colspan="${multi?9:8}">No contracts match these filters.</td></tr>`}</tbody></table></div>
+ ${totalPages>1?`<div class="pager"><button id="ap-prev" ${S.apage===0?"disabled":""}>← Prev</button><span>Page ${S.apage+1} of ${totalPages}</span><button id="ap-next" ${S.apage>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
+ </div></div>`},
 loggedout:()=>`<div class="wrap" style="max-width:440px;padding-top:50px"><div class="card center"><div class="ico" style="background:var(--oks);color:var(--ok)">✓</div><span class="pill" style="background:var(--oks);color:var(--ok)">Session ended</span><h2 style="margin-top:12px">You've been logged out</h2><p>Your session has ended and your temporary data has been cleared.</p><button class="btn primary block" id="back">→ Return to login</button></div></div>`
 };
 function bar(dis){return`<div class="bar ${dis?"dis":""}"><input id="q" placeholder="${dis?"Retrieving data. Please wait…":"Describe the data you need…"}" ${dis?"disabled":""} aria-label="Data request"><button id="send" ${dis?"disabled":""} aria-label="Send">↑</button></div><div class="hint">Include a date range or a status to help narrow your request.</div>`}
@@ -189,13 +255,26 @@ request(){
   const send=t=>{t=(t||$("#q").value).trim();if(t)run(t)};
   $("#send").onclick=()=>send();$("#q").onkeydown=e=>{if(e.key==="Enter")send()};$("#q").focus();
   document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
+  $("#to-an").onclick=openAnalytics;
 },
 retrieving(){},
+analyzing(){},
+analytics(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-c",exportContractsCsv);
+  ["ticker","status","quarter","category","owner"].forEach(k=>{const el=$("#f-"+k);if(el)el.onchange=async()=>{const prev={...S.af};S.af[k]=el.value;await refreshAnalysis(prev)}});
+  const page=d=>()=>{const y=window.scrollY;S.apage+=d;go("analytics");window.scrollTo(0,y)};
+  on("#ap-next",page(1));on("#ap-prev",page(-1));
+  if(S.analysis){tick();S.timer=setInterval(tick,1000)}
+},
 notfound(){$("#again").onclick=()=>go("request");$("#close").onclick=confirmClose},
 results(){
   S.warnShown=false;
+  clearInterval(S.timer);
   $("#close").onclick=confirmClose;
   $("#export").onclick=exportCsv;
+  $("#to-an").onclick=openAnalytics;
   const pn=$("#pg-next"),pp=$("#pg-prev");
   if(pn)pn.onclick=()=>{S.page++;go("results")};
   if(pp)pp.onclick=()=>{S.page--;go("results")};
@@ -227,6 +306,37 @@ async function run(text){
   catch(e){go("notfound")}
 }
 
+/* ===== Contract analytics ===== */
+async function loadAnalysis(prevAf){
+  try{
+    const A=await DataService.analyze(S.af);
+    S.analysis=A;S.aerr=null;S.apage=0;
+    S.af.quarter=A.filters.quarter||"all";          // "current" resolves to a real quarter
+    S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false;
+  }catch(e){
+    if(e.code==="UNAUTHORIZED"){S.analysis=null;endSession();return false}
+    S.aerr=e.message;if(prevAf)S.af=prevAf;
+  }
+  return true
+}
+async function openAnalytics(){
+  S.af={ticker:"",status:"Active",quarter:"current",category:"",owner:""};S.analysis=null;S.aerr=null;
+  go("analyzing");
+  if(await loadAnalysis()&&S.screen==="analyzing")go("analytics");
+}
+async function refreshAnalysis(prevAf){
+  const y=window.scrollY,b=$("#an-body");if(b)b.style.opacity=.5;
+  if(await loadAnalysis(prevAf)&&S.screen==="analytics"){go("analytics");window.scrollTo(0,y)}
+}
+function exportContractsCsv(){
+  const A=S.analysis;if(!A)return;
+  const cols=[["contract_id","Contract ID"],["ticker","Company"],["supplier","Supplier"],["category","Category"],["owner","Department"],["start_date","Start date"],["expiry_date","Expiry date"],["days_to_expiry","Days to expiry"],["status","Status"],["annual_value_k","Annual value ($K)"]];
+  const cell=v=>JSON.stringify(typeof v==="string"&&/^[=+\-@\t\r]/.test(v)?"'"+v:String(v));   // neutralise spreadsheet formulas
+  const csv=[cols.map(c=>JSON.stringify(c[1])).join(","),...A.rows.map(r=>cols.map(c=>cell(r[c[0]])).join(","))].join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download=`contracts-${Date.now()}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+
 /* ===== Session countdown + expiry warning ===== */
 function tick(){
   const el=$("#tm");if(!el)return;
@@ -255,7 +365,7 @@ function confirmClose(){
   $("#yes",o).onclick=()=>{o.remove();endSession()};
 }
 async function endSession(){
-  clearInterval(S.timer);S.result=null;S.query="";S.err=null;S.warnShown=false;
+  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.query="";S.err=null;S.warnShown=false;
   try{await DataService.signOut()}catch(e){}
   S.user=null;go("loggedout");
 }

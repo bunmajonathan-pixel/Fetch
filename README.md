@@ -58,10 +58,11 @@ Bob follows a minimal-change discipline: every edit traces directly to the reque
 1. [Install and start the app](#1-install-and-start-the-app)
 2. [Sign in and run a query](#2-sign-in-and-run-a-query)
 3. [Walkthrough: supplier contracts expiring in Q4 2026](#3-walkthrough-supplier-contracts-expiring-in-q4-2026)
-4. [Manage users and permissions](#4-manage-users-and-permissions)
-5. [Add or regenerate data](#5-add-or-regenerate-data)
-6. [Run the tests](#6-run-the-tests)
-7. [Troubleshooting](#7-troubleshooting)
+4. [Analyze supplier contracts](#4-analyze-supplier-contracts)
+5. [Manage users and permissions](#5-manage-users-and-permissions)
+6. [Add or regenerate data](#6-add-or-regenerate-data)
+7. [Run the tests](#7-run-the-tests)
+8. [Troubleshooting](#8-troubleshooting)
 
 ### 1. Install and start the app
 
@@ -110,7 +111,12 @@ The sign-in form starts empty. Use one of these demo accounts:
 | `BLFD-01` | `blfd2024` | BrightLeaf Foods only |
 | `HDYN-01` | `hdyn2024` | Halcyon Dynamics only |
 | `MCLD-01` | `mcld2024` | Meridian Cloudworks only |
+| `BLFD-LOG` | `blfdlog2024` | BrightLeaf, **Logistics contracts only** |
+| `HDYN-ENG` | `hdyneng2024` | Halcyon, **Engineering contracts only** |
+| `MCLD-INF` | `mcldinf2024` | Meridian, **Infrastructure contracts only** |
 | `NL-2048` | `password1234` | All three companies |
+
+The three department accounts search the same companies as their `-01` counterparts, but see only their own department's supplier contracts (see [guide 4](#4-analyze-supplier-contracts)).
 
 `alice` and `bob` also exist as unit-test accounts. They are tied to test document IDs rather than company tickers, so they can sign in but searches return no results.
 
@@ -160,7 +166,54 @@ The server answers `403 FORBIDDEN`, and the attempt is written to the audit log 
 
 > **How "active" works today.** The search selects the right company and quarter, then returns that quarter's register. The Active / Expired / Renewed / Terminated status is read from the PDF itself; the results table does not yet filter rows by status.
 
-### 4. Manage users and permissions
+### 4. Analyze supplier contracts
+
+Search finds documents. The analytics view turns the contract data into totals, charts and a filterable table.
+
+**Open it.** Sign in, then on the "What data would you like pulled?" screen click **Open analytics** (on a results page, use **Contract analytics**). It opens on *Active* contracts expiring in the current quarter.
+
+**Filters** (every change re-runs the analysis):
+
+| Filter | Options |
+|--------|---------|
+| Company | Shown only if your account covers more than one company |
+| Status | Active (default), All statuses, Expired, Renewed, Terminated |
+| Expiry period | All expiry dates, or any quarter from Q1 2025 to Q4 2028 |
+| Category | Ingredients, Logistics, Software… (the categories in your scope) |
+| Department | The contract owner. Department-limited accounts only see their own |
+
+**What you get:**
+
+| Item | Meaning |
+|------|---------|
+| Contracts | How many contracts match the filters |
+| Annual value | Sum of their annual contract value. For Active status it also shows the share of the *active spend* (all Active contracts in the same company, category and department selection, whatever their expiry date) |
+| Expiring in the next 30 days | Contracts whose expiry falls within 30 days of the status date |
+| Largest supplier | Highest-value supplier in the selection, with its share and the top-3 share |
+| Charts | Expiries by month (or by quarter for windows over 12 months), by category, time until expiry, top suppliers, and by department or company when more than one applies |
+| Contracts table | Every matching contract, paged, with **Export CSV** |
+
+Days to expiry are counted from the data's status date, **November 4, 2026**, not from today's date.
+
+#### Walkthrough: two users, same company, different records
+
+`BLFD-01` can see every BrightLeaf department. `BLFD-LOG` can see only Logistics contracts. Open analytics as each and leave the defaults (Active, Q4 2026):
+
+| | `BLFD-01` (all departments) | `BLFD-LOG` (Logistics only) |
+|---|---|---|
+| Contracts | 5 | 2 |
+| Annual value | $10.8M (10,770 $K) | $6.1M (6,110 $K) |
+| Share of active spend | 7.7% of $139.6M | 15.8% of $38.7M |
+| Departments in the filters and charts | Logistics, Procurement, Operations, Quality | Logistics only |
+
+Both totals use the same data. The limited account's numbers, including the share-of-spend denominator, are computed from its own department's contracts only. `BLFD-LOG` is also refused everything that could show the other rows:
+
+- The contract register PDFs list every department, so they are hidden from its search results and return `403` if opened directly.
+- Asking the API for another department (`"owner": "Quality"`) or another company returns `403`.
+
+The department limit applies to *contract* data. Company-wide documents such as quarterly reports stay available to those accounts.
+
+### 5. Manage users and permissions
 
 Accounts live in the `users` table of `instance/users.db`:
 
@@ -169,6 +222,7 @@ Accounts live in the `users` table of `instance/users.db`:
 | `username` | The sign-in ID (case-sensitive) |
 | `password_hash` | bcrypt hash |
 | `document_ids` | JSON array of tickers the user may search, e.g. `["BLFD","HDYN"]` |
+| `owners` | Record-level limit for contract data: a JSON array of departments the user may see, e.g. `["Logistics"]`. `NULL` (the default) means every department in their companies. `[]` means none |
 
 **Change the default accounts.** The defaults are defined once, in `DEFAULT_ACCOUNTS` in `retrieval/users.py`. They are inserted only when the table is empty, so to apply a change delete `instance/users.db` and restart the server.
 
@@ -179,7 +233,14 @@ from retrieval import db_users
 
 db_users.init_db("instance/users.db")
 db_users.register_user("ACME-01", "a-strong-password", ["BLFD", "HDYN"])
+
+# A department analyst: BrightLeaf contracts owned by Quality only
+db_users.register_user("ACME-QA", "another-strong-password", ["BLFD"], owners=["Quality"])
 ```
+
+Valid department names are the contract owners in the data: BrightLeaf has Procurement, Operations, Logistics and Quality; Halcyon has Manufacturing, Engineering, Procurement, Supply Chain and Quality; Meridian has Infrastructure, Engineering, Security, Customer Success and Finance.
+
+**Upgrading an existing `instance/users.db`.** The `owners` column is added automatically on start-up (existing users stay unrestricted). The new department demo accounts are only created on a fresh database, so delete `instance/users.db` and restart if you want them.
 
 **Remove a user.**
 
@@ -189,7 +250,7 @@ python -c "import sqlite3; c=sqlite3.connect('instance/users.db'); c.execute('DE
 
 If the account is one of the defaults, also remove it from `DEFAULT_ACCOUNTS`, otherwise it comes back when the database is recreated.
 
-### 5. Add or regenerate data
+### 6. Add or regenerate data
 
 PDFs are read from the `data/` folder, recursively. The sub-folder name becomes the report **category**, and the filename decides the ticker and period:
 
@@ -207,7 +268,14 @@ The first part of the filename must be the ticker. A file with no period in its 
 python tools/generate_supplier_contracts.py
 ```
 
-The contracts are hand-written in the script, so the output is identical every time. Edit the `CONTRACTS` table to change the sample data.
+This writes two things, identically every time:
+
+- `data/Supplier_Contracts/contracts.csv` — the analytics dataset: 388 contracts for the three companies, expiring Q1 2025 to Q4 2028, with status as of November 4, 2026.
+- The nine register PDFs for Q3 2026, Q4 2026 and Q1 2027. These three quarters are hand-written in the script's `CONTRACTS` table and are also the first rows of the CSV, so the PDFs and the analytics always agree.
+
+The other quarters are generated from a fixed random seed (`SEED`, with the supplier names and value ranges in `PROFILE`). Edit those to change the sample data.
+
+The server loads the CSV into `instance/contracts.db` at start-up and reloads it automatically whenever the CSV changes, so you never edit the database by hand.
 
 **Data on disk**
 
@@ -217,9 +285,9 @@ The contracts are hand-written in the script, so the output is identical every t
 | HDYN | Halcyon Dynamics Inc. | Industrial Automation |
 | MCLD | Meridian Cloudworks Corp. | Enterprise Software |
 
-All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, and the supplier-contract registers.
+All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv`, which feeds the analytics.
 
-### 6. Run the tests
+### 7. Run the tests
 
 ```bash
 pip install pytest
@@ -228,7 +296,7 @@ pytest
 
 Run it from the project root. `pyproject.toml` already sets the test folder and import path. The suite writes its user database and audit log to a throw-away temp folder (via `FETCH_INSTANCE_DIR`), so it never touches your real `instance/` data.
 
-### 7. Troubleshooting
+### 8. Troubleshooting
 
 **Sign-in says "ID or password is incorrect".**
 Run the backend check from the project root:
@@ -244,6 +312,9 @@ The server received an empty ID or password. Check the **Network** tab in browse
 
 **"Account locked".**
 Three failed attempts lock the account until the server restarts.
+
+**Analytics shows no contracts.**
+Check that `data/Supplier_Contracts/contracts.csv` exists (run `python tools/generate_supplier_contracts.py` if not), and that your account's `document_ids` contain a company ticker. If you are on a department-limited account, only contracts owned by your department appear. A status of *Active* with an expiry period in the past also correctly returns nothing.
 
 **Searches return no rows.**
 Check that `data/` exists and contains your PDFs, that the user's `document_ids` include the right ticker, and that the filename starts with the ticker. A period in the query (e.g. `Q4 2026`) hides files whose names have no period.
@@ -286,15 +357,16 @@ retrieval/                The library
   auth.py                 Session tokens (login / issue_token / validate / logout)
   db_users.py             SQLite user store (bcrypt hashes + ticker ACLs)
   users.py                UserRecord, DEFAULT_ACCOUNTS, in-memory fallback store
+  contracts.py            Supplier-contract store (SQLite) and expiry analytics, permission-scoped
   audit.py                Append-only access log
   pull_request.py         PullRequestAgent — ownership-aware retrieval helper
 
 ui/index.html             Single-page front-end
 data/                     PDF reports, one sub-folder per category
-tools/                    generate_supplier_contracts.py, check_login.py
+tools/                    generate_supplier_contracts.py (CSV + PDFs), check_login.py
 examples/demo.py          Auth + retrieval demo (PYTHONPATH=. python examples/demo.py)
 tests/                    pytest suite
-instance/                 Runtime files: users.db, audit.log (git-ignored, created on first run)
+instance/                 Runtime files: users.db, contracts.db, audit.log (git-ignored, created on first run)
 ```
 
 ### Request flow
@@ -318,8 +390,9 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | `POST` | `/api/signin` | `{ company, id, password }` → `{ name, id, company, token }`. Also sets an HttpOnly `session_token` cookie. |
 | `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
+| `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, token }` → statistics (`kpis`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
 | `POST` | `/api/signout` | `{ token }` → `{ ok: true }` |
-| `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. |
+| `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. Department-limited accounts get `403` for `Supplier_Contracts/` files. |
 | `GET` | `/api/audit` | Recent audit entries. Requires the `X-Audit-Token` header; disabled unless the `AUDIT_TOKEN` environment variable is set. |
 
 For the JSON endpoints the token is accepted either from the `session_token` cookie or from the `token` field in the JSON body. `/api/pdf` accepts the cookie only, because URLs end up in logs and browser history.
@@ -333,7 +406,8 @@ For the JSON endpoints the token is accepted either from the `session_token` coo
 | **Lockout** | After 3 failed sign-ins for the same company + ID, further attempts return `LOCKED` until the server is restarted. |
 | **Rate limiting** | Max 30 `/api/retrieve` calls per token per 60 seconds. |
 | **Document ACLs** | Each user can only search, and download PDFs for, the tickers in their `document_ids`. Knowing another company's PDF URL is not enough: the download is refused with `403`. |
-| **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve`, `rate_limited`, `pdf_view` and `pdf_denied` events are written to `instance/audit.log` as JSON lines. |
+| **Record-level limits** | A user's `owners` list restricts contract data to those departments. It is applied inside the SQL query (`owner IN (...)`) for every analytics call, and any filter the user adds can only narrow it further. The company-wide register PDFs, which list every department, are hidden from limited users' search results and refused on download. |
+| **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve`, `rate_limited`, `pdf_view`, `pdf_denied`, `analyze` and `analyze_denied` events are written to `instance/audit.log` as JSON lines. |
 
 The demo passwords above are written in the source code. Change them before deploying anywhere beyond a local demo.
 

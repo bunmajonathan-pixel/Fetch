@@ -8,6 +8,7 @@ POST /api/signin     { company, id, password }  → { name, id, company, token }
 POST /api/retrieve   { query, token }           → { title, subtitle, columns, rows, note? }
 POST /api/refresh    { token }                  → { token }   (new token, old one invalidated)
 POST /api/signout    { token }                  → { ok: true }
+POST /api/analyze/contracts { filters…, token }  → expiry-exposure statistics (scoped per user)
 GET  /api/pdf/<ticker>/<path>  (session cookie + ticker ACL) → PDF file
 GET  /api/audit      (admin token required)     → { entries: [...] }
 
@@ -32,7 +33,7 @@ from retrieval.auth import issue_token
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
-from retrieval import db_users
+from retrieval import contracts, db_users
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -83,6 +84,16 @@ _audit_configure(INSTANCE_DIR / "audit.log")
 
 # SQLite user store: must run once at startup, before any login
 db_users.init_db(INSTANCE_DIR / "users.db")
+
+# Supplier-contract analytics store, rebuilt from the CSV whenever the CSV changes
+CONTRACTS_CSV = DATA_ROOT / "Supplier_Contracts" / "contracts.csv"
+contracts.init_contracts(INSTANCE_DIR / "contracts.db", CONTRACTS_CSV)
+
+# The contract-register PDFs list EVERY department's contracts. A user limited to
+# certain departments (user.owners is not None) must not see them, or the record-level
+# limit could be bypassed by opening the PDF; they use /api/analyze/contracts instead.
+REGISTER_FOLDER   = "Supplier_Contracts"      # folder under data/
+REGISTER_CATEGORY = "Supplier Contracts"      # the same folder as shown in search results
 
 # Admin token — set env var AUDIT_TOKEN to enable the /api/audit endpoint.
 # Defaults to a disabled sentinel so the endpoint is off unless configured.
@@ -183,6 +194,12 @@ def api_pdf(ticker: str, relpath: str):
                detail={"ticker": ticker, "path": relpath})
         return jsonify(error="You are not authorised to view this company's documents.",
                        code="FORBIDDEN"), 403
+
+    if user_rec.owners is not None and relpath.split("/", 1)[0] == REGISTER_FOLDER:
+        _audit("pdf_denied", username, ip=request.remote_addr,
+               detail={"ticker": ticker, "path": relpath, "reason": "owner-limited"})
+        return jsonify(error="Contract registers list every department's contracts. "
+                             "Use the contract analytics view instead.", code="FORBIDDEN"), 403
 
     if ".." in relpath:
         abort(400)
@@ -310,6 +327,8 @@ def api_retrieve():
 
     scoped_retriever = Retriever(scoped_sources, cache=TTLCache(ttl=300))
     docs = scoped_retriever.retrieve(Query(query, limit=50))
+    if user_rec.owners is not None:     # owner-limited: hide all-department register PDFs
+        docs = [d for d in docs if d.metadata.get("category") != REGISTER_CATEGORY]
 
     if not docs:
         return jsonify(rows=[]), 200
@@ -369,6 +388,58 @@ def api_retrieve():
         rows=rows,
         note=note,
     )
+
+
+@app.post("/api/analyze/contracts")
+def api_analyze_contracts():
+    """
+    Expiry-exposure statistics over supplier contracts.
+
+    Body (all optional): ticker, status (Active|Expired|Renewed|Terminated|all, default Active),
+    quarter (Q4-2026 | current | all) or expiry_from/expiry_to (YYYY-MM-DD), category, owner.
+
+    The caller's scope is applied inside the query: only their tickers, and only their
+    owners when the account is department-limited.  Asking for anything outside the scope
+    is a 403, never a silent widening.
+    """
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return jsonify(error=str(e), code="UNAUTHORIZED"), 401
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "analyze"})
+        return jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429
+
+    user_rec = db_users.get_user(username)
+    if user_rec is None:
+        return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
+
+    try:
+        f = contracts.parse_filters(body)
+    except ValueError as e:
+        return jsonify(error=str(e), code="BAD_REQUEST"), 400
+
+    tickers = set(user_rec.document_ids) & set(COMPANIES)
+    owners  = None if user_rec.owners is None else set(user_rec.owners)
+    if f.ticker and f.ticker not in tickers:
+        _audit("analyze_denied", username, ip=request.remote_addr, detail={"ticker": f.ticker})
+        return jsonify(error="You are not authorised to view this company's contracts.",
+                       code="FORBIDDEN"), 403
+    if f.owner and owners is not None and f.owner not in owners:
+        _audit("analyze_denied", username, ip=request.remote_addr, detail={"owner": f.owner})
+        return jsonify(error="You are not authorised to view this department's contracts.",
+                       code="FORBIDDEN"), 403
+
+    result = contracts.analyze(tickers, owners, f)
+    result["scope"] = {
+        "companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
+        "owners": None if owners is None else sorted(owners),     # None = all departments
+    }
+    _audit("analyze", username, ip=request.remote_addr,
+           detail={"filters": result["filters"], "contracts": result["kpis"]["contracts"]})
+    return jsonify(result)
 
 
 @app.post("/api/signout")

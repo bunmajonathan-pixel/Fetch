@@ -9,7 +9,7 @@ Log entry schema
 {
   "ts":       "2026-01-15T14:32:01.123456",  # UTC ISO-8601
   "event":    "retrieve" | "signin" | "signin_fail" | "signout" | "refresh" | "rate_limited"
-                | "pdf_view" | "pdf_denied",
+                | "pdf_view" | "pdf_denied" | "analyze" | "analyze_denied",
   "username": "NL-2048",
   "ip":       "127.0.0.1",                   # optional — supplied by caller
   "detail":   { ... }                        # event-specific payload

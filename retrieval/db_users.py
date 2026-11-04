@@ -11,7 +11,8 @@ Schema
 CREATE TABLE users (
     username     TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL,
-    document_ids  TEXT NOT NULL   -- JSON array, e.g. '["BLFD","HDYN"]'
+    document_ids  TEXT NOT NULL,  -- JSON array, e.g. '["BLFD","HDYN"]'
+    owners        TEXT            -- JSON array of contract owners, or NULL = all owners
 );
 """
 from __future__ import annotations
@@ -44,9 +45,14 @@ def init_db(path: str | Path) -> None:
             CREATE TABLE IF NOT EXISTS users (
                 username      TEXT PRIMARY KEY,
                 password_hash TEXT NOT NULL,
-                document_ids  TEXT NOT NULL DEFAULT '[]'
+                document_ids  TEXT NOT NULL DEFAULT '[]',
+                owners        TEXT
             )
         """)
+        # Databases created before record-level permissions have no owners column.
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
+        if "owners" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN owners TEXT")   # NULL = all owners
 
         # Seed default accounts only if the table is empty
         if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
@@ -68,18 +74,23 @@ def _hash(password: str) -> str:
 def _seed(conn: sqlite3.Connection) -> None:
     """Insert users.DEFAULT_ACCOUNTS (the single list shared with the in-memory store)."""
     conn.executemany(
-        "INSERT INTO users (username, password_hash, document_ids) VALUES (?,?,?)",
-        [(u, _hash(p), json.dumps(ids)) for u, p, ids in DEFAULT_ACCOUNTS],
+        "INSERT INTO users (username, password_hash, document_ids, owners) VALUES (?,?,?,?)",
+        [(u, _hash(p), json.dumps(ids), _owners_json(own)) for u, p, ids, own in DEFAULT_ACCOUNTS],
     )
+
+
+def _owners_json(owners: list[str] | None) -> str | None:
+    return None if owners is None else json.dumps(list(owners))
 
 
 def _row_to_record(row: sqlite3.Row) -> UserRecord:
-    record = UserRecord(
+    owners = row["owners"]
+    return UserRecord(
         username=row["username"],
         _password_hash=row["password_hash"],
         document_ids=json.loads(row["document_ids"]),
+        owners=None if owners is None else json.loads(owners),
     )
-    return record
 
 
 # ---------------------------------------------------------------------------
@@ -100,20 +111,27 @@ def get_user(username: str) -> Optional[UserRecord]:
 
 
 def register_user(username: str, password: str,
-                  document_ids: list[str] | None = None) -> UserRecord:
-    """Add a new user to the database. Raises ValueError if username already exists."""
+                  document_ids: list[str] | None = None,
+                  owners: list[str] | None = None) -> UserRecord:
+    """
+    Add a new user to the database. Raises ValueError if username already exists.
+
+    *owners* limits which contract owners (departments) the user can see within their
+    tickers.  None (the default) means no limit; [] means no contracts at all.
+    """
     if _DB_PATH is None:
         from .users import register_user as _mem_reg
-        return _mem_reg(username, password, document_ids)
+        return _mem_reg(username, password, document_ids, owners)
 
     ids = document_ids or []
     pw_hash = _hash(password)
     try:
         with _connect() as conn:
             conn.execute(
-                "INSERT INTO users (username, password_hash, document_ids) VALUES (?,?,?)",
-                (username, pw_hash, json.dumps(ids)),
+                "INSERT INTO users (username, password_hash, document_ids, owners) VALUES (?,?,?,?)",
+                (username, pw_hash, json.dumps(ids), _owners_json(owners)),
             )
     except sqlite3.IntegrityError:
         raise ValueError(f"User '{username}' already exists.")
-    return UserRecord(username=username, _password_hash=pw_hash, document_ids=ids)
+    return UserRecord(username=username, _password_hash=pw_hash, document_ids=ids,
+                      owners=None if owners is None else list(owners))
