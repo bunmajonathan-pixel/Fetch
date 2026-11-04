@@ -950,7 +950,9 @@ def api_admin_audit():
 
 @app.post("/api/signout")
 def api_signout():
-    body  = request.get_json(force=True) or {}
+    # Sign-out must work even with no (or an unreadable) body: the cookie alone identifies the session.
+    body  = request.get_json(force=True, silent=True)
+    body  = body if isinstance(body, dict) else {}
     token = request.cookies.get("session_token") or body.get("token", "")
     username = ""
     if token:
