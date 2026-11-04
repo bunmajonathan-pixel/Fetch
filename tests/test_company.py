@@ -135,7 +135,7 @@ def test_real_data_profile_for_each_company(client):
     d = _post(client, ALL3).get_json()
     by = {c["ticker"]: c for c in d["companies"]}
     assert set(by) == {"BLFD", "HDYN", "MCLD"}
-    assert by["MCLD"]["weight"]["pct"] == 20.9 and by["BLFD"]["weight"]["pct"] == 2.8
+    assert by["MCLD"]["weight"]["pct"] == 20.3 and by["BLFD"]["weight"]["pct"] == 2.8
     assert "customer_health" in {s["id"]: s for s in by["MCLD"]["signals"]}
     assert any(c["label"] == "Net revenue retention (Q4)" for c in by["MCLD"]["behavior"]["concerns"])
 

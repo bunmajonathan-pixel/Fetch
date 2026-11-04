@@ -75,6 +75,7 @@ td{padding:11px 14px;border-bottom:1px solid var(--l);font-size:13px;overflow:hi
 select{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px solid var(--l);border-radius:6px;padding:8px 10px}select:focus{outline:2px solid var(--b);outline-offset:-1px}
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}.filters label{margin:0 0 4px;font-size:11px;color:var(--m)}
 .scope{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}.scope .pill{background:var(--bs);color:var(--b);border-radius:12px}.scope .pill.lim{background:var(--warns);color:var(--warn)}
+.fgr td{padding:2px 12px 10px!important;border-top:0!important;background:var(--bg)}.fg{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12px}.fg small{color:var(--m)}.fg .sp{flex:1}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}
 .kpi{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px 16px;min-width:0}.kpi .l{font-size:11px;color:var(--m)}.kpi .v{font-size:24px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kpi .v.sm{font-size:16px;line-height:1.9}.kpi .s{font-size:11px;color:var(--m);margin-top:2px}
 .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:12px;margin-bottom:14px}.chart{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px 16px;min-width:0}.chart.wide{grid-column:1/-1}.chart h3{font-size:13px;margin:0 0 10px;font-weight:600}
@@ -156,6 +157,12 @@ const DataService={
     if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
     return d
   },
+  async analyzeAlerts(){
+    const r=await fetch("/api/analyze/alerts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:this._token})});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
   async analyzeFin(filters){
     const body={token:this._token};
     for(const k of ["ticker","from","to","metric","assessment","basis"])if(filters[k]&&filters[k]!=="all")body[k]=filters[k];
@@ -187,7 +194,7 @@ const hlSnippet=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<mark class="hl">$1</mark>')
 const $=(s,r=document)=>r.querySelector(s);
 const S={screen:"login",user:null,query:"",result:null,err:null,timer:null,end:0,page:0,warnShown:false,analysis:null,af:null,apage:0,aerr:null,fin:null,ff:null,ferr:null,beh:null,bf:null,berr:null};
 const PAGE_SIZE=10;
-const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3,banalyzing:2,behavior:3,canalyzing:2,company:3,adminloading:2,admin:3};
+const STEP={login:0,request:1,retrieving:2,notfound:2,results:3,analyzing:2,analytics:3,finalyzing:2,financials:3,banalyzing:2,behavior:3,canalyzing:2,company:3,aalyzing:2,alerts:3,adminloading:2,admin:3};
 const SESSION_MIN=15;
 
 /* ===== Dark / light mode ===== */
@@ -210,7 +217,7 @@ function header(){
   $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Fetch</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
   <div class="crumb"><span>${S.user?esc(S.user.company?S.user.company.toUpperCase():S.user.id):"WORKSPACE"} / DATA WORKSPACE</span><div class="steps">${["Sign in","Request","Retrieve","Review"].map((n,i)=>i===st?`<span><b>${n}</b></span>`:`<span>${n}</span>`).join("")}</div></div>`;
 }
-function go(screen){S.screen=screen;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
+function go(screen){S.screen=screen;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const tal=$("#to-al");if(tal)tal.onclick=openAlerts;const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
 
 const CHEV=`<svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
 const VIEWS={
@@ -228,7 +235,7 @@ request:()=>`<div class="wrap req"><div class="req-head"><span class="pill" styl
   <div class="card panel"><div class="ask">${bar(false)}</div><div class="tag">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div></div>
   <div id="sv-list"></div></div>
  <div class="req-col"><div class="tag">Analyze your data</div>
-  <div class="card tools">${S.user.admin?`<button class="tool admin" id="to-adm" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="tx"><b>Administration</b><small>Accounts, permissions and the audit log.</small></span>${CHEV}</button>`:""}<button class="tool" id="to-co" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="tx"><b>Company overview</b><small>Financials, customers and supplier contracts on one page, with what needs attention.</small></span>${CHEV}</button><button class="tool" id="to-an" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span class="tx"><b>Contract expiry analytics</b><small>Totals and charts for the supplier contracts you are cleared to see.</small></span>${CHEV}</button><button class="tool" id="to-fin" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-6 4 3 8-9"/><path d="M15 5h5v5"/></svg></span><span class="tx"><b>Financial trends</b><small>Growth, margins and peer comparison from the quarterly reports.</small></span>${CHEV}</button><button class="tool" id="to-beh" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><path d="M16 5.2a3 3 0 010 5.6M18 14.5c1.7.8 3 2.8 3 5.5"/></svg></span><span class="tx"><b>Customer behavior</b><small>What improved or worsened year over year, and how the customer mix moved.</small></span>${CHEV}</button></div></div>
+  <div class="card tools">${S.user.admin?`<button class="tool admin" id="to-adm" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="tx"><b>Administration</b><small>Accounts, permissions and the audit log.</small></span>${CHEV}</button>`:""}<button class="tool" id="to-al" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/></svg></span><span class="tx"><b>Needs attention</b><small>One ranked list across your companies, including results outside the expected range.</small></span>${CHEV}</button><button class="tool" id="to-co" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="tx"><b>Company overview</b><small>Financials, customers and supplier contracts on one page, with what needs attention.</small></span>${CHEV}</button><button class="tool" id="to-an" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span class="tx"><b>Contract expiry analytics</b><small>Totals and charts for the supplier contracts you are cleared to see.</small></span>${CHEV}</button><button class="tool" id="to-fin" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-6 4 3 8-9"/><path d="M15 5h5v5"/></svg></span><span class="tx"><b>Financial trends</b><small>Growth, margins and peer comparison from the quarterly reports.</small></span>${CHEV}</button><button class="tool" id="to-beh" type="button"><span class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><path d="M16 5.2a3 3 0 010 5.6M18 14.5c1.7.8 3 2.8 3 5.5"/></svg></span><span class="tx"><b>Customer behavior</b><small>What improved or worsened year over year, and how the customer mix moved.</small></span>${CHEV}</button></div></div>
  </div></div>`,
 retrieving:()=>`<div class="wrap narrow" style="padding-top:24px"><h2>Your request</h2><div class="bubble u" style="margin-top:12px"><small>You · ${esc(S.user.name)}</small>${esc(S.query)}</div>
  <div class="bubble sys"><small>Data pull</small><b><span class="spin" style="color:var(--b)"></span> Pulling your data…</b><div class="hint">Finding records that match your request.</div><div class="prog"><i></i></div><div class="sk" style="width:60%"></div><div class="sk" style="width:85%"></div><div class="hint">Preparing a temporary view · This may take a few moments</div></div><div style="margin-top:40px">${bar(true)}</div></div>`,
@@ -236,6 +243,14 @@ notfound:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div cl
  <div class="bubble" style="background:var(--bg);margin:16px 0"><small>Your request</small>${esc(S.query)}</div><div style="display:flex;gap:8px"><button class="btn primary" id="again">← Try another request</button><button class="btn sec" id="close">Close</button></div><div class="hint" style="margin-top:14px">Your session is still active. Closing will sign you out.</div></div></div>`,
 results:()=>{
   const R=S.result;
+  const sgn=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(1)+"%",cg=v=>v==null?"":` <span class="${v>=0?"pos":"neg"}">${sgn(v)}</span>`;
+  const money=v=>Math.abs(v)>=1000?"$"+(v/1000).toFixed(2)+"B":"$"+v.toFixed(1)+"M";
+  const tally=f=>f.improved==null?"":`<span><span class="pos">${f.improved} improved</span> · <span class="${f.worsened?"neg":""}">${f.worsened} worse</span> · ${f.flat} flat${f.concerns.length?` <small>(${esc(f.concerns.join(", "))})</small>`:""}</span>`;
+  const figs=r=>{const f=r.figures;if(!f)return"";
+    const open=`<span class="sp"></span><button class="btn sec fgo" data-k="${f.kind}" data-t="${esc(r.ticker)}" style="padding:3px 9px;font-size:11px">${f.kind==="quarter"?"↗ Financial trends":"◔ Customer behavior"}</button>`;
+    return`<tr class="fgr"><td colspan="${R.columns.length}"><div class="fg">`+(f.kind==="quarter"
+      ?`<span><small>Revenue</small> <b>${money(f.revenue)}</b>${cg(f.revenue_yoy)}</span><span><small>Gross margin</small> <b>${f.gross_margin.toFixed(1)}%</b></span><span><small>Operating margin</small> <b>${f.operating_margin.toFixed(1)}%</b></span><span><small>Net income</small> <b>${money(f.net_income)}</b></span><span><small>EPS</small> <b>$${f.eps.toFixed(2)}</b></span><span><small>Free cash flow</small> <b>${money(f.free_cash_flow)}</b></span>${tally(f)}`
+      :`<span><small>Customers ${esc(f.period)}</small>${cg(f.customers_pct)}</span><span><small>Revenue</small>${cg(f.revenue_pct)}</span>${tally(f)}`)+open+`</div></td></tr>`};
   const total=R.rows.length;
   const totalPages=Math.ceil(total/PAGE_SIZE);
   const pageRows=R.rows.slice(S.page*PAGE_SIZE,(S.page+1)*PAGE_SIZE);
@@ -249,7 +264,7 @@ results:()=>{
    if(c.type==="pdf_link")return`<td><button class="btn sec pdfv" style="padding:4px 10px;font-size:11px" data-u="${esc(r[c.key])}" data-t="${esc(r.report)}">↗ View</button></td>`;
    if(c.key==="snippet")return`<td title="${esc(r[c.key])}">${hlSnippet(r[c.key]||"")}</td>`;
    return`<td title="${esc(r[c.key])}"${c.key==="report"||c.key==="category"?' class="wrapc"':""}>${esc(r[c.key])}</td>`;
- }).join("")}</tr>`).join("")}</tbody></table></div>
+ }).join("")}</tr>${figs(r)}`).join("")}</tbody></table></div>
  ${totalPages>1?`<div class="pager"><button id="pg-prev" ${S.page===0?"disabled":""}>← Prev</button><span>Page ${S.page+1} of ${totalPages}</span><button id="pg-next" ${S.page>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
  ${R.note?`<div class="note"><div class="card"><span class="tag">${esc(R.note.tag)}</span><br><b>${esc(R.note.title)}</b><p style="margin-top:6px">${hlSnippet(R.note.body||"")}</p></div><div><b>Available for this session only</b><p style="margin-top:4px">Matched terms are highlighted in the Matched text column. Hover a cell to see its full value.</p></div></div>`:""}
  </div>`},
@@ -371,6 +386,11 @@ financials:()=>{
   const flagPeriods=[...new Set(withFlags.flatMap(c=>c.scorecard.history.map(h=>h.period)))].sort((a,b)=>A.periods.indexOf(a)-A.periods.indexOf(b));
   const flagHist=withFlags.length?`<div class="chart wide" style="margin-bottom:12px"><h3>Flags by quarter · improved / worse / flat</h3><div class="tw"><table class="num"><thead><tr><th>Quarter</th>${withFlags.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${[...flagPeriods].reverse().map(p=>`<tr><td>${esc(pl(p))}</td>${withFlags.map(c=>{const h=c.scorecard.history.find(x=>x.period===p);return`<td>${h?`<span class="pos">${h.improved}</span> / <span class="${h.worsened?"neg":""}">${h.worsened}</span> / ${h.flat}`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div><p class="fn">Each quarter is compared with ${esc(withFlags[0].scorecard.basis_label)}. A measure is flat when it moved less than ${withFlags[0].scorecard.rule.rate_pts} percentage point (or ${withFlags[0].scorecard.rule.rate_rel_pct}% of its own level) for a ratio, or ${withFlags[0].scorecard.rule.other_pct}% for an amount. Debt and SG&amp;A as a share of revenue count as better when they fall. Quarter-on-quarter flags are noisier because of seasonality.</p></div>`:"";
   const flagsHtml=withFlags.length?withFlags.map(flagsFor).join("")+flagHist:"";
+  const fcFor=c=>{const f=c.forecast;if(!f)return"";
+    return`<div class="chart wide" style="margin-bottom:12px"><h3>${esc(c.ticker)} · estimate for ${esc(pl(f.period))} <span class="st m" title="${esc(f.caution)}">Estimate</span></h3>
+    <div class="tw"><table class="num"><thead><tr><th>Measure</th><th>${esc(pl(f.based_on))} actual</th><th>Estimate</th><th>Likely range</th><th>vs. ${esc(pl(f.period.replace(/-(\d{4})/,(m,y)=>"-"+(+y-1))))}</th></tr></thead><tbody>${f.measures.map(m=>`<tr><td>${esc(m.label)}</td><td>${fv(m.last,m.unit)}</td><td><b>${fv(m.estimate,m.unit)}</b></td><td>${fv(m.low,m.unit)} – ${fv(m.high,m.unit)}${m.typical_miss_pct==null?"":` <small class="hint" title="Typical miss when this method was tested on earlier quarters">±${m.typical_miss_pct}%</small>`}</td><td>${gr(m.vs_year_ago_pct)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="fn"><b>An estimate, not guidance.</b> ${esc(f.method)} It cannot see events that have not shown up in a report yet, so a weak quarter can move the real figure outside the range.</p></div>`};
+  const fcHtml=cos.map(fcFor).join("");
   const single=cos.length===1?cos[0]:null;
   const tbl=single?`<div class="tw"><table class="num"><thead><tr>${["Quarter","Revenue","QoQ","YoY","Gross margin","Op. margin","Net income","EPS","Free cash flow"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${[...single.series].reverse().map(r=>`<tr><td>${esc(pl(r.period))}</td><td>${fv(r.revenue)}</td><td>${gr(r.revenue_qoq)}</td><td>${gr(r.revenue_yoy)}</td><td>${fv(r.gross_margin,"%")}</td><td>${fv(r.operating_margin,"%")}</td><td>${fv(r.net_income)}</td><td>$${r.eps.toFixed(2)}</td><td>${fv(r.free_cash_flow)}</td></tr>`).join("")}</tbody></table></div>`
    :`<div class="tw"><table class="num"><thead><tr><th>Quarter</th>${cos.map(c=>`<th>${esc(c.ticker)}</th>`).join("")}</tr></thead><tbody>${[...A.periods].reverse().map(p=>`<tr><td>${esc(pl(p))}</td>${cos.map(c=>{const r=c.series.find(s=>s.period===p);return`<td>${r?fv(r[M.key],M.unit):"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
@@ -393,6 +413,7 @@ financials:()=>{
  ${kc}
  <div class="chart wide" style="margin-bottom:12px"><h3>Latest quarter</h3><div class="tw"><table class="num"><thead><tr>${["Company","Revenue","YoY","Gross margin","Op. margin","Net income","EPS (YoY)","Free cash flow","12-mo revenue"].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${L1}</tbody></table></div></div>
  ${flagsHtml}
+ ${fcHtml}
  <div class="charts">
   <div class="chart wide"><h3>${esc(M.label)} by quarter</h3>${trend}${legend}</div>
   ${idx?`<div class="chart wide"><h3>Revenue growth since ${esc(pl(A.periods[0]))} · first quarter = 100</h3>${idx}${legend}<p class="fn">Indexing removes company size, so you can compare how fast each business has grown.</p></div>`:""}
@@ -437,6 +458,32 @@ admin:()=>{
  ${A.msg?`<div class="alert" style="margin:0 0 12px;background:var(--oks)"><b style="color:var(--ok)">${esc(A.msg)}</b></div>`:""}
  <div id="an-body">${A.tab==="users"?form+users:audit}</div></div>`},
 canalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Preparing company overview…</b><div class="prog"><i></i></div><div class="hint">Only the companies and contracts your account is cleared to see are included.</div></div></div>`,
+aalyzing:()=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><b><span class="spin" style="color:var(--b)"></span> Collecting what needs attention…</b><div class="prog"><i></i></div><div class="hint">Only the companies and contracts your account is cleared to see are included.</div></div></div>`,
+alerts:()=>{
+  const A=S.al,F=S.alf;
+  const msg=(h,t)=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>${h}</h2><p>${esc(t)}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
+  if(!A)return msg("Needs attention unavailable",S.alerr||"Something went wrong.");
+  const sc=A.scope,multi=sc.companies.length>1,limited=sc.owners!=null;
+  if(!sc.companies.length)return msg("Nothing to show","Your account is not cleared for any company.");
+  const lv={watch:["st x","Watch"],good:["st","Good news"],info:["st m","Note"]};
+  const shown=A.alerts.filter(a=>(!F.ticker||a.ticker===F.ticker)&&(F.show==="all"||a.level==="watch"));
+  const OPEN={financials:["fin","↗ Financials"],contracts:["an","▥ Contracts"],behavior:["beh","◔ Customer behavior"],company:["co","▦ Company page"]};
+  const cards=shown.map(x=>`<div class="sig ${x.level}"><div class="sh"><span class="${lv[x.level][0]}">${lv[x.level][1]}</span><span class="pill">${esc(x.ticker)}</span><b>${esc(x.title)}</b></div><p>${esc(x.detail)}</p><div class="ev">${x.evidence.map(e=>`<span><small>${esc(e.label)}</small> ${esc(e.value)}</span>`).join("")}</div>
+   <div class="src">${x.sources.map(n=>`<span class="pill">${esc(n)}</span>`).join("")}<span class="sp"></span><button class="btn sec" data-open="${OPEN[x.screen][0]}" data-t="${esc(x.ticker)}" style="padding:4px 10px;font-size:11px">${OPEN[x.screen][1]}</button>${x.screen!=="company"?`<button class="btn sec" data-open="co" data-t="${esc(x.ticker)}" style="padding:4px 10px;font-size:11px">▦ Company page</button>`:""}</div></div>`).join("");
+  const filt=`<div class="filters">${multi?`<div><label for="al-ticker">Company</label><select id="al-ticker">${[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])].map(o=>`<option value="${esc(o[0])}" ${o[0]===F.ticker?"selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`:""}
+   <div><label for="al-show">Show</label><select id="al-show"><option value="watch" ${F.show==="watch"?"selected":""}>Needs attention only</option><option value="all" ${F.show==="all"?"selected":""}>Everything, including good news</option></select></div></div>`;
+  const per=A.companies.filter(c=>!F.ticker||c.ticker===F.ticker);
+  return`<div class="wrap">
+ <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
+ <div id="warn-slot"></div>
+ ${S.alerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the list</b><span>${esc(S.alerr)}</span></div>`:""}
+ <div class="top"><div><h2>Needs attention</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Contracts: "+sc.owners.map(esc).join(", ")+" only":"All departments"}</span></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-al" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ ${filt}
+ <div class="kpis">${per.map(c=>`<div class="kpi"><div class="l">${esc(c.name)}</div><div class="v ${c.watch?"neg":"pos"}">${c.watch}</div><div class="s">to watch · ${c.good} good news${c.info?" · "+c.info+" note"+(c.info===1?"":"s"):""}</div></div>`).join("")}</div>
+ <div class="chart wide" style="margin-bottom:12px"><h3>${shown.length} ${F.show==="all"?"items":"to look at"}</h3>${cards||'<p class="hint">Nothing needs attention right now.</p>'}
+  <p class="fn">Signals combine the quarterly reports, the customer-behavior reports and the supplier-contract register. A "results outside the expected range" item means a measure landed beyond what the previous quarters implied (same quarter a year earlier plus recent year-on-year change), so it is a prompt to read the report, not a verdict.</p></div>
+ </div>`},
 company:()=>{
   const A=S.co,F=S.cf;
   const msg=(h,t)=>`<div class="wrap" style="max-width:560px;padding-top:40px"><div class="card"><div class="ico" style="background:var(--ds);color:var(--d)">⎘</div><h2>${h}</h2><p>${esc(t)}</p><div style="margin-top:16px"><button class="btn primary" id="back-search">← Back to search</button></div></div></div>`;
@@ -465,7 +512,7 @@ company:()=>{
  <div id="warn-slot"></div>
  ${S.cerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the overview</b><span>${esc(S.cerr)}</span></div>`:""}
  <div class="top"><div><h2>Company overview</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Contracts: "+sc.owners.map(esc).join(", ")+" only":"All departments"}</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-o" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-al" style="padding:7px 12px;font-size:12px">⚑ Needs attention</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-o" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  ${multi?`<div class="filters">${sel}</div>`:""}
  <div id="an-body">${body}</div></div>`},
 behavior:()=>{
@@ -531,7 +578,7 @@ request(){
   const send=t=>{t=(t||$("#q").value).trim();if(t)run(t)};
   $("#send").onclick=()=>send();$("#q").onkeydown=e=>{if(e.key==="Enter")send()};$("#q").focus();
   document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
-  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
+  $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;$("#to-al").onclick=openAlerts;
   renderSaved();
   const ta=$("#to-adm");if(ta)ta.onclick=openAdmin;
 },
@@ -544,6 +591,16 @@ company(){
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>({an:openAnalytics,fin:openFin,beh:openBeh})[b.dataset.open](b.dataset.t));
   const t=$("#c-ticker");if(t)t.onchange=async()=>{const prev={...S.cf};S.cf.ticker=t.value;await refreshCo(prev)};
   if(S.co){tick();S.timer=setInterval(tick,1000)}
+},
+aalyzing(){},
+alerts(){
+  clearInterval(S.timer);
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+  on("#close",confirmClose);on("#back-search",()=>{clearInterval(S.timer);go("request")});on("#export-al",exportAlertsCsv);
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>({an:openAnalytics,fin:openFin,beh:openBeh,co:openCo})[b.dataset.open](b.dataset.t));
+  const t=$("#al-ticker");if(t)t.onchange=()=>{S.alf.ticker=t.value;go("alerts")};
+  const w=$("#al-show");if(w)w.onchange=()=>{S.alf.show=w.value;go("alerts")};
+  if(S.al){tick();S.timer=setInterval(tick,1000)}
 },
 canalyzing(){},adminloading(){},
 admin(){
@@ -609,6 +666,7 @@ results(){
   $("#export").onclick=exportCsv;
   $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
   document.querySelectorAll(".pdfv").forEach(b=>b.onclick=()=>openPdf(b.dataset.u,b.dataset.t));
+  document.querySelectorAll(".fgo").forEach(b=>b.onclick=()=>(b.dataset.k==="quarter"?openFin:openBeh)(b.dataset.t));
   const pn=$("#pg-next"),pp=$("#pg-prev");
   if(pn)pn.onclick=()=>{S.page++;go("results")};
   if(pp)pp.onclick=()=>{S.page--;go("results")};
@@ -803,6 +861,20 @@ function exportCoCsv(){
   downloadCsv("company-overview",cols,A.companies.flatMap(c=>c.signals.map(x=>({ticker:c.ticker,level:x.level,title:x.title,detail:x.detail,sources:x.sources.join(" + "),evidence:x.evidence.map(e=>e.label+": "+e.value).join("; ")}))));
 }
 
+/* ===== Needs attention ===== */
+async function openAlerts(){
+  S.alf={ticker:"",show:"watch"};S.al=null;S.alerr=null;
+  go("aalyzing");
+  try{S.al=await DataService.analyzeAlerts();S.end=Date.now()+SESSION_MIN*60000;S.warnShown=false}
+  catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}S.alerr=e.message}
+  if(S.screen==="aalyzing")go("alerts");
+}
+function exportAlertsCsv(){
+  const A=S.al;if(!A)return;
+  const cols=[["ticker","Company"],["level","Level"],["title","Item"],["detail","Detail"],["sources","Sources"],["evidence","Evidence"]];
+  downloadCsv("needs-attention",cols,A.alerts.filter(a=>(!S.alf.ticker||a.ticker===S.alf.ticker)&&(S.alf.show==="all"||a.level==="watch")).map(x=>({ticker:x.ticker,level:x.level,title:x.title,detail:x.detail,sources:x.sources.join(" + "),evidence:x.evidence.map(e=>e.label+": "+e.value).join("; ")})));
+}
+
 /* ===== Customer behavior ===== */
 async function loadBeh(prevBf){
   try{
@@ -858,7 +930,7 @@ function confirmClose(){
   $("#yes",o).onclick=()=>{o.remove();endSession()};
 }
 async function endSession(){
-  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.beh=null;S.bf=null;S.berr=null;S.co=null;S.cf=null;S.cerr=null;S.adm=null;S.admErr=null;S.query="";S.err=null;S.warnShown=false;
+  clearInterval(S.timer);S.result=null;S.analysis=null;S.af=null;S.aerr=null;S.fin=null;S.ff=null;S.ferr=null;S.beh=null;S.bf=null;S.berr=null;S.co=null;S.cf=null;S.cerr=null;S.al=null;S.alf=null;S.alerr=null;S.adm=null;S.admErr=null;S.query="";S.err=null;S.warnShown=false;
   try{await DataService.signOut()}catch(e){}
   S.user=null;go("loggedout");
 }

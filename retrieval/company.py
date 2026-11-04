@@ -166,6 +166,7 @@ def profile(ticker: str, name: str, fin: dict, beh: dict, con: dict, partial: bo
                        "gross_margin": lat["gross_margin"], "operating_margin": lat["operating_margin"],
                        "margin_change_bps_yoy": fin["margin_change_bps_yoy"], "net_income": lat["net_income"],
                        "free_cash_flow": lat["free_cash_flow"], "ttm_revenue": lat["ttm_revenue"],
+                       "surprises": fin.get("surprises", []),
                        "scorecard": ({k: fin["scorecard"][k] for k in ("period", "prior_period", "improved", "worsened", "flat", "tracked")}
                                      if fin.get("scorecard") else None)},
         "behavior": {"year": beh["year"], "revenue_pct": (beh.get("growth") or {}).get("revenue_pct"),
