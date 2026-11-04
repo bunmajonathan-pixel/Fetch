@@ -8,7 +8,7 @@ POST /api/signin     { company, id, password }  → { name, id, company, token }
 POST /api/retrieve   { query, token }           → { title, subtitle, columns, rows, note? }
 POST /api/refresh    { token }                  → { token }   (new token, old one invalidated)
 POST /api/signout    { token }                  → { ok: true }
-GET  /api/pdf/<ticker>/<filename>               → PDF file
+GET  /api/pdf/<ticker>/<path>  (session cookie + ticker ACL) → PDF file
 GET  /api/audit      (admin token required)     → { entries: [...] }
 
 Run from the project root:
@@ -157,19 +157,52 @@ def index():
 
 @app.get("/api/pdf/<ticker>/<path:relpath>")
 def api_pdf(ticker: str, relpath: str):
-    """Serve a PDF from any category sub-folder under DATA_ROOT."""
+    """
+    Serve a PDF from any category sub-folder under DATA_ROOT.
+
+    Requires a valid session (the HttpOnly ``session_token`` cookie; tokens in the
+    URL are deliberately not accepted, as URLs end up in logs and history) and the
+    signed-in user must hold <ticker> in their document_ids.
+      401  no / invalid / expired session
+      403  signed in, but not authorised for this ticker, or file not that ticker's
+      404  unknown ticker, or file does not exist
+    """
+    try:
+        username = validate_token(request.cookies.get("session_token", ""))
+    except AuthError as e:
+        return jsonify(error=str(e), code="UNAUTHORIZED"), 401
+    user_rec = db_users.get_user(username)
+    if user_rec is None:
+        return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
+
     ticker = ticker.upper()
     if ticker not in COMPANIES:
         abort(404)
+    if ticker not in user_rec.document_ids:
+        _audit("pdf_denied", username, ip=request.remote_addr,
+               detail={"ticker": ticker, "path": relpath})
+        return jsonify(error="You are not authorised to view this company's documents.",
+                       code="FORBIDDEN"), 403
+
     if ".." in relpath:
         abort(400)
-    pdf_path = DATA_ROOT / relpath
-    if not pdf_path.exists() or pdf_path.suffix.lower() != ".pdf":
+    root = DATA_ROOT.resolve()
+    pdf_path = (DATA_ROOT / relpath).resolve()
+    if not pdf_path.is_relative_to(root):
+        abort(400)
+    if not pdf_path.is_file() or pdf_path.suffix.lower() != ".pdf":
         abort(404)
-    # Verify the file actually belongs to this ticker
-    if not pdf_path.stem.upper().startswith(ticker):
-        abort(403)
-    return send_file(str(pdf_path), mimetype="application/pdf")
+    # The file must belong to this ticker (same rule PDFSource uses: first filename token)
+    if pdf_path.stem.split("_")[0].upper() != ticker:
+        _audit("pdf_denied", username, ip=request.remote_addr,
+               detail={"ticker": ticker, "path": relpath})
+        return jsonify(error="File does not belong to this company.", code="FORBIDDEN"), 403
+
+    _audit("pdf_view", username, ip=request.remote_addr,
+           detail={"ticker": ticker, "path": relpath})
+    resp = send_file(str(pdf_path), mimetype="application/pdf")
+    resp.headers["Cache-Control"] = "private, no-store"   # access-controlled: don't cache
+    return resp
 
 
 @app.get("/api/audit")

@@ -146,9 +146,17 @@ You get one row: `BrightLeaf Foods Co.: Q4-2026 Supplier Contracts`. Click **Vie
 
 You now get only the Halcyon Dynamics register (5 active contracts, $12,220K). BrightLeaf's data does not appear. `MCLD-01` sees only Meridian's (5 active, $28,230K).
 
-**Step 4 — Change the quarter.** Ask for `supplier contracts expiring in Q1 2027` or `Q3 2026` to get the matching register for the same user.
+**Step 4 — Try to reach the other company's file.** While signed in as `HDYN-01`, paste the BrightLeaf file's address into the browser:
 
-**Step 5 — Check the audit trail.** Every sign-in and query is in `instance/audit.log` (see [Security features](#security-features)).
+```
+http://localhost:5000/api/pdf/BLFD/Supplier_Contracts/BLFD_Q4-2026_Supplier_Contracts.pdf
+```
+
+The server answers `403 FORBIDDEN`, and the attempt is written to the audit log as `pdf_denied`. Signed out, the same address returns `401`.
+
+**Step 5 — Change the quarter.** Ask for `supplier contracts expiring in Q1 2027` or `Q3 2026` to get the matching register for the same user.
+
+**Step 6 — Check the audit trail.** Every sign-in, query and PDF view or refusal is in `instance/audit.log` (see [Security features](#security-features)).
 
 > **How "active" works today.** The search selects the right company and quarter, then returns that quarter's register. The Active / Expired / Renewed / Terminated status is read from the PDF itself; the results table does not yet filter rows by status.
 
@@ -311,10 +319,10 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
 | `POST` | `/api/signout` | `{ token }` → `{ ok: true }` |
-| `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. The file must belong to `<ticker>`. |
+| `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. |
 | `GET` | `/api/audit` | Recent audit entries. Requires the `X-Audit-Token` header; disabled unless the `AUDIT_TOKEN` environment variable is set. |
 
-The token is accepted either from the `session_token` cookie or from the `token` field in the JSON body.
+For the JSON endpoints the token is accepted either from the `session_token` cookie or from the `token` field in the JSON body. `/api/pdf` accepts the cookie only, because URLs end up in logs and browser history.
 
 ### Security features
 
@@ -324,12 +332,10 @@ The token is accepted either from the `session_token` cookie or from the `token`
 | **Sessions** | Random 32-byte hex tokens, 1-hour TTL, stored in memory. Sessions are lost when the server restarts. |
 | **Lockout** | After 3 failed sign-ins for the same company + ID, further attempts return `LOCKED` until the server is restarted. |
 | **Rate limiting** | Max 30 `/api/retrieve` calls per token per 60 seconds. |
-| **Document ACLs** | Each user can only search the tickers in their `document_ids`. |
-| **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve` and `rate_limited` events are written to `instance/audit.log` as JSON lines. |
+| **Document ACLs** | Each user can only search, and download PDFs for, the tickers in their `document_ids`. Knowing another company's PDF URL is not enough: the download is refused with `403`. |
+| **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve`, `rate_limited`, `pdf_view` and `pdf_denied` events are written to `instance/audit.log` as JSON lines. |
 
 The demo passwords above are written in the source code. Change them before deploying anywhere beyond a local demo.
-
-**Known limitation.** `/api/pdf/...` does not check who is signed in. It only checks that the file belongs to the ticker in the URL, so anyone who knows a PDF's URL can download it. Search results are correctly scoped per user; the file download is not yet.
 
 ### Extending
 
