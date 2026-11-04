@@ -57,8 +57,8 @@ input:focus{outline:2px solid var(--b);outline-offset:-1px}input.err{border-colo
 .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .top-actions{display:flex;gap:8px;align-items:center}
 .tw{overflow-x:auto;border:1px solid var(--l);border-radius:10px;background:var(--s)}
-table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:760px}th{font-size:11px;color:var(--m);text-align:left;font-weight:600;padding:10px 14px;border-bottom:1px solid var(--l)}
-td{padding:11px 14px;border-bottom:1px solid var(--l);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}tr:last-child td{border:0}
+table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:1000px}th{font-size:11px;color:var(--m);text-align:left;font-weight:600;padding:10px 14px;border-bottom:1px solid var(--l)}
+td{padding:11px 14px;border-bottom:1px solid var(--l);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}tr:last-child td{border:0}td.wrapc{white-space:normal;overflow-wrap:anywhere;line-height:1.35}
 .st{background:var(--oks);color:var(--ok);font-size:11px;padding:2px 8px;border-radius:99px}
 .hl{background:var(--warns);color:var(--warn);border-radius:2px;padding:0 2px;font-weight:600}
 .note{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:14px;font-size:12px}.note .card{padding:16px}.note b{font-size:13px}
@@ -239,7 +239,7 @@ results:()=>{
   const total=R.rows.length;
   const totalPages=Math.ceil(total/PAGE_SIZE);
   const pageRows=R.rows.slice(S.page*PAGE_SIZE,(S.page+1)*PAGE_SIZE);
-  return`<div class="wrap">
+  return`<div class="wrap" style="max-width:1180px">
  <div class="banner"><span>🛡 Temporary view · Closing clears this data and signs you out.</span><span>⏱ <span id="tm"></span> remaining</span></div>
  <div id="warn-slot"></div>
  <div class="top"><div><h2>${esc(R.title)}</h2><p>${esc(R.subtitle)}</p><p class="hint">${total} records · Sample dataset</p></div>
@@ -248,7 +248,7 @@ results:()=>{
    if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
    if(c.type==="pdf_link")return`<td><button class="btn sec" style="padding:4px 10px;font-size:11px" onclick="openPdf('${esc(r[c.key])}','${esc(r.report)}')">↗ View</button></td>`;
    if(c.key==="snippet")return`<td title="${esc(r[c.key])}">${hlSnippet(r[c.key]||"")}</td>`;
-   return`<td title="${esc(r[c.key])}">${esc(r[c.key])}</td>`;
+   return`<td title="${esc(r[c.key])}"${c.key==="report"||c.key==="category"?' class="wrapc"':""}>${esc(r[c.key])}</td>`;
  }).join("")}</tr>`).join("")}</tbody></table></div>
  ${totalPages>1?`<div class="pager"><button id="pg-prev" ${S.page===0?"disabled":""}>← Prev</button><span>Page ${S.page+1} of ${totalPages}</span><button id="pg-next" ${S.page>=totalPages-1?"disabled":""}>Next →</button></div>`:""}
  ${R.note?`<div class="note"><div class="card"><span class="tag">${esc(R.note.tag)}</span><br><b>${esc(R.note.title)}</b><p style="margin-top:6px">${hlSnippet(R.note.body||"")}</p></div><div><b>Available for this session only</b><p style="margin-top:4px">Matched terms are highlighted in the Matched text column. Hover a cell to see its full value.</p></div></div>`:""}

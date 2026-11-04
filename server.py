@@ -67,14 +67,14 @@ _sources: dict[str, PDFSource] = {
 # Result table schema
 # ---------------------------------------------------------------------------
 COLUMNS = [
-    {"key": "report",    "label": "Report",        "w": "24%"},
-    {"key": "ticker",    "label": "Ticker",        "w": "6%"},
-    {"key": "category",  "label": "Category",      "w": "14%"},
-    {"key": "period",    "label": "Period",        "w": "7%"},
-    {"key": "pages",     "label": "Pages",         "w": "5%"},
-    {"key": "snippet",   "label": "Matched text",  "w": "22%"},
-    {"key": "status",    "label": "Status",        "w": "8%", "type": "status"},
-    {"key": "file",      "label": "View",          "w": "7%", "type": "pdf_link"},
+    {"key": "report",    "label": "Report",        "w": "31%"},
+    {"key": "ticker",    "label": "Ticker",        "w": "7%"},
+    {"key": "category",  "label": "Category",      "w": "16%"},
+    {"key": "period",    "label": "Period",        "w": "9%"},
+    {"key": "pages",     "label": "Pages",         "w": "6%"},
+    {"key": "snippet",   "label": "Matched text",  "w": "14%"},
+    {"key": "status",    "label": "Status",        "w": "9%", "type": "status"},
+    {"key": "file",      "label": "View",          "w": "8%", "type": "pdf_link"},
 ]
 
 # ---------------------------------------------------------------------------
