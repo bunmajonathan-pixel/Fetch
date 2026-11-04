@@ -61,10 +61,12 @@ Bob follows a minimal-change discipline: every edit traces directly to the reque
 4. [Analyze supplier contracts](#4-analyze-supplier-contracts)
 5. [Analyze financial trends](#5-analyze-financial-trends)
 6. [Analyze customer behavior](#6-analyze-customer-behavior)
-7. [Manage users and permissions](#7-manage-users-and-permissions)
-8. [Add or regenerate data](#8-add-or-regenerate-data)
-9. [Run the tests](#9-run-the-tests)
-10. [Troubleshooting](#10-troubleshooting)
+7. [Company overview](#7-company-overview)
+8. [Saved views and reports](#8-saved-views-and-reports)
+9. [Manage users and permissions](#9-manage-users-and-permissions)
+10. [Add or regenerate data](#10-add-or-regenerate-data)
+11. [Run the tests](#11-run-the-tests)
+12. [Troubleshooting](#12-troubleshooting)
 
 ### 1. Install and start the app
 
@@ -117,6 +119,7 @@ The sign-in form starts empty. Use one of these demo accounts:
 | `HDYN-ENG` | `hdyneng2024` | Halcyon, **Engineering contracts only** |
 | `MCLD-INF` | `mcldinf2024` | Meridian, **Infrastructure contracts only** |
 | `NL-2048` | `password1234` | All three companies |
+| `ADM-01` | `admin2024` | **Administrator**: no company data, but can manage accounts and read the audit log (see [guide 9](#9-manage-users-and-permissions)) |
 
 The three department accounts search the same companies as their `-01` counterparts, but see only their own department's supplier contracts (see [guide 4](#4-analyze-supplier-contracts)).
 
@@ -248,7 +251,7 @@ Filters: company, first and last quarter, and the chart measure. Growth rates ar
 
 **Permissions.** Access follows the quarterly-report PDFs: a user sees the companies in their `document_ids`, and asking for another company returns `403` and an `analyze_denied` audit entry. Other companies are not used in any ranking or comparison either. The department limit (`owners`) covers the contract register only, so `BLFD-LOG` sees BrightLeaf's financials just as it can open BrightLeaf's quarterly reports.
 
-**Accuracy.** The numbers come from CSVs extracted from the PDFs by `tools/extract_financials.py` (see [guide 8](#8-add-or-regenerate-data)), not from text parsed at request time. Growth rates are calculated from figures printed to $0.1M, so they can differ from the percentage printed in a report by about a tenth of a point (BLFD Q2 2026 revenue: 2.15% here, "+2.2%" in the PDF).
+**Accuracy.** The numbers come from CSVs extracted from the PDFs by `tools/extract_financials.py` (see [guide 10](#10-add-or-regenerate-data)), not from text parsed at request time. Growth rates are calculated from figures printed to $0.1M, so they can differ from the percentage printed in a report by about a tenth of a point (BLFD Q2 2026 revenue: 2.15% here, "+2.2%" in the PDF).
 
 ### 6. Analyze customer behavior
 
@@ -272,9 +275,31 @@ Filters: company, year and *Improved / Worsened / Flat*.
 
 **Permissions.** Access follows the ticker list in `document_ids`, as for financials: asking for another company returns `403` and an `analyze_denied` audit entry, and other companies are left out of the comparison. The department limit (`owners`) covers the contract register only, so `BLFD-LOG` sees BrightLeaf's behavior data.
 
-**Accuracy.** The numbers come from `data/behavior/behavior.csv`, extracted from the PDFs by `tools/extract_behavior.py` (see [guide 8](#8-add-or-regenerate-data)). Changes are the ones printed in the 2025 report, which the extractor has already checked against both years. BrightLeaf's 2024 text says 31.4% household penetration but its table says 31.5%; the tables are used.
+**Accuracy.** The numbers come from `data/behavior/behavior.csv`, extracted from the PDFs by `tools/extract_behavior.py` (see [guide 10](#10-add-or-regenerate-data)). Changes are the ones printed in the 2025 report, which the extractor has already checked against both years. BrightLeaf's 2024 text says 31.4% household penetration but its table says 31.5%; the tables are used.
 
-### 7. Manage users and permissions
+### 7. Company overview
+
+Choose **Company overview** from the request screen. It reads across the contract register, the financials and the customer-behavior data for each company you can see, and lists the signals worth a look. It does not load any new data: every figure is one the three analytics screens already show.
+
+| Part | What it shows |
+|------|---------------|
+| Headline figures | Revenue, growth, customers, and supplier spend as a share of trailing-twelve-month revenue |
+| Signals | A short list marked **Watch**, **Good** or **Info**, each with the sources it draws on and a button that opens the matching analytics screen with the company already selected |
+
+Signals only appear when the data shows the condition: contracts lapsing within the next two quarters, sole-source spend above 20% of the register, the top three suppliers above 40% of spend, revenue growth slowing or speeding up by 2 points or more, and customer measures that got worse. Seeing a company with no Watch signals is normal (Halcyon today).
+
+**Permissions.** Access follows `document_ids`. For a department-limited account the contract signals that compare their slice with company-wide figures are left out, and the screen says the contract view is partial. **Export CSV** downloads the signals.
+
+### 8. Saved views and reports
+
+On the contract, financial, behavior and company screens, **Save this view** stores the screen and its current filters under a name you choose. Saved views are listed on the request screen; opening one runs the normal analysis again with those filters, so the numbers are always current and always limited to what you can see today.
+
+- Only the screen and its filters are stored, never the results. A view cannot show more than your account allows, even if your access changes later.
+- Each account keeps up to 25 views; saving the same name on the same screen replaces it. Names are up to 60 characters.
+- Views live in `instance/views.db`, separate from the user database, so resetting `users.db` does not delete them. Deleting an account removes its views.
+- **Print / PDF report** opens the browser's print dialog with a clean layout (title, who ran it, when, filters, then the tables). Choose *Save as PDF* as the destination to keep a copy.
+
+### 9. Manage users and permissions
 
 Accounts live in the `users` table of `instance/users.db`:
 
@@ -284,6 +309,14 @@ Accounts live in the `users` table of `instance/users.db`:
 | `password_hash` | bcrypt hash |
 | `document_ids` | JSON array of tickers the user may search, e.g. `["BLFD","HDYN"]` |
 | `owners` | Record-level limit for contract data: a JSON array of departments the user may see, e.g. `["Logistics"]`. `NULL` (the default) means every department in their companies. `[]` means none |
+| `is_admin` | `1` for administrators. This is separate from data access: an admin sees company data only for the tickers in `document_ids` |
+
+**Administration screen.** Sign in as an administrator (demo: `ADM-01` / `admin2024`) and choose **Administration** on the request screen.
+
+- *Accounts* lists every account with its companies, department limit, role and lock state. **New account** and **Edit** set the companies, the department limit (all departments, or a chosen few from the selected companies) and the administrator flag; a new password is optional when editing. **Unlock** clears a lockout without restarting the server. **Delete** removes the account, ends its sessions and removes its saved views.
+- *Audit log* shows the latest entries (newest first), filtered by account or event, with a **Flagged accounts** alert for accounts with three or more refusals, failed sign-ins or rate-limit hits. **Export CSV** downloads what is on screen.
+
+Safety rules: passwords must be at least 10 characters and are never written to the audit log; changing a password, deleting an account or removing its admin flag ends that account's sessions; you cannot delete or demote yourself, and the last administrator cannot be deleted or demoted. Non-admins calling the admin endpoints get `403` and an `admin_denied` audit entry. Every change is recorded as `admin_user_created`, `admin_user_updated`, `admin_user_deleted` or `admin_user_unlocked`.
 
 **Change the default accounts.** The defaults are defined once, in `DEFAULT_ACCOUNTS` in `retrieval/users.py`. They are inserted only when the table is empty, so to apply a change delete `instance/users.db` and restart the server.
 
@@ -293,17 +326,20 @@ Accounts live in the `users` table of `instance/users.db`:
 from retrieval import db_users
 
 db_users.init_db("instance/users.db")
-db_users.register_user("ACME-01", "a-strong-password", ["BLFD", "HDYN"])
+db_users.register_user("ACME-01", "a-strong-password", ["BLFD", "HDYN"])   # at least 10 characters
 
 # A department analyst: BrightLeaf contracts owned by Quality only
 db_users.register_user("ACME-QA", "another-strong-password", ["BLFD"], owners=["Quality"])
+
+# An administrator (pass is_admin=True; document_ids can be empty)
+db_users.register_user("ACME-ADM", "an-admin-password", [], is_admin=True)
 ```
 
 Valid department names are the contract owners in the data: BrightLeaf has Procurement, Operations, Logistics and Quality; Halcyon has Manufacturing, Engineering, Procurement, Supply Chain and Quality; Meridian has Infrastructure, Engineering, Security, Customer Success and Finance.
 
-**Upgrading an existing `instance/users.db`.** The `owners` column is added automatically on start-up (existing users stay unrestricted). The new department demo accounts are only created on a fresh database, so delete `instance/users.db` and restart if you want them.
+**Upgrading an existing `instance/users.db`.** The `owners` column is added automatically on start-up (existing users stay unrestricted). The `is_admin` column is added the same way. The new department demo accounts and the `ADM-01` administrator are only created on a fresh database, so delete `instance/users.db` and restart if you want them, or promote an existing account with `db_users.update_user("NL-2048", is_admin=True)`.
 
-**Remove a user.**
+**Remove a user.** Use the Administration screen, or from the command line:
 
 ```bash
 python -c "import sqlite3; c=sqlite3.connect('instance/users.db'); c.execute('DELETE FROM users WHERE username=?',('ACME-01',)); c.commit()"
@@ -311,7 +347,7 @@ python -c "import sqlite3; c=sqlite3.connect('instance/users.db'); c.execute('DE
 
 If the account is one of the defaults, also remove it from `DEFAULT_ACCOUNTS`, otherwise it comes back when the database is recreated.
 
-### 8. Add or regenerate data
+### 10. Add or regenerate data
 
 PDFs are read from the `data/` folder, recursively. The sub-folder name becomes the report **category**, and the filename decides the ticker and period:
 
@@ -368,7 +404,7 @@ This reads every `data/behavior/*_Customer_Behavior_<year>.pdf` and writes `data
 
 All three are fictional. `data/` holds quarterly reports (Q3-2023 to Q2-2026) plus summaries, customer-behaviour reports, topic reports, the supplier-contract register PDFs, and `Supplier_Contracts/contracts.csv` and `behavior/behavior.csv`, which feed the analytics.
 
-### 9. Run the tests
+### 11. Run the tests
 
 ```bash
 pip install pytest
@@ -377,7 +413,7 @@ pytest
 
 Run it from the project root. `pyproject.toml` already sets the test folder and import path. The suite writes its user database and audit log to a throw-away temp folder (via `FETCH_INSTANCE_DIR`), so it never touches your real `instance/` data.
 
-### 10. Troubleshooting
+### 12. Troubleshooting
 
 **Sign-in says "ID or password is incorrect".**
 If only a newer account such as `BLFD-LOG` fails, your `instance/users.db` was created before that account existed. Stop the server, delete `instance/users.db` and start again; it is re-created with all demo accounts.
@@ -394,7 +430,7 @@ It prints the database path, the users in it, whether `BLFD-01` exists, whether 
 The server received an empty ID or password. Check the **Network** tab in browser dev tools and look at the `signin` request payload.
 
 **"Account locked".**
-Three failed attempts lock the account until the server restarts.
+Three failed attempts lock the account. An administrator can unlock it from the Administration screen (guide 9); otherwise it stays locked until the server restarts.
 
 **Analytics shows no contracts.**
 Check that `data/Supplier_Contracts/contracts.csv` exists (run `python tools/generate_supplier_contracts.py` if not), and that your account's `document_ids` contain a company ticker. If you are on a department-limited account, only contracts owned by your department appear. A status of *Active* with an expiry period in the past also correctly returns nothing.
@@ -438,11 +474,13 @@ retrieval/                The library
   cache.py                TTLCache (in-memory, configurable TTL)
   retriever.py            Pipeline: fan-out → dedupe → rank → cache
   auth.py                 Session tokens (login / issue_token / validate / logout)
-  db_users.py             SQLite user store (bcrypt hashes + ticker ACLs)
+  db_users.py             SQLite user store (bcrypt hashes, ticker ACLs, department limits, admin flag)
   users.py                UserRecord, DEFAULT_ACCOUNTS, in-memory fallback store
   contracts.py            Supplier-contract store (SQLite) and expiry analytics, permission-scoped
   financials.py           Quarterly growth, margin, trend and peer statistics (from the extracted CSVs)
   behavior.py             Customer-behavior scorecard, growth split, roll-forward and peer comparison
+  company.py              Cross-source company overview: signals built from the three analyses above
+  views.py                Saved views (screen + filters per user) in instance/views.db
   audit.py                Append-only access log
   pull_request.py         PullRequestAgent — ownership-aware retrieval helper
 
@@ -451,7 +489,7 @@ data/                     PDF reports, one sub-folder per category
 tools/                    generate_supplier_contracts.py (CSV + PDFs), extract_financials.py and extract_behavior.py (PDFs → CSVs), check_login.py
 examples/demo.py          Auth + retrieval demo (PYTHONPATH=. python examples/demo.py)
 tests/                    pytest suite
-instance/                 Runtime files: users.db, contracts.db, audit.log (git-ignored, created on first run)
+instance/                 Runtime files: users.db, views.db, contracts.db, audit.log (git-ignored, created on first run)
 ```
 
 ### Request flow
@@ -472,12 +510,19 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/` | Serves `ui/index.html` |
-| `POST` | `/api/signin` | `{ company, id, password }` → `{ name, id, company, token }`. Also sets an HttpOnly `session_token` cookie. |
+| `POST` | `/api/signin` | `{ company, id, password }` → `{ name, id, company, admin, token }`. Also sets an HttpOnly `session_token` cookie. |
 | `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
 | `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, renewal, sole_source, token }` → statistics (`kpis` incl. `at_risk` and `sole_source`, `risk_rule`, `renewal_pipeline`, `concentration`, `outlook`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
 | `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, token }` (periods like `Q2-2026`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
 | `POST` | `/api/analyze/behavior` | Optional `{ ticker, year, assessment, token }` (`assessment`: `all`, `improved`, `worsened`, `flat`) → `companies` (revenue, customers, `growth`, `scorecard`, `improved`, `concerns`, `mix_moves`, `rollforward`, `sections`), `comparison`, `years`, `rule`, `scope`. `403` for a company outside the user's scope; `400` for an unknown year or assessment. |
+| `POST` | `/api/analyze/company` | Optional `{ ticker, token }` → `companies` (each with `financials`, `behavior`, `contracts`, `weight`, `signals`, `counts`, `partial_contracts`) and `scope`. `403` for a company outside the user's scope. |
+| `GET` / `POST` | `/api/views` | List the signed-in user's saved views / save one `{ name, screen, filters }` (`screen`: `contracts`, `financials`, `behavior`, `company`). Filters are validated by the same rules as the screen; `400` for anything else. |
+| `DELETE` | `/api/views/<id>` | Delete one of your own saved views. |
+| `GET` / `POST` | `/api/admin/users` | **Admin only.** List accounts (with lock state) and the company/department options / create `{ username, password, document_ids, owners, is_admin }`. |
+| `PATCH` / `DELETE` | `/api/admin/users/<username>` | **Admin only.** Change `document_ids`, `owners`, `password` or `is_admin` / delete the account. Cannot target yourself for delete or demotion, or the last admin. |
+| `POST` | `/api/admin/users/<username>/unlock` | **Admin only.** Clear a sign-in lockout. |
+| `GET` | `/api/admin/audit` | **Admin only.** Query `user`, `event`, `n` → `entries` (newest first), `events`, `flagged`, `total`. |
 | `POST` | `/api/signout` | `{ token }` → `{ ok: true }` |
 | `GET` | `/api/pdf/<ticker>/<path>` | Serves a PDF. Requires the `session_token` cookie (`401` without it) and `<ticker>` in the user's `document_ids` (`403` otherwise). The file must also belong to `<ticker>`. Department-limited accounts get `403` for `Supplier_Contracts/` files. |
 | `GET` | `/api/audit` | Recent audit entries. Requires the `X-Audit-Token` header; disabled unless the `AUDIT_TOKEN` environment variable is set. |
@@ -490,11 +535,13 @@ For the JSON endpoints the token is accepted either from the `session_token` coo
 |---------|-----------|
 | **Password storage** | bcrypt hashes in SQLite. No plain-text passwords in the database. |
 | **Sessions** | Random 32-byte hex tokens, 1-hour TTL, stored in memory. Sessions are lost when the server restarts. |
-| **Lockout** | After 3 failed sign-ins for the same company + ID, further attempts return `LOCKED` until the server is restarted. |
+| **Lockout** | After 3 failed sign-ins for the same company + ID, further attempts return `LOCKED` until an administrator unlocks the account or the server is restarted. |
 | **Rate limiting** | Max 30 `/api/retrieve` calls per token per 60 seconds. |
 | **Document ACLs** | Each user can only search, and download PDFs for, the tickers in their `document_ids`. Knowing another company's PDF URL is not enough: the download is refused with `403`. |
 | **Record-level limits** | A user's `owners` list restricts contract data to those departments. It is applied inside the SQL query (`owner IN (...)`) for every analytics call, and any filter the user adds can only narrow it further. The company-wide register PDFs, which list every department, are hidden from limited users' search results and refused on download. |
-| **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve`, `rate_limited`, `pdf_view`, `pdf_denied`, `analyze` and `analyze_denied` events are written to `instance/audit.log` as JSON lines. |
+| **Administrators** | Administration is a separate `is_admin` flag, checked on every `/api/admin/*` call. Admin passwords need 10+ characters, are never logged, and a password change, delete or demotion ends the account's sessions. |
+| **Saved views** | Only a screen name and whitelisted filters are stored, never results, so opening a view cannot exceed the user's current access. |
+| **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve`, `rate_limited`, `pdf_view`, `pdf_denied`, `analyze`, `analyze_denied`, `view_saved`, `view_deleted`, `admin_denied` and the four `admin_user_*` events are written to `instance/audit.log` as JSON lines. |
 
 The demo passwords above are written in the source code. Change them before deploying anywhere beyond a local demo.
 
