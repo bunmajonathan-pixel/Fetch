@@ -285,6 +285,19 @@ def test_pdf_rejected_after_signout(client):
     assert client.get(BLFD_PDF).status_code == 401
 
 
+def test_signout_works_without_a_json_body(client):
+    _signin(client, "BLFD-01", "blfd2024")
+    assert client.get(BLFD_PDF).status_code == 200
+    assert client.post("/api/signout").status_code == 200           # no body, no content type
+    assert client.get(BLFD_PDF).status_code == 401
+
+
+def test_signout_with_an_unreadable_body_still_ends_the_session(client):
+    _signin(client, "BLFD-01", "blfd2024")
+    assert client.post("/api/signout", data="not json", content_type="text/plain").status_code == 200
+    assert client.get(BLFD_PDF).status_code == 401
+
+
 def test_pdf_token_in_url_not_accepted(client):
     token = _signin(client, "BLFD-01", "blfd2024").get_json()["token"]
     client.delete_cookie("session_token")
