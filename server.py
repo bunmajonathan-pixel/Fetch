@@ -241,9 +241,6 @@ def api_signin():
     uid      = (body.get("id")      or "").strip()
     password = (body.get("password") or "").strip()
 
-    print(f"[signin] company={company!r} id={uid!r} password_len={len(password)} "
-          f"user_found={db_users.get_user(uid) is not None}", flush=True)
-
     if not uid or not password:
         return jsonify(error="Missing credentials.", code="BAD_CREDENTIALS"), 400
 
