@@ -145,6 +145,8 @@ Type a search into the box and click **Pull**. Try `revenue`, `Q1 2025`, or `ope
 | Status | Availability of the file |
 | View | Opens the full PDF |
 
+**Key figures under a hit.** When a result is a quarterly report or a customer-behavior report, a line under it shows that report's headline numbers (revenue and growth, margins, net income, EPS, free cash flow, or customer and revenue growth) and its improved / worse / flat count, with a button that opens the matching analytics screen for that company. They come from the same extracted data as the analytics screens and only appear for companies your account can search.
+
 A period in your query (`Q3 2025`, `2024`, `Q4-2026`) narrows results to reports for that period. Sign-in errors are specific: wrong ID or password shows "incorrect", a locked account shows "Account locked", and a connection problem shows "Can't reach the server" with the HTTP status.
 
 ### 3. Walkthrough: supplier contracts expiring in Q4 2026
@@ -245,6 +247,7 @@ From the request screen or the results screen, choose **Financial trends**. It t
 | Latest quarter | Revenue, growth vs. last year, gross and operating margin with the change in basis points (bp) vs. last year, net income, EPS, free cash flow, trailing-12-month revenue |
 | Chart | Any of revenue, gross / operating / net margin, net income, EPS, free cash flow, FCF margin, by quarter, one line per company |
 | Improved / Worse / Flat flags | For each company, the latest quarter's growth, margin, cost, cash, balance-sheet and segment measures (about 20 per company), each tagged *Improved*, *Worse* or *Flat* with a one-sentence reason, plus a quarter-by-quarter tally of how many measures fell into each group. **Export flags** downloads them |
+| Next-quarter estimate | For each company, an estimate of next quarter's revenue, operating income, net income, EPS and free cash flow, with a likely range and the change against the same quarter a year earlier |
 | Revenue growth index | Each company's revenue with its first quarter set to 100, so a small and a large company can be compared on growth |
 | Who leads | League table for the latest quarter on growth, margins and EPS growth (only when you can see two or more companies) |
 | Revenue by segment | Each company's segment mix and each segment's growth vs. last year |
@@ -254,6 +257,8 @@ From the request screen or the results screen, choose **Financial trends**. It t
 Filters: company, first and last quarter, the chart measure, what the flags compare against (*same quarter last year* or *previous quarter*) and which flags to show (*All / Improved only / Worse only / Flat only*). Growth rates are always calculated on the full history, so the first quarter in a window still shows its YoY.
 
 **Reading the flags.** They use the same rule as Customer behavior: a ratio (a margin, or SG&A as a share of revenue) counts as moved when it changes by 1 percentage point or by 5% of its own level, and an amount (revenue, profit, cash, debt, a segment's revenue) when it changes by 2%. Anything smaller is *Flat*, so noise is not reported as progress or decline. Each measure knows which direction is good: lower debt and a lower SG&A share count as better, higher everything else does. Quarter-on-quarter flags are noisier than year-on-year ones because of seasonality. The company overview also raises a watch item when any financial measure got worse.
+
+**Reading the estimate.** It is the same quarter a year earlier plus the average of the last three year-on-year changes, so it keeps each business's seasonal shape. The range comes from running that same method on every earlier quarter it could have been applied to: it is about 80% of the typical misses (the *±%* shown is the typical miss). It is a statistical estimate from past reports, not company guidance, and it cannot see events that have not shown up in a report yet. It needs at least ten quarters of history and follows the *To* filter.
 
 **Reading the statistics**
 
@@ -302,6 +307,17 @@ Choose **Company overview** from the request screen. It reads across the contrac
 Signals only appear when the data shows the condition: contracts lapsing within the next two quarters, sole-source spend above 20% of the register, the top three suppliers above 40% of spend, revenue growth slowing or speeding up by 2 points or more, and customer measures that got worse. Seeing a company with no Watch signals is normal (Halcyon today).
 
 **Permissions.** Access follows `document_ids`. For a department-limited account the contract signals that compare their slice with company-wide figures are left out, and the screen says the contract view is partial. **Export CSV** downloads the signals.
+
+#### Needs attention
+
+**Needs attention** (request screen, or the button on the company overview) is one ranked list across every company you can see. It contains each company's signals from the overview plus *results outside the expected range*: a measure whose latest quarter landed beyond the range that the estimate method (see [guide 5](#5-analyze-financial-trends)) would have given from the quarters before it, and at least 3% away from that estimate. A miss on revenue, profit or cash is a **Watch** item; a beat is **Good news**. Filter by company, show only what needs attention or everything, jump to the matching screen, or **Export CSV**. It is built from the same permission-scoped profiles as the overview, so a department-limited account sees only its own departments' contract items.
+
+#### A five-minute demo
+
+1. Sign in as `NL-2048`, search `Q3 2026 revenue`: each quarterly report carries its key figures and flags; BrightLeaf shows 11 worse.
+2. Open **Needs attention**: BrightLeaf and Halcyon report below the expected range, Meridian beats it.
+3. Open BrightLeaf's financials: the Worse flags, then the Q4 2026 estimate and range.
+4. Sign in as `BLFD-LOG` and repeat step 2: same company, only Logistics contracts, and the supplier-concentration item is gone.
 
 ### 8. Saved views and reports
 
@@ -495,6 +511,7 @@ retrieval/                The library
   financials.py           Quarterly growth, margin, trend and peer statistics (from the extracted CSVs)
   behavior.py             Customer-behavior scorecard, growth split, roll-forward and peer comparison
   company.py              Cross-source company overview: signals built from the three analyses above
+  alerts.py               The ranked "needs attention" list built from the company profiles
   views.py                Saved views (screen + filters per user) in instance/views.db
   audit.py                Append-only access log
   pull_request.py         PullRequestAgent — ownership-aware retrieval helper
@@ -527,11 +544,12 @@ Browser ──POST /api/retrieve─► server.py ──► validate_token() + ra
 |--------|------|-------------|
 | `GET` | `/` | Serves `ui/index.html` |
 | `POST` | `/api/signin` | `{ company, id, password }` → `{ name, id, company, admin, token }`. Also sets an HttpOnly `session_token` cookie. |
-| `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`. Rate limited. |
+| `POST` | `/api/retrieve` | `{ query, token }` → `{ title, subtitle, columns, rows, note }`; each row also has `figures` (key numbers for quarterly and customer-behavior reports, otherwise `null`). Rate limited. |
 | `POST` | `/api/refresh` | `{ token }` → `{ token }`. Issues a new token and invalidates the old one. |
 | `POST` | `/api/analyze/contracts` | Optional `{ ticker, status, quarter \| expiry_from + expiry_to, category, owner, renewal, sole_source, token }` → statistics (`kpis` incl. `at_risk` and `sole_source`, `risk_rule`, `renewal_pipeline`, `concentration`, `outlook`, `timeline`, `by_category`, `by_owner`, `by_ticker`, `top_suppliers`, `buckets`, `rows`, `options`, `scope`). Scoped to the user's companies and, for department-limited accounts, their departments. `403` if a requested company or department is outside that scope. Rate limited. |
-| `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, assessment, basis, token }` (periods like `Q2-2026`; `assessment`: `all`, `improved`, `worsened`, `flat`; `basis`: `yoy` or `qoq`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`, `scorecard` with the improved/worsened/flat tally, `measures`, `concerns` and per-quarter `history`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
+| `POST` | `/api/analyze/financials` | Optional `{ ticker, from, to, metric, assessment, basis, token }` (periods like `Q2-2026`; `assessment`: `all`, `improved`, `worsened`, `flat`; `basis`: `yoy` or `qoq`) → `companies` (latest quarter, margin change in bp, `stats`, `series`, `indexed`, `segments`, `scorecard` with the improved/worsened/flat tally, `measures`, `concerns` and per-quarter `history`, `forecast` with the next-quarter estimates and ranges, `surprises`), `ranking`, `periods`, `metrics`, `scope`. `403` for a company outside the user's scope. |
 | `POST` | `/api/analyze/behavior` | Optional `{ ticker, year, assessment, token }` (`assessment`: `all`, `improved`, `worsened`, `flat`) → `companies` (revenue, customers, `growth`, `scorecard`, `improved`, `concerns`, `mix_moves`, `rollforward`, `sections`), `comparison`, `years`, `rule`, `scope`. `403` for a company outside the user's scope; `400` for an unknown year or assessment. |
+| `POST` | `/api/analyze/alerts` | Optional `{ ticker, token }` → `alerts` (ranked; each with `level`, `kind` of `signal` or `surprise`, `ticker`, `title`, `detail`, `sources`, `evidence`, `screen`), `counts`, `companies`, `scope`. `403` for a company outside the user's scope. |
 | `POST` | `/api/analyze/company` | Optional `{ ticker, token }` → `companies` (each with `financials`, `behavior`, `contracts`, `weight`, `signals`, `counts`, `partial_contracts`) and `scope`. `403` for a company outside the user's scope. |
 | `GET` / `POST` | `/api/views` | List the signed-in user's saved views / save one `{ name, screen, filters }` (`screen`: `contracts`, `financials`, `behavior`, `company`). Filters are validated by the same rules as the screen; `400` for anything else. |
 | `DELETE` | `/api/views/<id>` | Delete one of your own saved views. |

@@ -383,3 +383,50 @@ def test_api_flag_filters_and_scope(client):
     assert _post(client, *ALL3, basis="bogus").status_code == 400
     one = _post(client, *BLFD).get_json()
     assert [c["ticker"] for c in one["companies"]] == ["BLFD"]       # no other company's flags leak into scope
+
+
+# ---------------------------------------------------------------------------
+# Next-quarter estimate
+# ---------------------------------------------------------------------------
+
+def _fc(tiny, revenues, **filters):
+    tiny(revenues)
+    c = financials.analyze({"AAA"}, financials.parse_filters(filters))["companies"][0]
+    return c["forecast"], ({m["key"]: m for m in c["forecast"]["measures"]} if c["forecast"] else {})
+
+
+def test_forecast_continues_a_straight_line_exactly_and_names_the_next_quarter(tiny):
+    f, by = _fc(tiny, [100 + 10 * i for i in range(12)])
+    assert f["period"] == "Q3-2026" and f["based_on"] == "Q2-2026" and f["tested_on"] == 5
+    assert by["revenue"]["estimate"] == 220.0 and by["revenue"]["low"] == by["revenue"]["high"] == 220.0
+    assert by["revenue"]["vs_year_ago_pct"] == round(100 * (220 - 180) / 180, 2)
+    assert "not company guidance" in f["caution"]
+
+
+def test_forecast_range_widens_when_the_history_is_noisy(tiny):
+    smooth, s_by = _fc(tiny, [100 + 10 * i for i in range(12)])
+    noisy, n_by = _fc(tiny, [100 + 10 * i + (15 if i % 3 == 0 else -5) for i in range(12)])
+    width = lambda m: m["high"] - m["low"]
+    assert width(n_by["revenue"]) > width(s_by["revenue"]) and n_by["revenue"]["typical_miss_pct"] > 0
+    assert n_by["revenue"]["low"] < n_by["revenue"]["estimate"] < n_by["revenue"]["high"]
+
+
+def test_forecast_keeps_the_seasonal_shape(tiny):
+    f, by = _fc(tiny, [50, 50] + [100, 100, 100, 200] * 2 + [100, 100])      # Q4 is always double
+    assert f["period"] == "Q3-2026" and by["revenue"]["estimate"] == pytest.approx(100, abs=1)
+
+
+def test_forecast_needs_enough_history_and_follows_the_window(tiny):
+    tiny([100 + 10 * i for i in range(12)])
+    short = financials.analyze({"AAA"}, financials.parse_filters({"to": "Q4-2025"}))["companies"][0]
+    assert short["forecast"]["period"] == "Q1-2026" and short["forecast"]["quarters_used"] == 10
+    tiny([100 + 10 * i for i in range(9)])
+    assert financials.analyze({"AAA"}, Filters())["companies"][0]["forecast"] is None
+
+
+def test_real_data_forecast_is_labelled_and_inside_scope(client):
+    d = _post(client, *BLFD).get_json()
+    f = d["companies"][0]["forecast"]
+    assert f["period"] == "Q4-2026" and f["based_on"] == "Q3-2026"
+    for m in f["measures"]:
+        assert m["low"] <= m["estimate"] <= m["high"]

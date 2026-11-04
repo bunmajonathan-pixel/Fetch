@@ -323,6 +323,119 @@ def _scorecard(ticker: str, full: list[dict], window: list[dict], f: Filters) ->
 # Public API
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Next-quarter estimate
+# ---------------------------------------------------------------------------
+
+FORECAST_MEASURES = (("revenue", "Revenue", "$M"), ("operating_income", "Operating income", "$M"),
+                     ("net_income", "Net income", "$M"), ("eps", "Diluted EPS", "$"),
+                     ("free_cash_flow", "Free cash flow", "$M"))
+FORECAST_AVG = 3          # year-on-year changes averaged to carry the trend forward
+FORECAST_MIN_TESTS = 3    # earlier quarters the method must have been tested on before it is shown
+RANGE_Z = 1.28            # about 80% of past misses fell inside a band of this many typical misses
+
+
+def _next_period(period: str) -> str:
+    y, q = _pkey(period)
+    return f"Q{q % 4 + 1}-{y + (1 if q == 4 else 0)}"
+
+
+def _estimate(vals: list[float], j: int) -> float | None:
+    """Estimate vals[j] from earlier values only: the same quarter a year before, plus the
+    average year-on-year change of the last few quarters (which keeps the seasonal shape)."""
+    if j < FORECAST_AVG + 4:
+        return None
+    deltas = [vals[j - k] - vals[j - k - 4] for k in range(1, FORECAST_AVG + 1)]
+    return vals[j - 4] + sum(deltas) / FORECAST_AVG
+
+
+SURPRISE_MIN_PCT = 3.0    # a result must also be this far (as % of the estimate) from the estimate to count
+
+
+def _surprises(rows: list[dict]) -> list[dict]:
+    """Measures whose latest quarter landed outside the range the estimate method would have
+    given from the history before it.  Needs the same testing history as the forecast."""
+    n = len(rows)
+    if n < FORECAST_AVG + 4 + FORECAST_MIN_TESTS + 1:
+        return []
+    out = []
+    for key, label, unit in FORECAST_MEASURES:
+        vals = [r[key] for r in rows]
+        if any(v is None for v in vals):
+            continue
+        point = _estimate(vals, n - 1)
+        misses = [vals[j] - _estimate(vals, j) for j in range(FORECAST_AVG + 4, n - 1)]
+        band = RANGE_Z * (sum(m * m for m in misses) / len(misses)) ** 0.5
+        miss = vals[-1] - point
+        if abs(miss) <= band or not point or abs(100 * miss / point) < SURPRISE_MIN_PCT:
+            continue
+        dec = 2 if unit == "$" else 1
+        out.append({"key": key, "label": label, "unit": unit, "period": rows[-1]["period"],
+                    "actual": round(vals[-1], dec), "expected": round(point, dec),
+                    "low": round(point - band, dec), "high": round(point + band, dec),
+                    "miss_pct": round(100 * miss / abs(point), 1), "direction": "above" if miss > 0 else "below"})
+    out.sort(key=lambda m: -abs(m["miss_pct"]))
+    return out
+
+
+def _forecast(rows: list[dict]) -> dict | None:
+    """Next-quarter estimate with a range, from the history up to the last quarter in view.
+
+    The range comes from testing the same method on every earlier quarter it could have
+    been applied to: the band is RANGE_Z times the root-mean-square of those misses.  It is
+    an estimate, not guidance, and it assumes next quarter looks like the recent past."""
+    n = len(rows)
+    if n < FORECAST_AVG + 4 + FORECAST_MIN_TESTS:
+        return None
+    measures = []
+    for key, label, unit in FORECAST_MEASURES:
+        vals = [r[key] for r in rows]
+        if any(v is None for v in vals):
+            continue
+        point = _estimate(vals, n)
+        misses = [vals[j] - _estimate(vals, j) for j in range(FORECAST_AVG + 4, n)]
+        rmse = (sum(m * m for m in misses) / len(misses)) ** 0.5
+        band = RANGE_Z * rmse
+        dec = 2 if unit == "$" else 1
+        year_ago = vals[n - 4]
+        measures.append({
+            "key": key, "label": label, "unit": unit,
+            "estimate": round(point, dec), "low": round(point - band, dec), "high": round(point + band, dec),
+            "last": round(vals[-1], dec), "year_ago": round(year_ago, dec),
+            "vs_year_ago_pct": _pct(point, year_ago),
+            "typical_miss_pct": round(100 * rmse / abs(point), 1) if point else None,
+        })
+    if not measures:
+        return None
+    return {"period": _next_period(rows[-1]["period"]), "based_on": rows[-1]["period"], "quarters_used": n,
+            "tested_on": n - FORECAST_AVG - 4, "measures": measures,
+            "method": (f"Same quarter a year earlier plus the average of the last {FORECAST_AVG} year-on-year changes. "
+                       f"The range is the {int(100 * 0.8)}% band from testing that method on {n - FORECAST_AVG - 4} earlier quarters."),
+            "caution": "A statistical estimate from past reports, not company guidance or a prediction of events."}
+
+
+def report_figures(ticker: str, period: str) -> dict | None:
+    """Key figures and flags for one reported quarter (against the same quarter a year earlier).
+
+    Used beside a search hit on that quarter's report.  The caller has already limited the hit to a
+    company the account may see; this adds nothing beyond that company's own numbers."""
+    _load()
+    full = _derive(_FIN.get(ticker, []))
+    i = next((n for n, d in enumerate(full) if d["period"] == period), None)
+    if i is None:
+        return None
+    d = full[i]
+    flags = _flags(ticker, full, i, "yoy")
+    t = _tally(flags) if flags else None
+    concerns = sorted((m for m in flags if m["assessment"] == "worsened" and m["rel_pct"] is not None),
+                      key=lambda m: -abs(m["rel_pct"]))[:3]
+    return {"kind": "quarter", "period": period, "revenue": d["revenue"], "revenue_yoy": d["revenue_yoy"],
+            "gross_margin": d["gross_margin"], "operating_margin": d["operating_margin"],
+            "net_income": d["net_income"], "eps": d["eps"], "free_cash_flow": d["free_cash_flow"],
+            "improved": t["improved"] if t else None, "worsened": t["worsened"] if t else None,
+            "flat": t["flat"] if t else None, "concerns": [m["label"] for m in concerns]}
+
+
 def scope_periods(tickers: set[str]) -> list[str]:
     """Every period available to this scope, oldest -> newest."""
     _load()
@@ -370,6 +483,7 @@ def analyze(tickers: set[str], f: Filters) -> dict:
              "yoy_pct": _pct(rev, prior_segments.get(name)) if prior_segments else None}
             for name, rev in sorted(latest_segments.items(), key=lambda kv: -kv[1])
         ]
+        upto = [d for d in full if (d["year"], d["quarter"]) <= (last["year"], last["quarter"])]
         companies.append({
             "ticker": tk,
             "latest": _row_out(last),
@@ -383,6 +497,8 @@ def analyze(tickers: set[str], f: Filters) -> dict:
                          "value": round(100.0 * d["revenue"] / first["revenue"], 1)} for d in window],
             "segments": segments,
             "scorecard": _scorecard(tk, full, window, f),
+            "forecast": _forecast(upto),
+            "surprises": _surprises(upto),
         })
 
     periods = sorted({r["period"] for c in companies for r in c["series"]}, key=_pkey)

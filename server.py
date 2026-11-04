@@ -34,7 +34,7 @@ from retrieval.auth import issue_token, revoke_user
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
-from retrieval import behavior, company, contracts, db_users, financials, views
+from retrieval import alerts, behavior, company, contracts, db_users, financials, views
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -322,6 +322,25 @@ def api_refresh():
     return resp
 
 
+def _row_figures(ticker: str, period: str, category: str, file_name: str) -> dict | None:
+    """Key numbers to show under a search hit that is a quarterly or customer-behavior report."""
+    try:
+        if file_name.endswith("_Quarterly_Report.pdf"):
+            return financials.report_figures(ticker, period)
+        if category == "behavior" and period.isdigit():
+            c = next(iter(behavior.analyze({ticker}, behavior.Filters(year=int(period)))["companies"]), None)
+            if c is None:
+                return None
+            sc = c.get("scorecard")
+            return {"kind": "behavior", "period": period, "customers_pct": (c.get("growth") or {}).get("customers_pct"),
+                    "revenue_pct": (c.get("growth") or {}).get("revenue_pct"),
+                    "improved": sc["improved"] if sc else None, "worsened": sc["worsened"] if sc else None,
+                    "flat": sc["flat"] if sc else None, "concerns": [r["label"] for r in c.get("concerns", [])][:3]}
+    except Exception:                       # a hit must never fail because its numbers could not be built
+        return None
+    return None
+
+
 @app.post("/api/retrieve")
 def api_retrieve():
     body  = request.get_json(force=True) or {}
@@ -400,6 +419,7 @@ def api_retrieve():
             "snippet":  snippet,
             "status":   "Available",
             "file":     file_url,
+            "figures":  _row_figures(ticker, period, category, Path(meta.get("path", "")).name),
         })
 
     # Top result note
@@ -565,6 +585,21 @@ def api_analyze_behavior():
     return jsonify(result)
 
 
+def _company_profiles(tickers: set[str], owners: set[str] | None, want: str | None = None) -> list[dict]:
+    """Company profiles for the caller's own scope (shared by the company page and the alert feed)."""
+    profiles = []
+    for t in sorted(tickers):
+        if want and t != want:
+            continue
+        fin = financials.analyze({t}, financials.parse_filters({}))["companies"]
+        beh = behavior.analyze({t}, behavior.Filters())["companies"]
+        if not fin or not beh:
+            continue
+        con = contracts.analyze({t}, owners, contracts.parse_filters({"ticker": t}))
+        profiles.append(company.profile(t, COMPANIES[t]["name"], fin[0], beh[0], con, partial=owners is not None))
+    return profiles
+
+
 @app.post("/api/analyze/company")
 def api_analyze_company():
     """
@@ -598,23 +633,51 @@ def api_analyze_company():
         _audit("analyze_denied", username, ip=request.remote_addr, detail={"ticker": want, "kind": "company"})
         return jsonify(error="You are not authorised to view this company.", code="FORBIDDEN"), 403
 
-    owners  = None if user_rec.owners is None else set(user_rec.owners)
-    profiles = []
-    for t in sorted(tickers):
-        if want and t != want:
-            continue
-        fin = financials.analyze({t}, financials.parse_filters({}))["companies"]
-        beh = behavior.analyze({t}, behavior.Filters())["companies"]
-        if not fin or not beh:
-            continue
-        con = contracts.analyze({t}, owners, contracts.parse_filters({"ticker": t}))
-        profiles.append(company.profile(t, COMPANIES[t]["name"], fin[0], beh[0], con, partial=owners is not None))
+    owners   = None if user_rec.owners is None else set(user_rec.owners)
+    profiles = _company_profiles(tickers, owners, want)
 
     _audit("analyze", username, ip=request.remote_addr,
            detail={"kind": "company", "companies": [p["ticker"] for p in profiles]})
     return jsonify({"companies": profiles,
                     "scope": {"companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
                               "owners": None if owners is None else sorted(owners)}})
+
+
+@app.post("/api/analyze/alerts")
+def api_analyze_alerts():
+    """
+    One ranked "needs attention" list across the caller's companies: the company-page signals
+    plus quarters whose results landed outside the range the trend implied.
+
+    Body (optional): ticker.  Built from the same permission-scoped profiles as the company
+    page, so a department-limited account sees alerts from its own departments' contracts only.
+    """
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return jsonify(error=str(e), code="UNAUTHORIZED"), 401
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "analyze_alerts"})
+        return jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429
+    user_rec = db_users.get_user(username)
+    if user_rec is None:
+        return jsonify(error="User record not found.", code="UNAUTHORIZED"), 401
+
+    want = (body.get("ticker") or "").strip().upper() or None
+    tickers = set(user_rec.document_ids) & set(COMPANIES)
+    if want and want not in tickers:
+        _audit("analyze_denied", username, ip=request.remote_addr, detail={"ticker": want, "kind": "alerts"})
+        return jsonify(error="You are not authorised to view this company.", code="FORBIDDEN"), 403
+
+    owners = None if user_rec.owners is None else set(user_rec.owners)
+    profiles = _company_profiles(tickers, owners, want)
+    result = alerts.build(profiles)
+    _audit("analyze", username, ip=request.remote_addr,
+           detail={"kind": "alerts", "companies": [p["ticker"] for p in profiles], "watch": result["counts"]["watch"]})
+    return jsonify({**result, "scope": {"companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
+                                         "owners": None if owners is None else sorted(owners)}})
 
 
 def _signed_in():
