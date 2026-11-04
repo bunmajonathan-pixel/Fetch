@@ -33,7 +33,7 @@ from retrieval.auth import issue_token
 from retrieval.sources import PDFSource
 from retrieval.types import Query, Document
 from retrieval.audit import configure as _audit_configure, record as _audit, recent as _audit_recent
-from retrieval import behavior, company, contracts, db_users, financials
+from retrieval import behavior, company, contracts, db_users, financials, views
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -95,6 +95,9 @@ financials.init_financials(DATA_ROOT / "individual" / "financials.csv",
 
 # Year-over-year customer-behavior metrics, read from the CSV that tools/extract_behavior.py builds from the PDFs
 behavior.init_behavior(DATA_ROOT / "behavior" / "behavior.csv")
+
+# Saved views (named filter sets per user), in their own file so a user-database reset keeps them
+views.init_views(INSTANCE_DIR / "views.db")
 
 # The contract-register PDFs list EVERY department's contracts. A user limited to
 # certain departments (user.owners is not None) must not see them, or the record-level
@@ -588,6 +591,69 @@ def api_analyze_company():
     return jsonify({"companies": profiles,
                     "scope": {"companies": [{"ticker": t, "name": COMPANIES[t]["name"]} for t in sorted(tickers)],
                               "owners": None if owners is None else sorted(owners)}})
+
+
+def _signed_in():
+    """(username, None) for a valid, un-throttled session, else (None, error response)."""
+    body  = request.get_json(force=True, silent=True) or {}
+    token = request.cookies.get("session_token") or body.get("token", "")
+    try:
+        username = validate_token(token)
+    except AuthError as e:
+        return None, (jsonify(error=str(e), code="UNAUTHORIZED"), 401)
+    if not _check_rate(token):
+        _audit("rate_limited", username, ip=request.remote_addr, detail={"endpoint": "views"})
+        return None, (jsonify(error="Too many requests. Please wait a moment.", code="RATE_LIMITED"), 429)
+    return username, None
+
+
+def _check_view_filters(screen: str, filters: dict) -> None:
+    """Run the screen's own filter parser, so only filters it would accept can be saved."""
+    if screen == "contracts":
+        contracts.parse_filters(filters)
+    elif screen == "financials":
+        financials.parse_filters(filters)
+    elif screen == "behavior":
+        behavior.parse_filters(filters)
+    elif screen == "company" and filters.get("ticker", "").upper() not in ("", *COMPANIES):
+        raise ValueError("Unknown company.")
+
+
+@app.get("/api/views")
+def api_views_list():
+    username, err = _signed_in()
+    if err:
+        return err
+    return jsonify(views=views.list_views(username))
+
+
+@app.post("/api/views")
+def api_views_save():
+    """Body: { name, screen, filters }.  Saving a name that already exists on that screen replaces it."""
+    username, err = _signed_in()
+    if err:
+        return err
+    body = request.get_json(force=True, silent=True) or {}
+    try:
+        name, filters = views.clean(body.get("screen"), body.get("name"), body.get("filters") or {})
+        _check_view_filters(body["screen"], filters)
+        saved = views.save(username, body["screen"], name, filters)
+    except ValueError as e:
+        return jsonify(error=str(e), code="BAD_REQUEST"), 400
+    _audit("view_saved", username, ip=request.remote_addr,
+           detail={"screen": saved["screen"], "name": saved["name"]})
+    return jsonify(saved), 201
+
+
+@app.delete("/api/views/<int:view_id>")
+def api_views_delete(view_id: int):
+    username, err = _signed_in()
+    if err:
+        return err
+    if not views.delete(username, view_id):
+        return jsonify(error="View not found.", code="NOT_FOUND"), 404
+    _audit("view_deleted", username, ip=request.remote_addr, detail={"id": view_id})
+    return jsonify(ok=True)
 
 
 @app.post("/api/signout")

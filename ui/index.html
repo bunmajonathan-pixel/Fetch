@@ -77,7 +77,9 @@ select{width:100%;font:inherit;color:var(--t);background:var(--s);border:1px sol
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-top:6px;color:var(--m)}.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
 table.auto{table-layout:auto;width:100%}.auto td,.auto th{white-space:nowrap;overflow:visible;text-overflow:clip;padding-left:8px;padding-right:8px}table.num{table-layout:auto;min-width:640px}.num td,.num th{white-space:normal;overflow:visible;text-overflow:clip;vertical-align:top}.num td:not(:first-child),.num th:not(:first-child){text-align:right}.pos{color:var(--ok)}.neg{color:var(--d)}.fn{font-size:11px;color:var(--m);margin:8px 0 0;line-height:1.5}
 .rk{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}.rk span{white-space:nowrap}
-.st.m{background:var(--bs);color:var(--m)}.sig{border:1px solid var(--l);border-left-width:4px;border-radius:8px;padding:10px 14px;margin:8px 0;background:var(--s)}.sig.watch{border-left-color:var(--d)}.sig.good{border-left-color:var(--ok)}.sig.info{border-left-color:var(--m)}.sig .sh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sig p{margin:6px 0;font-size:13px}.sig .ev{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;margin:4px 0}.sig .ev small{color:var(--m);margin-right:4px}.sig .src{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.co .sp{flex:1}
+.st.m{background:var(--bs);color:var(--m)}.print-only{display:none}
+@media print{#hdr,footer,.banner,.top-actions,.filters,#sv-form,#warn-slot,.theme-btn{display:none!important}body{background:#fff!important}.print-only{display:block;font-size:11px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid #999}.chart,.kpi,.sig,.card,tr{break-inside:avoid}.wrap{max-width:none!important;padding:0!important}#an-body{opacity:1!important}}
+.sig{border:1px solid var(--l);border-left-width:4px;border-radius:8px;padding:10px 14px;margin:8px 0;background:var(--s)}.sig.watch{border-left-color:var(--d)}.sig.good{border-left-color:var(--ok)}.sig.info{border-left-color:var(--m)}.sig .sh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sig p{margin:6px 0;font-size:13px}.sig .ev{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;margin:4px 0}.sig .ev small{color:var(--m);margin-right:4px}.sig .src{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.co .sp{flex:1}
 .co{margin:22px 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.co h2{font-size:20px;margin:0}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;margin-bottom:12px}.li{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--l)}.li:last-child{border:0}.li span:first-child{min-width:0}.li small{color:var(--m)}
 .flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.flow b{font-size:18px}.flow .op{color:var(--m)}.flow>div{background:var(--bs);border-radius:8px;padding:8px 12px}.flow small{display:block;color:var(--m);font-size:11px}
@@ -122,6 +124,12 @@ const DataService={
     const r=await fetch("/api/analyze/behavior",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok){const e=new Error(d.error||"Analysis failed");e.code=d.code||"ERROR";throw e}
+    return d
+  },
+  async views(method,path,body){
+    const r=await fetch("/api/views"+(path||""),{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+    const d=await r.json();
+    if(!r.ok){const e=new Error(d.error||"Request failed");e.code=d.code||"ERROR";throw e}
     return d
   },
   async analyzeCo(filters){
@@ -186,7 +194,7 @@ function header(){
   $("#hdr").innerHTML=`<header><div class="logo">▤</div><span class="brand">Fetch</span><span class="sub">Enterprise workspace</span><span class="sp"></span><span class="pill">Sample workspace</span><button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">${themeIcon()}</button>${S.user?`<span class="user"><span class="av">${esc(S.user.name.split(" ").map(w=>w[0]).join(""))}</span>${esc(S.user.name)} · ${esc(S.user.id)}</span>`:""}</header>
   <div class="crumb"><span>${S.user?esc(S.user.company?S.user.company.toUpperCase():S.user.id):"WORKSPACE"} / DATA WORKSPACE</span><div class="steps">${["Sign in","Request","Retrieve","Review"].map((n,i)=>i===st?`<span><b>${n}</b></span>`:`<span>${n}</span>`).join("")}</div></div>`;
 }
-function go(screen){S.screen=screen;if(screen==="results")S.page=0;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo()}
+function go(screen){S.screen=screen;if(screen==="results")S.page=0;header();const f=VIEWS[screen];$("#app").innerHTML=`<main>${f()}</main>`;BIND[screen]&&BIND[screen]();const tc=$("#to-co");if(tc)tc.onclick=()=>openCo();const sv=$("#sv");if(sv)sv.onclick=saveViewForm;const pr=$("#pr");if(pr)pr.onclick=printReport}
 
 const VIEWS={
 login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focused session.</span><h1>The data you need.<br>Nothing left behind.</h1><p>Ask for a specific dataset, review it in a temporary view, and close your session when you're done.</p>
@@ -199,6 +207,7 @@ login:()=>`<div class="wrap hero"><div><span class="eyebrow">Your data. One focu
  <button class="btn primary block" id="go">→ Sign in</button><p class="hint" style="margin-top:16px;border-top:1px solid var(--l);padding-top:12px">Trouble signing in? Contact your company's workspace administrator.</p></form></div>`,
 request:()=>`<div class="wrap narrow" style="padding-top:40px"><span class="pill" style="background:var(--oks);color:var(--ok)">Signed in · ${esc(S.user.id)}</span><h1 style="font-size:30px">What data would you like pulled?</h1><p>Hi ${esc(S.user.name.split(" ")[0])}. Describe the records you need. Results open in a temporary, read-only view for this session.</p>
  <div class="tag" style="margin-top:28px">Try a sample request</div><div class="chips">${["Q1 2025 revenue","Operating income Q3 2024","Cash and debt overview","Customer behavior 2024","Financial and commercial","Performance and tracking","Product and feature impact","Ad-hoc troubleshooting"].map(c=>`<button class="chip" data-q="${c}">＋ ${c}</button>`).join("")}</div>${bar(false)}
+ <div id="sv-list"></div>
  <div class="card" style="margin-top:28px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Company overview</b><p class="hint" style="margin-top:2px">One page per company that joins financials, customer behavior and supplier contracts, and flags what needs attention across them.</p></div><button class="btn primary" id="to-co">▦ Open overview</button></div>
  <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Contract expiry analytics</b><p class="hint" style="margin-top:2px">Totals and charts for the supplier contracts you are cleared to see. Filter by status, expiry quarter, category and department.</p></div><button class="btn primary" id="to-an">▥ Open analytics</button></div>
  <div class="card" style="margin-top:12px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Financial trends</b><p class="hint" style="margin-top:2px">Growth, margins, trend and peer comparison from the quarterly reports for the companies you are cleared to see.</p></div><button class="btn primary" id="to-fin">↗ Open financials</button></div></div>
@@ -249,7 +258,7 @@ analytics:()=>{
  <div id="warn-slot"></div>
  ${S.aerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the analytics</b><span>${esc(S.aerr)}</span></div>`:""}
  <div class="top"><div><h2>Contract expiry analytics</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Department limited: "+sc.owners.map(esc).join(", "):"All departments"}</span><span class="pill">Status as of ${esc(A.as_of)}</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="export-c" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-c" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  ${limited?`<p class="hint">Totals below cover only your department's contracts. Company-wide contract register PDFs are not available on department-limited accounts.</p>`:""}
  <div class="filters">
   ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
@@ -339,7 +348,7 @@ financials:()=>{
  <div id="warn-slot"></div>
  ${S.ferr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the financials</b><span>${esc(S.ferr)}</span></div>`:""}
  <div class="top"><div><h2>Financial trends</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">Quarterly reports through ${esc(pl(A.as_of||"—"))}</span><span class="pill">$ millions</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-f" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="filters">
   ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
   ${sel("from","From",[["all","Earliest"],...pOpts])}
@@ -391,7 +400,7 @@ company:()=>{
  <div id="warn-slot"></div>
  ${S.cerr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update the overview</b><span>${esc(S.cerr)}</span></div>`:""}
  <div class="top"><div><h2>Company overview</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill ${limited?"lim":""}">${limited?"Contracts: "+sc.owners.map(esc).join(", ")+" only":"All departments"}</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="export-o" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-o" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  ${multi?`<div class="filters">${sel}</div>`:""}
  <div id="an-body">${body}</div></div>`},
 behavior:()=>{
@@ -431,7 +440,7 @@ behavior:()=>{
  <div id="warn-slot"></div>
  ${S.berr?`<div class="alert" style="margin:0 0 10px"><b>Couldn't update customer behavior</b><span>${esc(S.berr)}</span></div>`:""}
  <div class="top"><div><h2>Customer behavior</h2><div class="scope"><span class="pill">${sc.companies.map(c=>esc(c.name)).join(" · ")}</span><span class="pill">${Y} vs. ${P} · year-end or full-year figures</span></div></div>
- <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="export-b" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
+ <div class="top-actions"><button class="btn sec" id="back-search" style="padding:7px 12px;font-size:12px">← Search</button><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="sv" style="padding:7px 12px;font-size:12px">★ Save view</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="pr" style="padding:7px 12px;font-size:12px">⎙ Print / PDF</button><button class="btn sec" id="export-b" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="filters">
   ${multi?sel("ticker","Company",[["","All my companies"],...sc.companies.map(c=>[c.ticker,c.name])]):""}
   ${sel("year","Year",sc.years.map(y=>[y,y]))}
@@ -458,6 +467,7 @@ request(){
   $("#send").onclick=()=>send();$("#q").onkeydown=e=>{if(e.key==="Enter")send()};$("#q").focus();
   document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>run(c.dataset.q));
   $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
+  renderSaved();
 },
 retrieving(){},
 analyzing(){},finalyzing(){},banalyzing(){},
@@ -545,7 +555,7 @@ async function loadAnalysis(prevAf){
   return true
 }
 async function openAnalytics(t){
-  S.af={ticker:typeof t==="string"?t:"",status:"Active",quarter:"current",category:"",owner:"",renewal:"",sole_source:""};S.analysis=null;S.aerr=null;
+  S.af={ticker:"",status:"Active",quarter:"current",category:"",owner:"",renewal:"",sole_source:"",...argOf(t)};S.analysis=null;S.aerr=null;
   go("analyzing");
   if(await loadAnalysis()&&S.screen==="analyzing")go("analytics");
 }
@@ -578,7 +588,7 @@ async function loadFin(prevFf){
   return true
 }
 async function openFin(t){
-  S.ff={ticker:typeof t==="string"?t:"",from:"all",to:"all",metric:"revenue"};S.fin=null;S.ferr=null;
+  S.ff={ticker:"",from:"all",to:"all",metric:"revenue",...argOf(t)};S.fin=null;S.ferr=null;
   go("finalyzing");
   if(await loadFin()&&S.screen==="finalyzing")go("financials");
 }
@@ -590,6 +600,50 @@ function exportFinCsv(){
   const A=S.fin;if(!A)return;
   const cols=[["ticker","Company"],["period","Quarter"],["revenue","Revenue ($M)"],["revenue_qoq","Revenue QoQ (%)"],["revenue_yoy","Revenue YoY (%)"],["gross_profit","Gross profit ($M)"],["gross_margin","Gross margin (%)"],["operating_income","Operating income ($M)"],["operating_margin","Operating margin (%)"],["net_income","Net income ($M)"],["net_margin","Net margin (%)"],["eps","Diluted EPS ($)"],["free_cash_flow","Free cash flow ($M)"],["fcf_margin","FCF margin (%)"],["ttm_revenue","Trailing 12-month revenue ($M)"]];
   downloadCsv("financials",cols,A.companies.flatMap(c=>c.series.map(r=>({ticker:c.ticker,...r}))));
+}
+
+/* ===== Saved views and printing ===== */
+const argOf=t=>typeof t==="string"?{ticker:t}:(t&&t.constructor===Object?t:{});
+const VIEW_SCREENS={
+  contracts:{label:"Contract analytics",screen:"analytics",get:()=>S.af,open:f=>openAnalytics(f)},
+  financials:{label:"Financial trends",screen:"financials",get:()=>S.ff,open:f=>openFin(f)},
+  behavior:{label:"Customer behavior",screen:"behavior",get:()=>S.bf,open:f=>openBeh(f)},
+  company:{label:"Company overview",screen:"company",get:()=>S.cf,open:f=>openCo(f)},
+};
+const viewKind=()=>Object.keys(VIEW_SCREENS).find(k=>VIEW_SCREENS[k].screen===S.screen);
+function saveViewForm(){
+  const kind=viewKind();if(!kind||$("#sv-form"))return;
+  const row=document.createElement("div");row.id="sv-form";row.className="card";
+  row.style.cssText="padding:12px 14px;margin:0 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap";
+  row.innerHTML=`<label for="sv-name" style="margin:0">Name this view</label><input id="sv-name" maxlength="60" style="flex:1;min-width:200px" placeholder="e.g. Q4 sole-source contracts"><button class="btn primary" id="sv-ok" style="padding:7px 14px">Save</button><button class="btn sec" id="sv-no" style="padding:7px 14px">Cancel</button><span id="sv-msg" class="hint" style="width:100%"></span>`;
+  $(".top").after(row);$("#sv-name").focus();
+  const done=()=>row.remove();
+  const save=async()=>{
+    const name=$("#sv-name").value.trim();if(!name){$("#sv-msg").textContent="Give the view a name.";return}
+    const f={};for(const [k,v] of Object.entries(VIEW_SCREENS[kind].get()||{}))if(v!==""&&v!=="all"&&v!=="latest"&&v!=null)f[k]=v;
+    try{await DataService.views("POST","",{name,screen:kind,filters:f});$("#sv-msg").innerHTML='<span class="pos">Saved. Find it on the search page under Saved views.</span>';setTimeout(done,1800)}
+    catch(e){if(e.code==="UNAUTHORIZED"){endSession();return}$("#sv-msg").innerHTML='<span class="neg">'+esc(e.message)+'</span>'}
+  };
+  $("#sv-ok").onclick=save;$("#sv-no").onclick=done;$("#sv-name").onkeydown=e=>{if(e.key==="Enter")save();if(e.key==="Escape")done()};
+}
+async function renderSaved(){
+  const slot=$("#sv-list");if(!slot)return;
+  let list;try{list=(await DataService.views("GET")).views}catch(e){if(e.code==="UNAUTHORIZED")endSession();return}
+  if(!$("#sv-list")||!list.length){if($("#sv-list"))$("#sv-list").innerHTML="";return}
+  const nice=v=>Object.entries(v.filters).map(([k,x])=>k.replace("_"," ")+": "+x).join(" · ")||"no filters";
+  $("#sv-list").innerHTML=`<div class="card" style="margin-top:28px;padding:16px"><b>Saved views</b><p class="hint" style="margin:2px 0 8px">Your own filters, saved from the analytics screens. Opening one runs it again with your current access.</p>${list.map(v=>`<div class="li"><span><a href="#" data-vid="${v.id}" class="vopen"><b>${esc(v.name)}</b></a><br><small>${esc(VIEW_SCREENS[v.screen].label)} · ${esc(nice(v))}</small></span><button class="btn sec vdel" data-vid="${v.id}" style="padding:3px 9px;font-size:11px" title="Delete this view">✕</button></div>`).join("")}</div>`;
+  const by=id=>list.find(v=>String(v.id)===String(id));
+  document.querySelectorAll(".vopen").forEach(a=>a.onclick=e=>{e.preventDefault();const v=by(a.dataset.vid);if(v)VIEW_SCREENS[v.screen].open(v.filters)});
+  document.querySelectorAll(".vdel").forEach(b=>b.onclick=async()=>{try{await DataService.views("DELETE","/"+b.dataset.vid)}catch(e){}renderSaved()});
+}
+function printReport(){
+  const wrap=document.querySelector(".wrap");if(!wrap)return;
+  const f=[...document.querySelectorAll(".filters select")].map(s=>{const l=document.querySelector(`label[for="${s.id}"]`);return(l?l.textContent+": ":"")+s.options[s.selectedIndex].text}).join(" · ");
+  const d=document.createElement("div");d.className="print-only";
+  d.innerHTML=`<b>Fetch report</b> · prepared for ${esc(S.user.name)} (${esc(S.user.id)}) · ${new Date().toLocaleString()}${f?"<br>"+esc(f):""}<br>Sample data only. Shows only what this account is cleared to see.`;
+  wrap.prepend(d);
+  const clean=()=>{d.remove();window.removeEventListener("afterprint",clean)};
+  window.addEventListener("afterprint",clean);window.print();
 }
 
 /* ===== Company overview ===== */
@@ -604,7 +658,7 @@ async function loadCo(prev){
   return true
 }
 async function openCo(t){
-  S.cf={ticker:typeof t==="string"?t:""};S.co=null;S.cerr=null;
+  S.cf={ticker:"",...argOf(t)};S.co=null;S.cerr=null;
   go("canalyzing");
   if(await loadCo()&&S.screen==="canalyzing")go("company");
 }
@@ -631,7 +685,7 @@ async function loadBeh(prevBf){
   return true
 }
 async function openBeh(t){
-  S.bf={ticker:typeof t==="string"?t:"",year:"latest",assessment:"all"};S.beh=null;S.berr=null;
+  S.bf={ticker:"",year:"latest",assessment:"all",...argOf(t)};S.beh=null;S.berr=null;
   go("banalyzing");
   if(await loadBeh()&&S.screen==="banalyzing")go("behavior");
 }
