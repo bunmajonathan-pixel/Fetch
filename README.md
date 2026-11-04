@@ -70,6 +70,16 @@ Bob follows a minimal-change discipline: every edit traces directly to the reque
 
 ### 1. Install and start the app
 
+**Quickest way.** With Python 3.10+ installed, one step does everything below (creates `.venv`, installs the dependencies the first time, starts the server and opens your browser):
+
+| System | Do this |
+|--------|---------|
+| Windows | Double-click `Fetch.bat` |
+| macOS / Linux | `./run.sh` |
+| Any | `python run.py` (add `--no-browser` to skip opening the browser) |
+
+Press `Ctrl+C` in the window to stop the server. If Fetch is already running, the launcher just opens it. The manual steps are below if you prefer them.
+
 **Prerequisites:** Python 3.10 or newer and [pip](https://pip.pypa.io/).
 
 ```bash
@@ -484,6 +494,7 @@ retrieval/                The library
   audit.py                Append-only access log
   pull_request.py         PullRequestAgent — ownership-aware retrieval helper
 
+run.py, run.sh, Fetch.bat   One-step launcher (creates .venv, installs, starts, opens browser)
 ui/index.html             Single-page front-end
 data/                     PDF reports, one sub-folder per category
 tools/                    generate_supplier_contracts.py (CSV + PDFs), extract_financials.py and extract_behavior.py (PDFs → CSVs), check_login.py
