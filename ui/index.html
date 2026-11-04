@@ -246,7 +246,7 @@ results:()=>{
  <div class="top-actions"><button class="btn sec" id="to-an" style="padding:7px 12px;font-size:12px">▥ Contract analytics</button><button class="btn sec" id="to-fin" style="padding:7px 12px;font-size:12px">↗ Financial trends</button><button class="btn sec" id="to-beh" style="padding:7px 12px;font-size:12px">◔ Customer behavior</button><button class="btn sec" id="to-co" style="padding:7px 12px;font-size:12px">▦ Company overview</button><button class="btn sec" id="export" style="padding:7px 12px;font-size:12px">↓ Export CSV</button><button class="btn sec" id="close">✕ Close</button></div></div>
  <div class="tw"><table><thead><tr>${R.columns.map(c=>`<th style="width:${c.w||"auto"}">${esc(c.label)}</th>`).join("")}</tr></thead><tbody>${pageRows.map(r=>`<tr>${R.columns.map(c=>{
    if(c.type==="status")return`<td><span class="st">${esc(r[c.key])}</span></td>`;
-   if(c.type==="pdf_link")return`<td><button class="btn sec" style="padding:4px 10px;font-size:11px" onclick="openPdf('${esc(r[c.key])}','${esc(r.report)}')">↗ View</button></td>`;
+   if(c.type==="pdf_link")return`<td><button class="btn sec pdfv" style="padding:4px 10px;font-size:11px" data-u="${esc(r[c.key])}" data-t="${esc(r.report)}">↗ View</button></td>`;
    if(c.key==="snippet")return`<td title="${esc(r[c.key])}">${hlSnippet(r[c.key]||"")}</td>`;
    return`<td title="${esc(r[c.key])}"${c.key==="report"||c.key==="category"?' class="wrapc"':""}>${esc(r[c.key])}</td>`;
  }).join("")}</tr>`).join("")}</tbody></table></div>
@@ -592,6 +592,7 @@ results(){
   $("#close").onclick=confirmClose;
   $("#export").onclick=exportCsv;
   $("#to-an").onclick=openAnalytics;$("#to-fin").onclick=openFin;$("#to-beh").onclick=openBeh;
+  document.querySelectorAll(".pdfv").forEach(b=>b.onclick=()=>openPdf(b.dataset.u,b.dataset.t));
   const pn=$("#pg-next"),pp=$("#pg-prev");
   if(pn)pn.onclick=()=>{S.page++;go("results")};
   if(pp)pp.onclick=()=>{S.page--;go("results")};

@@ -546,7 +546,10 @@ For the JSON endpoints the token is accepted either from the `session_token` coo
 |---------|-----------|
 | **Password storage** | bcrypt hashes in SQLite. No plain-text passwords in the database. |
 | **Sessions** | Random 32-byte hex tokens, 1-hour TTL, stored in memory. Sessions are lost when the server restarts. |
-| **Lockout** | After 3 failed sign-ins for the same company + ID, further attempts return `LOCKED` until an administrator unlocks the account or the server is restarted. |
+| **Lockout** | After 3 failed sign-ins for the same ID (case-insensitive; the free-text company field is ignored, so it cannot be used to reset the counter), further attempts return `LOCKED` until an administrator unlocks the account or the server is restarted. |
+| **Unknown accounts** | Signing in with an ID that does not exist costs the same bcrypt check as a wrong password, so response time does not reveal which IDs exist. |
+| **Browser protections** | Every response carries `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: no-referrer` and a Content-Security-Policy (same-origin only, no framing by other sites). `/api/*` responses are `no-store`. The session cookie is `HttpOnly` and `SameSite=Strict`. |
+| **Debug mode** | Off. The Flask debugger allows code execution, so it only starts when the `FETCH_DEBUG=1` environment variable is set. |
 | **Rate limiting** | Max 30 `/api/retrieve` calls per token per 60 seconds. |
 | **Document ACLs** | Each user can only search, and download PDFs for, the tickers in their `document_ids`. Knowing another company's PDF URL is not enough: the download is refused with `403`. |
 | **Record-level limits** | A user's `owners` list restricts contract data to those departments. It is applied inside the SQL query (`owner IN (...)`) for every analytics call, and any filter the user adds can only narrow it further. The company-wide register PDFs, which list every department, are hidden from limited users' search results and refused on download. |
@@ -555,6 +558,16 @@ For the JSON endpoints the token is accepted either from the `session_token` coo
 | **Audit log** | `signin`, `signin_fail`, `signout`, `refresh`, `retrieve`, `rate_limited`, `pdf_view`, `pdf_denied`, `analyze`, `analyze_denied`, `view_saved`, `view_deleted`, `admin_denied` and the four `admin_user_*` events are written to `instance/audit.log` as JSON lines. |
 
 The demo passwords above are written in the source code. Change them before deploying anywhere beyond a local demo.
+
+**Before using this beyond a local demo**, these are known limits of the sample:
+
+- The demo accounts (including the administrator `ADM-01`) are created on a fresh database with passwords printed in this README. Replace `DEFAULT_ACCOUNTS` or delete those accounts first.
+- The server speaks plain HTTP, so the session cookie has no `Secure` flag. Put it behind HTTPS (and add `Secure` and HSTS) for anything other than `localhost`.
+- Flask's built-in server is for development. Use a production WSGI server (for example gunicorn or waitress) behind a reverse proxy.
+- Sessions, lockout counters and rate limits live in memory: they reset on restart and are not shared between workers. A lockout also lets anyone who knows an ID lock that account until an administrator unlocks it.
+- The sign-in endpoint has no per-address rate limit, only the per-account lockout.
+- The page needs `'unsafe-inline'` scripts because the UI is a single file, which limits what the Content-Security-Policy can prevent.
+- `instance/audit.log` grows without limit and `instance/*.db` are plain files; protect them with file permissions and back them up.
 
 ### Extending
 

@@ -17,6 +17,7 @@ Run from the project root:
 Then open http://localhost:5000
 """
 from __future__ import annotations
+import hmac
 import os
 import re
 import time
@@ -167,8 +168,25 @@ _login_attempts: dict[str, int] = {}
 MAX_ATTEMPTS = 3
 
 
-def _key(company: str, uid: str) -> str:
-    return f"{company.lower()}:{uid.lower()}"
+def _key(uid: str) -> str:
+    """Lockout key: the account only.  The sign-in form also sends a free-text
+    "company", which an attacker controls, so it must not be part of the key."""
+    return uid.lower()
+
+
+@app.after_request
+def _security_headers(resp):
+    """Defence in depth for a page that shows access-controlled data."""
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")      # no framing by other sites (clickjacking)
+    resp.headers.setdefault("Referrer-Policy", "no-referrer")
+    resp.headers.setdefault("Content-Security-Policy",
+                            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                            "img-src 'self' data: blob:; frame-src 'self'; object-src 'self'; "
+                            "frame-ancestors 'self'; base-uri 'none'; form-action 'self'")
+    if request.path.startswith("/api/"):
+        resp.headers.setdefault("Cache-Control", "no-store")      # API answers are per-user
+    return resp
 
 
 @app.get("/")
@@ -238,9 +256,12 @@ def api_audit():
     if not AUDIT_TOKEN:
         abort(403)
     auth = request.headers.get("X-Audit-Token", "")
-    if auth != AUDIT_TOKEN:
+    if not hmac.compare_digest(auth.encode(), AUDIT_TOKEN.encode()):
         abort(403)
-    n = min(int(request.args.get("n", 200)), 1000)
+    try:
+        n = max(1, min(int(request.args.get("n", 200)), 1000))
+    except ValueError:
+        return jsonify(error="n must be a number.", code="BAD_REQUEST"), 400
     return jsonify(entries=_audit_recent(n))
 
 
@@ -254,7 +275,7 @@ def api_signin():
     if not uid or not password:
         return jsonify(error="Missing credentials.", code="BAD_CREDENTIALS"), 400
 
-    key = _key(company, uid)
+    key = _key(uid)
     if _login_attempts.get(key, 0) >= MAX_ATTEMPTS:
         return jsonify(error="Account locked.", code="LOCKED"), 403
 
@@ -687,7 +708,7 @@ def _departments_for(tickers: list[str]) -> dict[str, list[str]]:
 
 
 def _is_locked(username: str) -> bool:
-    return any(n >= MAX_ATTEMPTS and k.endswith(":" + username.lower()) for k, n in _login_attempts.items())
+    return _login_attempts.get(_key(username), 0) >= MAX_ATTEMPTS
 
 
 def _account_json(rec) -> dict:
@@ -829,8 +850,7 @@ def api_admin_unlock_user(username: str):
         return err
     if db_users.get_user(username) is None:
         return jsonify(error="User not found.", code="NOT_FOUND"), 404
-    for k in [k for k in _login_attempts if k.endswith(":" + username.lower())]:
-        del _login_attempts[k]
+    _login_attempts.pop(_key(username), None)
     _audit("admin_user_unlocked", admin, ip=request.remote_addr, detail={"user": username})
     return jsonify(ok=True)
 
@@ -881,4 +901,5 @@ def api_signout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False, port=5000)
+    # The Werkzeug debugger allows code execution, so it is opt-in: FETCH_DEBUG=1 python server.py
+    app.run(debug=os.environ.get("FETCH_DEBUG") == "1", use_reloader=False, port=5000)
