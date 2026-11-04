@@ -22,9 +22,12 @@ _PATH: Path | None = None
 _STAMP: tuple | None = None
 _ROWS: dict[str, dict[int, list[dict]]] = {}      # ticker -> year -> rows in report order
 
-# A change is "meaningful" at 1 percentage point for a rate, 2% for anything else.
-# Smaller moves are shown as "flat" so noise is not reported as progress or decline.
+# A change is "meaningful" when a rate moves 1 percentage point, or by 5% of its own level
+# (so 8.5% churn falling to 7.7% counts even though it is under a point), and when any
+# other measure moves 2%.  Smaller moves are shown as "flat" so noise is not reported
+# as progress or decline.
 RATE_PTS = 1.0
+RATE_REL_PCT = 5.0
 OTHER_PCT = 2.0
 
 ASSESSMENTS = ("all", "improved", "worsened", "flat")
@@ -106,27 +109,48 @@ def _rel(new: float, old: float) -> float | None:
     return round(100.0 * (new / old - 1), 1)
 
 
-def _assess(direction: str, change: float | None, kind: str | None) -> str | None:
+def _assess(direction: str, change: float | None, kind: str | None, rel: float | None = None) -> str | None:
     """improved | worsened | flat | None (neutral, or nothing to compare with)."""
     if change is None or direction == "neutral":
         return None
-    meaningful = abs(change) >= (RATE_PTS if kind == "pts" else OTHER_PCT)
+    if kind == "pts":
+        meaningful = abs(change) >= RATE_PTS or (rel is not None and abs(rel) >= RATE_REL_PCT)
+    else:
+        meaningful = abs(change) >= OTHER_PCT
     if not meaningful:
         return "flat"
     return "improved" if (change > 0) == (direction == "up") else "worsened"
 
 
+def _why(direction: str, change: float, kind: str | None, rel: float | None, assessment: str) -> str:
+    """One sentence saying why a measure was put in its group."""
+    if kind == "pts":
+        moved = f"{abs(change):g} pts" + (f" ({rel:+.1f}% of its level)" if rel is not None else "")
+        rule = f"under {RATE_PTS:g} pt and under {RATE_REL_PCT:g}% of its level" if assessment == "flat" \
+            else f"at least {RATE_PTS:g} pt or {RATE_REL_PCT:g}% of its level"
+    else:
+        moved = f"{abs(change):g}%"
+        rule = f"under {OTHER_PCT:g}%" if assessment == "flat" else f"at least {OTHER_PCT:g}%"
+    if assessment == "flat":
+        return f"Moved {moved}, {rule}, so it is shown as flat."
+    good = "higher" if direction == "up" else "lower"
+    went = "rose" if change > 0 else "fell"
+    return f"{went.capitalize()} {moved}, {rule}. {good.capitalize()} is better, so this {assessment}."
+
+
 def _row_out(r: dict, prior: dict | None) -> dict:
     out = {"section": r["section"], "key": r["key"], "label": r["label"], "value": r["value"],
            "unit": r["unit"], "direction": r["direction"], "kind": r["kind"],
-           "prior": None, "change": None, "change_kind": None, "rel_pct": None, "assessment": None}
+           "prior": None, "change": None, "change_kind": None, "rel_pct": None, "assessment": None, "why": None}
     if prior is not None:
         # the printed change is what the report states; the extractor has checked it against both years
         out["prior"] = prior["value"]
         out["change"] = r["printed_change"]
         out["change_kind"] = r["change_kind"] or None
         out["rel_pct"] = _rel(r["value"], prior["value"])
-        out["assessment"] = _assess(r["direction"], r["printed_change"], r["change_kind"])
+        out["assessment"] = _assess(r["direction"], r["printed_change"], r["change_kind"], out["rel_pct"])
+        if out["assessment"]:
+            out["why"] = _why(r["direction"], r["printed_change"], r["change_kind"], out["rel_pct"], out["assessment"])
     return out
 
 
@@ -158,6 +182,13 @@ def _company(ticker: str, year: int, f: Filters) -> dict:
     def top(which: str) -> list[dict]:
         pool = [r for r in scored if r["assessment"] == which and r["rel_pct"] is not None]
         return sorted(pool, key=lambda r: -abs(r["rel_pct"]))[:3]
+
+    for r in top("worsened"):
+        peers = [x for x in scored if x["section"] == r["section"] and x is not r]
+        tally = {a: sum(x["assessment"] == a for x in peers) for a in ("improved", "worsened", "flat")}
+        r["context"] = (f"Other measures in {r['section']}: {tally['improved']} improved, {tally['worsened']} worse, "
+                        f"{tally['flat']} flat. Revenue {'grew' if (revenue['rel_pct'] or 0) >= 0 else 'fell'} "
+                        f"{abs(revenue['rel_pct'] or 0):g}% over the same year.") if prev_rows else None
 
     mix_moves = sorted((r for r in rows if r["kind"] == "mix" and r["change"] is not None and r["change"] != 0),
                        key=lambda r: -abs(r["change"]))[:4]
@@ -228,6 +259,6 @@ def analyze(tickers: set[str], f: Filters) -> dict:
         c.pop("_rows")
     return {"filters": {"ticker": f.ticker, "year": year, "assessment": f.assessment},
             "years": years, "year": year, "companies": companies, "comparison": comparison,
-            "rule": {"rate_pts": RATE_PTS, "other_pct": OTHER_PCT,
-                     "text": f"A change counts when a rate moves by {RATE_PTS:g} point or more, or any other "
-                             f"measure by {OTHER_PCT:g}% or more; smaller moves are shown as flat."}}
+            "rule": {"rate_pts": RATE_PTS, "rate_rel_pct": RATE_REL_PCT, "other_pct": OTHER_PCT,
+                     "text": f"A change counts when a rate moves by {RATE_PTS:g} point or {RATE_REL_PCT:g}% of its own "
+                             f"level, or any other measure by {OTHER_PCT:g}%; smaller moves are shown as flat."}}

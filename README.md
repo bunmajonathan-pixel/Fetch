@@ -266,7 +266,7 @@ Choose **Customer behavior** from the request, results, contract or financial sc
 
 Filters: company, year and *Improved / Worsened / Flat*.
 
-**Reading the assessment.** Each measure knows which direction is good (more customers is good, more churn is not). A change counts when a rate moves by 1 percentage point or more, or any other measure by 2% or more; smaller moves are shown as *flat* so noise is not reported as progress. Mix shares, such as the share of revenue from one segment, are shown but not judged.
+**Reading the assessment.** Each measure knows which direction is good (more customers is good, more churn is not). A change counts when a rate moves by 1 percentage point or by 5% of its own level (so churn falling from 8.5% to 7.7% counts, while retention rising from 73.8% to 74.3% does not), or any other measure by 2%; smaller moves are shown as *flat* so noise is not reported as progress. Every improved, worse and flat measure says why in one sentence (hover the tag, or read the line under the measure name), and each concern also shows how the rest of its group moved and how revenue did. Mix shares, such as the share of revenue from one segment, are shown but not judged.
 
 **Reading the comparison.** The three companies measure different things: BrightLeaf counts households, Halcyon and Meridian count accounts or logos. For that reason only like-for-like measures are compared: revenue growth, customer base growth, change in revenue per customer, Net Promoter Score (level and change in points) and logo churn (BrightLeaf does not report it, so it shows a dash).
 

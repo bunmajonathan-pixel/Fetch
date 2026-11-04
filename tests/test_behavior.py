@@ -319,3 +319,34 @@ def test_department_limited_user_matches_their_pdf_access(client):
     d = _post(client, *DEPT).get_json()
     assert [c["ticker"] for c in d["companies"]] == ["BLFD"]
     assert _post(client, *DEPT, ticker="HDYN").status_code == 403
+
+
+def test_small_rate_with_large_relative_move_counts(tiny):
+    """8.5% churn falling to 7.7% is under a point but a 9% improvement, so it is not flat."""
+    rows = _base() + [
+        _row("AAA", 2024, "churn", 8.5, "%", direction="down"), _row("AAA", 2025, "churn", 7.7, "%", -0.8, "pts", "down"),
+        _row("AAA", 2024, "big", 74.0, "%"), _row("AAA", 2025, "big", 74.7, "%", 0.7, "pts"),
+        _row("AAA", 2024, "slip", 8.0, "%"), _row("AAA", 2025, "slip", 7.4, "%", -0.6, "pts"),
+    ]
+    tiny(rows)
+    c = behavior.analyze({"AAA"}, Filters())["companies"][0]
+    a = {r["key"]: r for s in c["sections"] for r in s["rows"]}
+    assert a["churn"]["assessment"] == "improved"          # -0.8 pts but -9.4% of its level
+    assert a["big"]["assessment"] == "flat"                # +0.7 pts on a high base is +0.9%
+    assert a["slip"]["assessment"] == "worsened"           # -0.6 pts but -7.5% of its level, higher is better
+    assert "flat" in a["big"]["why"] and "under 1 pt" in a["big"]["why"]
+    assert "Fell" in a["slip"]["why"] and "Higher is better" in a["slip"]["why"]
+
+
+def test_every_judged_row_explains_itself_and_concerns_have_context(tiny):
+    rows = _base() + [
+        _row("AAA", 2024, "churn", 10.0, "%", direction="down"), _row("AAA", 2025, "churn", 12.0, "%", 2.0, "pts", "down"),
+        _row("AAA", 2024, "size", 100.0, direction="neutral"), _row("AAA", 2025, "size", 150.0, "", 50.0, "pct", "neutral"),
+    ]
+    tiny(rows)
+    c = behavior.analyze({"AAA"}, Filters())["companies"][0]
+    for s in c["sections"]:
+        for r in s["rows"]:
+            assert (r["why"] is not None) == (r["assessment"] is not None)
+    concern = c["concerns"][0]
+    assert concern["key"] == "churn" and "Revenue grew 10" in concern["context"]
