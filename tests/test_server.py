@@ -161,3 +161,55 @@ def test_signout_invalidates_token(client):
 def test_signout_no_token_ok(client):
     r = client.post("/api/signout", json={})
     assert r.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Supplier-contracts demo: "active supplier contracts expiring in Q4 2026"
+# ---------------------------------------------------------------------------
+
+DEMO_QUERY = "Show active supplier contracts expiring in Q4 2026"
+
+
+def _rows_for(client, uid, password, query=DEMO_QUERY):
+    token = _signin(client, uid, password).get_json()["token"]
+    r = client.post("/api/retrieve", json={"query": query, "token": token})
+    assert r.status_code == 200
+    return r.get_json()["rows"]
+
+
+@pytest.mark.parametrize("uid,password,ticker", [
+    ("BLFD-01", "blfd2024", "BLFD"),
+    ("HDYN-01", "hdyn2024", "HDYN"),
+    ("MCLD-01", "mcld2024", "MCLD"),
+])
+def test_supplier_contracts_demo_scoped_to_user(client, uid, password, ticker):
+    """Each user gets only their own company's Q4-2026 contract register."""
+    rows = _rows_for(client, uid, password)
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["ticker"] == ticker
+    assert row["period"] == "Q4-2026"
+    assert row["category"] == "Supplier Contracts"
+    assert row["file"] == (
+        f"/api/pdf/{ticker}/Supplier_Contracts/{ticker}_Q4-2026_Supplier_Contracts.pdf"
+    )
+
+
+def test_supplier_contracts_period_filter(client):
+    """The quarter in the query selects the matching expiry-quarter file."""
+    rows = _rows_for(client, "BLFD-01", "blfd2024",
+                     "supplier contracts expiring in Q1 2027")
+    assert [r["period"] for r in rows] == ["Q1-2027"]
+
+
+def test_supplier_contract_pdf_is_servable(client):
+    rows = _rows_for(client, "HDYN-01", "hdyn2024")
+    r = client.get(rows[0]["file"])
+    assert r.status_code == 200
+    assert r.mimetype == "application/pdf"
+
+
+def test_supplier_contract_pdf_wrong_ticker_rejected(client):
+    """A BLFD URL cannot be used to fetch another company's file."""
+    r = client.get("/api/pdf/BLFD/Supplier_Contracts/HDYN_Q4-2026_Supplier_Contracts.pdf")
+    assert r.status_code == 403

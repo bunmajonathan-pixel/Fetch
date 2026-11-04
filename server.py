@@ -37,8 +37,10 @@ from retrieval import db_users
 # ---------------------------------------------------------------------------
 BASE_DIR    = Path(__file__).parent
 # Root that contains ALL category folders (individual, behavior, Financial_and_Commercial, …)
-# NOTE: looks like a leftover shell brace-expansion name; verify it points at your real data folder.
-DATA_ROOT   = BASE_DIR / "{retrieval\\sources,tests,examples}"
+# The folder is literally named "{retrieval/sources,tests,examples}" in the repo (a leftover shell
+# brace-expansion name: dirs "{retrieval" > "sources,tests,examples}"). Build it from separate path
+# parts: the old "{retrieval\\sources,...}" string only resolved on Windows.
+DATA_ROOT   = BASE_DIR / "{retrieval" / "sources,tests,examples}"
 UI_PATH     = BASE_DIR / "Data Pull UI.html"
 
 # ---------------------------------------------------------------------------
