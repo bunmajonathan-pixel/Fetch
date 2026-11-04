@@ -6,7 +6,7 @@ dependencies = ["flask>=3.0", "pypdf>=4.0", "bcrypt>=4.0"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
-tools = ["reportlab>=4.0"]   # only for tools/generate_supplier_contracts.py
+tools = ["reportlab>=4.0"]   # only for the sample-data generators: tools/generate_supplier_contracts.py and tools/generate_q3_2026_reports.py
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

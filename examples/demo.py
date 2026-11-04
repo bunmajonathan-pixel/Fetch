@@ -1,9 +1,14 @@
 """
 demo.py — Demonstrates the authenticated pull-request pipeline.
 
-Run from the retrieval_framework/ directory:
-    PYTHONPATH=. python examples/demo.py
+Run from anywhere:
+    python examples/demo.py
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root, so `retrieval` imports
+
 from retrieval import (
     Document, Retriever, TTLCache,
     login, logout, AuthError,
