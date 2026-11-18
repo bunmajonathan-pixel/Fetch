@@ -1,6 +1,6 @@
 # Fetch (retrieval-framework)
 
-A SaaS-style document retrieval platform. Users sign in with company credentials, run natural-language queries against the PDF reports they are authorised to see, and get a structured results table back in real time.
+A SaaS-style document retrieval platform. Users sign in with company credentials, run natural-language queries against the PDF reports they are authorized to see, and get a structured results table back in real time.
 
 ---
 
@@ -47,7 +47,6 @@ Common tasks Bob handles on this project:
 | Extend ranking | *"Implement BM25 / embedding reranking in `ranking.py`"* |
 | Debug a test failure | *"This test is failing: `<paste traceback>`"* |
 | Refactor a module | *"Rename `document_ids` to `allowed_tickers` everywhere"* |
-| Update docs | *"Update the README to reflect the new `<feature>`"* |
 
 Bob follows a minimal-change discipline: every edit traces directly to the request, with no unrequested refactors or speculative additions.
 
@@ -133,7 +132,6 @@ The sign-in form starts empty. Use one of these demo accounts:
 
 The three department accounts search the same companies as their `-01` counterparts, but see only their own department's supplier contracts (see [guide 4](#4-analyze-supplier-contracts)).
 
-`alice` and `bob` also exist as unit-test accounts. They are tied to test document IDs rather than company tickers, so they can sign in but searches return no results.
 
 Type a search into the box and click **Pull**. Try `revenue`, `Q1 2025`, or `operating expenses`. The results table lists the matching reports from your authorised companies:
 
@@ -214,7 +212,7 @@ Search finds documents. The analytics view turns the contract data into totals, 
 | Renewal pipeline | Annual value by renewal stage |
 | Next four quarters | Value expiring in the current and next three quarters, with how many of those contracts have no renewal started |
 | Supplier concentration | Per category: supplier count, value, **HHI** (sum of squared supplier shares of value: under 1,500 low, 1,500–2,499 moderate, 2,500 or more high), the largest supplier and its share (flagged above 40%), and sole-source value |
-| Charts | Expiries by month (or by quarter for windows over 12 months), by category, time until expiry, top suppliers, and by department or company when more than one applies |
+| Charts | Expires by month (or by quarter for windows over 12 months), by category, time until expiry, top suppliers, and by department or company when more than one applies |
 | Contracts table | Every matching contract with its renewal stage and a *sole* tag, paged, with **Export CSV** |
 
 Days to expiry are counted from the data's status date, **November 4, 2026**, not from today's date.
@@ -312,7 +310,7 @@ Signals only appear when the data shows the condition: contracts lapsing within 
 
 **Needs attention** (request screen, or the button on the company overview) is one ranked list across every company you can see. It contains each company's signals from the overview plus *results outside the expected range*: a measure whose latest quarter landed beyond the range that the estimate method (see [guide 5](#5-analyze-financial-trends)) would have given from the quarters before it, and at least 3% away from that estimate. A miss on revenue, profit or cash is a **Watch** item; a beat is **Good news**. Filter by company, show only what needs attention or everything, jump to the matching screen, or **Export CSV**. It is built from the same permission-scoped profiles as the overview, so a department-limited account sees only its own departments' contract items.
 
-#### A five-minute demo
+#### Example of Needs Attention.
 
 1. Sign in as `NL-2048`, search `Q3 2026 revenue`: each quarterly report carries its key figures and flags; BrightLeaf shows 11 worse.
 2. Open **Needs attention**: BrightLeaf and Halcyon report below the expected range, Meridian beats it.
